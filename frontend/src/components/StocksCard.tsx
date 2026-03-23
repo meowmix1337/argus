@@ -16,6 +16,8 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
   const [hoveredSymbol, setHoveredSymbol] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [shouldScroll, setShouldScroll] = useState(false);
+  const shouldScrollRef = useRef(false);
+  const [singleCopyWidthPx, setSingleCopyWidthPx] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -50,17 +52,25 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
 
   useEffect(() => {
     if (stocks.length === 0) {
+      shouldScrollRef.current = false;
       setShouldScroll(false);
+      setSingleCopyWidthPx(0);
       return;
     }
     const container = containerRef.current;
     const inner = innerRef.current;
     if (!container || !inner) return;
     const check = () => {
-      setShouldScroll(prev => {
-        const contentW = prev ? inner.scrollWidth / 2 : inner.scrollWidth;
-        return contentW > container.clientWidth;
+      const singleW = shouldScrollRef.current ? inner.scrollWidth / 2 : inner.scrollWidth;
+      const overflows = singleW > container.clientWidth;
+      setSingleCopyWidthPx(w => {
+        const rounded = Math.round(singleW);
+        return rounded !== w ? rounded : w;
       });
+      if (overflows !== shouldScrollRef.current) {
+        shouldScrollRef.current = overflows;
+        setShouldScroll(overflows);
+      }
     };
     check();
     const observer = new ResizeObserver(check);
@@ -106,7 +116,7 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
       <style>{`
         @keyframes argus-ticker-scroll {
           0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          100% { transform: translateX(-${singleCopyWidthPx}px); }
         }
       `}</style>
 
