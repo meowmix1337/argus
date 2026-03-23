@@ -152,9 +152,11 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
               display: 'flex',
               alignItems: 'center',
               width: 'fit-content',
+              flexShrink: 0,
               ...(shouldScroll && {
                 animation: `argus-ticker-scroll ${duration}s linear infinite`,
                 animationPlayState: isPaused ? 'paused' : 'running',
+                willChange: 'transform',
               }),
             }}
           >
