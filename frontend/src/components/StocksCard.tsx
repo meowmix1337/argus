@@ -15,6 +15,9 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
 
   const [hoveredSymbol, setHoveredSymbol] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [shouldScroll, setShouldScroll] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -44,6 +47,26 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showAddForm, setSearchQuery]);
+
+  useEffect(() => {
+    if (stocks.length === 0) {
+      setShouldScroll(false);
+      return;
+    }
+    const container = containerRef.current;
+    const inner = innerRef.current;
+    if (!container || !inner) return;
+    const check = () => {
+      setShouldScroll(prev => {
+        const contentW = prev ? inner.scrollWidth / 2 : inner.scrollWidth;
+        return contentW > container.clientWidth;
+      });
+    };
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [stocks]);
 
   const currentSymbols = new Set(stocks.map((s) => s.symbol));
   const duration = Math.max(8, stocks.length * 4);
@@ -113,6 +136,7 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
 
       {/* Ticker strip — animated marquee */}
       <div
+        ref={containerRef}
         style={{ flex: 1, overflow: 'hidden', display: 'flex', alignItems: 'center' }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
@@ -122,14 +146,19 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
             No tickers — add one →
           </span>
         ) : (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            width: 'fit-content',
-            animation: `argus-ticker-scroll ${duration}s linear infinite`,
-            animationPlayState: isPaused ? 'paused' : 'running',
-          }}>
-            {marqueeItems.map((stock, i) => {
+          <div
+            ref={innerRef}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              width: 'fit-content',
+              ...(shouldScroll && {
+                animation: `argus-ticker-scroll ${duration}s linear infinite`,
+                animationPlayState: isPaused ? 'paused' : 'running',
+              }),
+            }}
+          >
+            {(shouldScroll ? marqueeItems : stocks).map((stock, i) => {
               const isPositive = stock.change >= 0;
               const changeColor = isPositive ? '#10b981' : '#ef4444';
               const isHovered = hoveredSymbol === stock.symbol;
