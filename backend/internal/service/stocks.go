@@ -19,7 +19,9 @@ var ErrSymbolNotFound = apperrors.ErrSymbolNotFound
 
 // WatchlistStore defines the data-access contract for the stocks watchlist.
 type WatchlistStore interface {
-	ListSymbols(ctx context.Context, userID string) ([]string, error)
+	// ListSymbols returns a page of active symbols plus the total count.
+	// limit=0 means no limit (returns all symbols).
+	ListSymbols(ctx context.Context, userID string, limit, offset int) ([]string, int, error)
 	Exists(ctx context.Context, userID string, symbol string) (bool, error)
 	Add(ctx context.Context, userID string, symbol string) error
 	Remove(ctx context.Context, userID string, symbol string) error
@@ -65,13 +67,22 @@ func (s *StocksService) Fetch(ctx context.Context, userID string) ([]model.Stock
 	return quotes, nil
 }
 
-// GetSymbols returns the current watchlist symbols for a user.
+// GetSymbols returns all watchlist symbols for a user (no pagination — used internally for quote fetching).
 func (s *StocksService) GetSymbols(ctx context.Context, userID string) ([]string, error) {
-	symbols, err := s.store.ListSymbols(ctx, userID)
+	symbols, _, err := s.store.ListSymbols(ctx, userID, 0, 0)
 	if err != nil {
 		return nil, fmt.Errorf("get symbols: %w", err)
 	}
 	return symbols, nil
+}
+
+// GetSymbolsPaginated returns a page of watchlist symbols plus the total count.
+func (s *StocksService) GetSymbolsPaginated(ctx context.Context, userID string, limit, offset int) ([]string, int, error) {
+	symbols, total, err := s.store.ListSymbols(ctx, userID, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("get symbols: %w", err)
+	}
+	return symbols, total, nil
 }
 
 // AddSymbol adds a symbol to the user's watchlist (UPSERT — re-activates soft-deleted rows).

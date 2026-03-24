@@ -20,4 +20,8 @@ const (
 
 	// oauthStateMaxAge is the lifetime of the short-lived OAuth state cookie.
 	oauthStateMaxAge = 5 * 60 // 5 minutes in seconds
+
+	// Stocks watchlist pagination
+	defaultWatchlistLimit = 20
+	maxWatchlistLimit     = 50
 )

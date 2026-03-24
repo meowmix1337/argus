@@ -8,6 +8,9 @@ type AddSymbolRequest struct {
 // WatchlistResponse is the JSON response for watchlist operations.
 type WatchlistResponse struct {
 	Symbols []string `json:"symbols"`
+	Total   int      `json:"total"`
+	Limit   int      `json:"limit"`
+	Offset  int      `json:"offset"`
 }
 
 // SearchResponse is the JSON response for GET /api/stocks/search.

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
@@ -48,20 +49,38 @@ func (h *StocksHandler) Get(w http.ResponseWriter, r *http.Request) {
 	response.WriteJSON(w, http.StatusOK, data)
 }
 
-// GetWatchlist returns the current list of watchlist symbols.
+// GetWatchlist returns a paginated list of watchlist symbols.
 func (h *StocksHandler) GetWatchlist(w http.ResponseWriter, r *http.Request) {
 	userID, ok := userIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	syms, err := h.service.GetSymbols(r.Context(), userID)
+
+	limit := defaultWatchlistLimit
+	if v := r.URL.Query().Get("limit"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			limit = n
+		}
+	}
+	if limit > maxWatchlistLimit {
+		limit = maxWatchlistLimit
+	}
+
+	offset := 0
+	if v := r.URL.Query().Get("offset"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n >= 0 {
+			offset = n
+		}
+	}
+
+	syms, total, err := h.service.GetSymbolsPaginated(r.Context(), userID, limit, offset)
 	if err != nil {
 		slog.Error("stocks get watchlist error", "error", err)
 		response.WriteError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
-	response.WriteJSON(w, http.StatusOK, WatchlistResponse{Symbols: syms})
+	response.WriteJSON(w, http.StatusOK, WatchlistResponse{Symbols: syms, Total: total, Limit: limit, Offset: offset})
 }
 
 // AddSymbol adds a symbol to the watchlist.
@@ -91,13 +110,13 @@ func (h *StocksHandler) AddSymbol(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	syms, err := h.service.GetSymbols(r.Context(), userID)
+	syms, total, err := h.service.GetSymbolsPaginated(r.Context(), userID, 0, 0)
 	if err != nil {
 		slog.Error("stocks get watchlist error", "error", err)
 		response.WriteError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
-	response.WriteJSON(w, http.StatusCreated, WatchlistResponse{Symbols: syms})
+	response.WriteJSON(w, http.StatusCreated, WatchlistResponse{Symbols: syms, Total: total})
 }
 
 // RemoveSymbol removes a symbol from the watchlist.
@@ -119,13 +138,13 @@ func (h *StocksHandler) RemoveSymbol(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	syms, err := h.service.GetSymbols(r.Context(), userID)
+	syms, total, err := h.service.GetSymbolsPaginated(r.Context(), userID, 0, 0)
 	if err != nil {
 		slog.Error("stocks get watchlist error", "error", err)
 		response.WriteError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
-	response.WriteJSON(w, http.StatusOK, WatchlistResponse{Symbols: syms})
+	response.WriteJSON(w, http.StatusOK, WatchlistResponse{Symbols: syms, Total: total})
 }
 
 // SearchSymbols proxies Finnhub symbol search to keep the API key server-side.

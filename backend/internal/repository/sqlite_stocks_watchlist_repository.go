@@ -19,19 +19,27 @@ func NewSQLiteStocksWatchlistRepository(db *sqlx.DB) *SQLiteStocksWatchlistRepos
 	return &SQLiteStocksWatchlistRepository{db: db}
 }
 
-func (r *SQLiteStocksWatchlistRepository) ListSymbols(ctx context.Context, userID string) ([]string, error) {
-	var symbols []string
-	err := r.db.SelectContext(ctx, &symbols,
-		`SELECT symbol
-		 FROM stocks_watchlist
-		 WHERE deleted_at IS NULL AND user_id = ?
-		 ORDER BY created_at ASC`,
+func (r *SQLiteStocksWatchlistRepository) ListSymbols(ctx context.Context, userID string, limit, offset int) ([]string, int, error) {
+	var total int
+	if err := r.db.GetContext(ctx, &total,
+		`SELECT COUNT(*) FROM stocks_watchlist WHERE deleted_at IS NULL AND user_id = ?`,
 		userID,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("list watchlist symbols: %w", err)
+	); err != nil {
+		return nil, 0, fmt.Errorf("count watchlist symbols: %w", err)
 	}
-	return symbols, nil
+
+	query := `SELECT symbol FROM stocks_watchlist WHERE deleted_at IS NULL AND user_id = ? ORDER BY created_at ASC`
+	args := []any{userID}
+	if limit > 0 {
+		query += ` LIMIT ? OFFSET ?`
+		args = append(args, limit, offset)
+	}
+
+	var symbols []string
+	if err := r.db.SelectContext(ctx, &symbols, query, args...); err != nil {
+		return nil, 0, fmt.Errorf("list watchlist symbols: %w", err)
+	}
+	return symbols, total, nil
 }
 
 func (r *SQLiteStocksWatchlistRepository) Exists(ctx context.Context, userID string, symbol string) (bool, error) {
