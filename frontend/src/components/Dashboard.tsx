@@ -232,7 +232,7 @@ export default function Dashboard(): React.ReactElement {
   const lastUpdated = formatTime(now);
 
   function getSpan(id: CardId): number {
-    if (id === 'news') return isMobile || isTablet ? 1 : 2;
+    if (id === 'news') return isMobile ? 1 : 2;
     return 1;
   }
 
@@ -451,7 +451,7 @@ export default function Dashboard(): React.ReactElement {
               <CardSkeleton span={1} rows={4} />
               <CardSkeleton span={1} rows={5} />
               <CardSkeleton span={1} rows={5} />
-              <CardSkeleton span={isMobile || isTablet ? 1 : 2} rows={4} />
+              <CardSkeleton span={isMobile ? 1 : 2} rows={4} />
               <CardSkeleton span={1} rows={2} />
             </>
           ) : (
