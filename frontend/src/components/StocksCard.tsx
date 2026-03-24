@@ -169,9 +169,7 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
         }}>
           Markets
         </span>
-        {isFetching && (
-          <span style={{ fontSize: 9, color: 'var(--text-accent)', fontFamily: "'JetBrains Mono', monospace" }}>●</span>
-        )}
+        <span style={{ fontSize: 9, color: 'var(--text-accent)', fontFamily: "'JetBrains Mono', monospace", opacity: isFetching ? 1 : 0 }}>●</span>
       </div>
 
       {/* Ticker strip — animated marquee */}
