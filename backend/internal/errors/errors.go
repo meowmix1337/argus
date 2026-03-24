@@ -25,4 +25,7 @@ var ErrLabelAssignmentNotFound = errors.New("label assignment not found")
 
 // Auth errors.
 
+var ErrBillNotFound = errors.New("bill not found")
+var ErrBillValidation = errors.New("bill validation failed")
+
 var ErrUnauthorized = errors.New("unauthorized")

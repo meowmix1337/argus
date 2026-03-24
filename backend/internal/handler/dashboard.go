@@ -21,6 +21,7 @@ type DashboardHandler struct {
 	tasks    *service.TasksService
 	sunrise  *service.SunriseService
 	quotes   *service.QuotesService
+	bills    *service.BillsService
 }
 
 // NewDashboardHandler creates a new DashboardHandler.
@@ -31,6 +32,7 @@ func NewDashboardHandler(
 	tasks *service.TasksService,
 	sunrise *service.SunriseService,
 	quotes *service.QuotesService,
+	bills *service.BillsService,
 ) *DashboardHandler {
 	return &DashboardHandler{
 		weather:  weather,
@@ -39,6 +41,7 @@ func NewDashboardHandler(
 		tasks:    tasks,
 		sunrise:  sunrise,
 		quotes:   quotes,
+		bills:    bills,
 	}
 }
 
@@ -125,6 +128,21 @@ func (h *DashboardHandler) Get(w http.ResponseWriter, r *http.Request) {
 			Quote:    quote,
 		}
 		resp.Meta = &meta
+		return nil
+	})
+
+	g.Go(func() error {
+		sess, ok := middleware.SessionFromContext(gctx)
+		if !ok {
+			slog.Warn("bills fetch skipped: no session in context")
+			return nil
+		}
+		data, err := h.bills.ListCurrentMonth(gctx, sess.UserID)
+		if err != nil {
+			slog.Warn("bills fetch failed", "error", err)
+			return nil
+		}
+		resp.Bills = data
 		return nil
 	})
 

@@ -8,6 +8,7 @@ type DashboardResponse struct {
 	TasksTotal int             `json:"tasksTotal"`
 	Stocks     []StockQuote    `json:"stocks"`     // nil slice = null
 	Meta       *MetaData       `json:"meta"`       // null = unavailable
+	Bills      []BillDue       `json:"bills"`      // bills due this calendar month
 }
 
 // WeatherData holds current weather conditions
@@ -105,4 +106,61 @@ type TaskUpdate struct {
 	Done       *bool
 	Text       *string
 	PriorityID *string
+}
+
+// Bill is a user bill / recurring payment.
+type Bill struct {
+	ID             string   `json:"id"`
+	UserID         string   `json:"userId"`
+	Name           string   `json:"name"`
+	Amount         *float64 `json:"amount"`      // nil = not set
+	CategoryID     string   `json:"categoryId"`
+	RecurrenceType string   `json:"recurrenceType"`
+	DueDate        *string  `json:"dueDate"`     // YYYY-MM-DD; for 'once'
+	DueDay         *int     `json:"dueDay"`      // 1–31; for 'monthly' and 'annual'
+	DueMonth       *int     `json:"dueMonth"`    // 1–12; for 'annual'
+	AnchorDate     *string  `json:"anchorDate"`  // YYYY-MM-DD; for 'weekly','biweekly','quarterly'
+	Notes          *string  `json:"notes"`
+	CreatedAt      string   `json:"createdAt"`
+	UpdatedAt      string   `json:"updatedAt"`
+}
+
+// BillDue is a bill with its computed due date within the current calendar month,
+// returned as part of the dashboard response.
+type BillDue struct {
+	ID              string   `json:"id"`
+	Name            string   `json:"name"`
+	Amount          *float64 `json:"amount"`
+	CategoryID      string   `json:"categoryId"`
+	RecurrenceType  string   `json:"recurrenceType"`
+	Notes           *string  `json:"notes"`
+	ComputedDueDate string   `json:"computedDueDate"` // YYYY-MM-DD
+}
+
+// BillCreate holds fields for creating a new bill.
+type BillCreate struct {
+	ID             string
+	UserID         string
+	Name           string
+	Amount         *float64
+	CategoryID     string
+	RecurrenceType string
+	DueDate        *string
+	DueDay         *int
+	DueMonth       *int
+	AnchorDate     *string
+	Notes          *string
+}
+
+// BillUpdate holds fields for a full-replacement update of a bill.
+type BillUpdate struct {
+	Name           string
+	Amount         *float64
+	CategoryID     string
+	RecurrenceType string
+	DueDate        *string
+	DueDay         *int
+	DueMonth       *int
+	AnchorDate     *string
+	Notes          *string
 }

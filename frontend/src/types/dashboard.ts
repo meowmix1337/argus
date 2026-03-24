@@ -69,6 +69,30 @@ export interface MetaData {
   quote: Quote;
 }
 
+export interface Bill {
+  id: string;
+  name: string;
+  amount: number | null;
+  categoryId: string;
+  recurrenceType: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'annual';
+  dueDate: string | null;    // YYYY-MM-DD; for 'once'
+  dueDay: number | null;     // 1-31; for 'monthly' and 'annual'
+  dueMonth: number | null;   // 1-12; for 'annual'
+  anchorDate: string | null; // YYYY-MM-DD; for 'weekly','biweekly','quarterly'
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface BillDue {
+  id: string;
+  name: string;
+  amount: number | null;
+  categoryId: string;
+  recurrenceType: string;
+  notes: string | null;
+  computedDueDate: string; // YYYY-MM-DD
+}
+
 export interface DashboardResponse {
   weather: WeatherData | null;
   calendar: CalendarEvent[];
@@ -76,6 +100,7 @@ export interface DashboardResponse {
   tasksTotal?: number;
   stocks: StockQuote[] | null;
   meta: MetaData | null;
+  bills: BillDue[];
 }
 
 export interface UserSettings {
