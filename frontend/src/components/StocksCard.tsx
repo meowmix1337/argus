@@ -70,10 +70,53 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
     const observer = new ResizeObserver(check);
     observer.observe(container);
     return () => observer.disconnect();
-  }, [stocks]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally [stocks.length]: overflow
+  // only needs rechecking when symbols are added/removed, not on every price update.
+  }, [stocks.length]);
+
+  // Set --ticker-offset on the animated div as a fixed px value measured at the time symbols
+  // change. Using a CSS variable (not -50%) means price-update re-renders cannot alter the
+  // translation target mid-animation, which would cause a visible position jump.
+  useEffect(() => {
+    const inner = innerRef.current;
+    if (!inner || !shouldScroll) return;
+    // rAF defers measurement until after the browser has painted the new layout.
+    const id = requestAnimationFrame(() => {
+      if (!innerRef.current) return;
+      const singleW = Math.round(innerRef.current.scrollWidth / 2);
+      innerRef.current.style.setProperty('--ticker-offset', `-${singleW}px`);
+    });
+    return () => cancelAnimationFrame(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally [stocks.length, shouldScroll]:
+  // same reasoning — price updates must not trigger a re-measurement.
+  }, [stocks.length, shouldScroll]);
+
+  // Set animation imperatively so React never touches element.style.animation during price-update
+  // re-renders. Assigning the animation shorthand via React inline style restarts the animation
+  // every render (CSS Animations spec: any write to the shorthand creates a new animation instance).
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    if (shouldScroll) {
+      const dur = Math.max(8, stocks.length * 4);
+      el.style.animation = `argus-ticker-scroll ${dur}s linear infinite`;
+      el.style.willChange = 'transform';
+    } else {
+      el.style.animation = '';
+      el.style.willChange = '';
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally [stocks.length, shouldScroll]:
+  // must not re-run on price updates.
+  }, [stocks.length, shouldScroll]);
+
+  // Pause/resume is also imperative to avoid touching the animation shorthand.
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el || !shouldScroll) return;
+    el.style.animationPlayState = isPaused ? 'paused' : 'running';
+  }, [isPaused, shouldScroll]);
 
   const currentSymbols = new Set(stocks.map((s) => s.symbol));
-  const duration = Math.max(8, stocks.length * 4);
   const marqueeItems = [...stocks, ...stocks];
 
   function yahooFinanceUrl(symbol: string): string {
@@ -150,11 +193,6 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
               alignItems: 'center',
               width: 'fit-content',
               flexShrink: 0,
-              ...(shouldScroll && {
-                animation: `argus-ticker-scroll ${duration}s linear infinite`,
-                animationPlayState: isPaused ? 'paused' : 'running',
-                willChange: 'transform',
-              }),
             }}
           >
             {(shouldScroll ? marqueeItems : stocks).map((stock, i) => {
