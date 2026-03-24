@@ -4,6 +4,11 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes argus-ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 :root {
   color-scheme: dark;
   --bg-primary: #0a0a0f;
