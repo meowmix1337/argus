@@ -1,7 +1,6 @@
 import React from 'react';
 import type { BillDue } from '../types/dashboard';
 import { Card } from './ui/Card';
-import { CardHeader } from './ui/CardHeader';
 
 const CATEGORY_LABELS: Record<string, string> = {
   rent: 'Rent / Mortgage',
@@ -41,18 +40,49 @@ interface BillsCardProps {
   bills: BillDue[];
   delay?: number;
   noGridSpan?: boolean;
+  onManage?: () => void;
 }
 
-export function BillsCard({ bills, delay = 0, noGridSpan = false }: BillsCardProps): React.ReactElement {
+export function BillsCard({ bills, delay = 0, noGridSpan = false, onManage }: BillsCardProps): React.ReactElement {
   const month = currentMonthName();
+  const billsWithAmount = bills.filter((b) => b.amount != null);
+  const total = billsWithAmount.reduce((sum, b) => sum + (b.amount ?? 0), 0);
+  const hasPartialAmounts = billsWithAmount.length > 0 && billsWithAmount.length < bills.length;
 
   return (
     <Card delay={delay} noGridSpan={noGridSpan}>
-      <CardHeader
-        icon="◈"
-        title={`Bills · ${month}`}
-        badge={bills.length > 0 ? `${bills.length} due` : undefined}
-      />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 14, color: 'var(--text-accent)', opacity: 0.8 }}>◈</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            {`Bills · ${month}`}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {bills.length > 0 && (
+            <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: "'JetBrains Mono', monospace", fontWeight: 400 }}>
+              {bills.length} due
+            </span>
+          )}
+          {onManage && (
+            <button
+              onClick={onManage}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 6,
+                padding: '3px 10px',
+                fontSize: 11,
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              Manage
+            </button>
+          )}
+        </div>
+      </div>
 
       {bills.length === 0 ? (
         <div style={{ fontSize: 13, color: 'var(--text-muted)', paddingTop: 4 }}>
@@ -129,6 +159,23 @@ export function BillsCard({ bills, delay = 0, noGridSpan = false }: BillsCardPro
               </div>
             );
           })}
+          {billsWithAmount.length > 0 && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '8px 12px 2px',
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+              marginTop: 2,
+            }}>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Total
+              </span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                {formatAmount(total)}{hasPartialAmounts ? '+' : ''}
+              </span>
+            </div>
+          )}
         </div>
       )}
     </Card>

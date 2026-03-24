@@ -35,6 +35,7 @@ import { BillsCard } from './BillsCard';
 import { UserProfile } from './UserProfile';
 import { UnavailableCard } from './ui/UnavailableCard';
 import { SettingsPanel } from './SettingsPanel';
+import { BillsPanel } from './BillsPanel';
 
 function getGreeting(date: Date): string {
   const h = date.getHours();
@@ -221,6 +222,7 @@ export default function Dashboard(): React.ReactElement {
   const [cardOrder, setCardOrder] = useCardOrder();
   const [activeId, setActiveId] = useState<CardId | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showBills, setShowBills] = useState(false);
 
   const isMobile = breakpoint === 'mobile';
   const isTablet = breakpoint === 'tablet';
@@ -291,7 +293,7 @@ export default function Dashboard(): React.ReactElement {
         );
       case 'bills':
         return (
-          <BillsCard bills={data?.bills ?? []} delay={0.7} noGridSpan />
+          <BillsCard bills={data?.bills ?? []} delay={0.7} noGridSpan onManage={() => setShowBills(true)} />
         );
       default:
         return null;
@@ -509,6 +511,7 @@ export default function Dashboard(): React.ReactElement {
       </div>
 
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+      {showBills && <BillsPanel onClose={() => setShowBills(false)} />}
     </div>
   );
 }
