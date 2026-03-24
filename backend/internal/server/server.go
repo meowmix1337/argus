@@ -65,6 +65,8 @@ func (s *Server) setupRoutes() {
 	calendarSvc := service.NewCalendarService(hc, s.cfg.ICSCalendarURL, cache, s.cfg.Timezone)
 	taskRepo := repository.NewSQLiteTaskRepository(s.db)
 	tasksSvc := service.NewTasksService(taskRepo)
+	billsRepo := repository.NewSQLiteBillsRepository(s.db)
+	billsSvc := service.NewBillsService(billsRepo)
 	settingsRepo := repository.NewSQLiteUserSettingsRepository(s.db)
 	settingsSvc := service.NewUserSettingsService(settingsRepo, s.encSvc)
 	labelRepo := repository.NewSQLiteTaskLabelsRepository(s.db)
@@ -87,6 +89,7 @@ func (s *Server) setupRoutes() {
 	settingsH := handler.NewUserSettingsHandler(settingsSvc, v)
 	labelsH := handler.NewTaskLabelsHandler(labelsSvc, v)
 	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
+	billsH := handler.NewBillsHandler(billsSvc, v)
 	dashboardH := handler.NewDashboardHandler(
 		weatherSvc,
 		stocksSvc,
@@ -94,6 +97,7 @@ func (s *Server) setupRoutes() {
 		tasksSvc,
 		sunriseSvc,
 		quotesSvc,
+		billsSvc,
 	)
 
 	// Public routes — no session required
@@ -116,5 +120,6 @@ func (s *Server) setupRoutes() {
 		tasksH.AddRoutes(r)
 		settingsH.AddRoutes(r)
 		labelsH.AddRoutes(r)
+		billsH.AddRoutes(r)
 	})
 }

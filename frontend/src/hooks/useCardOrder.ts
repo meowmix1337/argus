@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
-export type CardId = 'weather' | 'calendar' | 'tasks' | 'news' | 'quote';
+export type CardId = 'weather' | 'calendar' | 'tasks' | 'news' | 'quote' | 'bills';
 
-const DEFAULT_ORDER: CardId[] = ['weather', 'calendar', 'tasks', 'news', 'quote'];
+const DEFAULT_ORDER: CardId[] = ['weather', 'calendar', 'tasks', 'news', 'quote', 'bills'];
 const STORAGE_KEY = 'dashboard-card-order';
 
 function loadOrder(): CardId[] {

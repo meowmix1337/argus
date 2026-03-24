@@ -1,4 +1,23 @@
-import type { DashboardResponse, NewsCategory, Task, StockQuote, SymbolSearchResult, TaskLabel, UserSettings, NewsCategoriesResponse } from '../types/dashboard';
+import type { Bill, DashboardResponse, NewsCategory, Task, StockQuote, SymbolSearchResult, TaskLabel, UserSettings, NewsCategoriesResponse } from '../types/dashboard';
+
+export interface BillsListResponse {
+  bills: Bill[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface BillPayload {
+  name: string;
+  amount?: number | null;
+  categoryId: string;
+  recurrenceType: string;
+  dueDate?: string | null;
+  dueDay?: number | null;
+  dueMonth?: number | null;
+  anchorDate?: string | null;
+  notes?: string | null;
+}
 
 const BASE = '/api';
 
@@ -90,6 +109,18 @@ export function fetchNewsCategories(): Promise<NewsCategoriesResponse> {
 
 export function setNewsCategories(categoryIds: string[]): Promise<void> {
   return apiFetch('/settings/news-categories', { method: 'PUT', body: JSON.stringify({ category_ids: categoryIds }) }).then(() => undefined);
+}
+export function fetchBills(limit = 50, offset = 0): Promise<BillsListResponse> {
+  return apiFetch<BillsListResponse>(`/bills?limit=${limit}&offset=${offset}`);
+}
+export function createBill(payload: BillPayload): Promise<Bill> {
+  return apiFetch<Bill>('/bills', { method: 'POST', body: JSON.stringify(payload) });
+}
+export function updateBill(id: string, payload: BillPayload): Promise<Bill> {
+  return apiFetch<Bill>(`/bills/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(payload) });
+}
+export function deleteBill(id: string): Promise<void> {
+  return apiFetch(`/bills/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(() => undefined);
 }
 export function fetchLabels(): Promise<TaskLabel[]> {
   return apiFetch<TaskLabel[]>('/labels');

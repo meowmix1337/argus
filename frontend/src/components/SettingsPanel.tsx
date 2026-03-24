@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useUserSettings, useNewsCategories, useSettingsMutations } from '../hooks/useUserSettings';
+import { BillsSettings } from './BillsSettings';
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -388,8 +389,21 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
             background: 'rgba(255,255,255,0.08)',
           }} />
 
-          {/* Section: News Categories (auto-save) */}
+          {/* Section: Bills */}
           <div style={sectionStyle(5)}>
+            <div style={sectionLabelStyle}>Bills</div>
+            <BillsSettings />
+          </div>
+
+          {/* Divider */}
+          <div style={{
+            ...sectionStyle(6),
+            height: 1,
+            background: 'rgba(255,255,255,0.08)',
+          }} />
+
+          {/* Section: News Categories (auto-save) */}
+          <div style={sectionStyle(7)}>
             <div style={{
               ...sectionLabelStyle,
               display: 'flex',

@@ -24,4 +24,8 @@ const (
 	// Stocks watchlist pagination
 	defaultWatchlistLimit = 20
 	maxWatchlistLimit     = 50
+
+	// Bill pagination
+	defaultBillLimit = 50
+	maxBillLimit     = 200
 )

@@ -31,6 +31,7 @@ import { TasksCard } from './TasksCard';
 import { NewsCard } from './NewsCard';
 import { StocksCard } from './StocksCard';
 import { QuoteCard } from './QuoteCard';
+import { BillsCard } from './BillsCard';
 import { UserProfile } from './UserProfile';
 import { UnavailableCard } from './ui/UnavailableCard';
 import { SettingsPanel } from './SettingsPanel';
@@ -287,6 +288,10 @@ export default function Dashboard(): React.ReactElement {
           <QuoteCard data={data.meta.quote} delay={0.6} noGridSpan />
         ) : (
           <UnavailableCard span={1} label="Quote unavailable" noGridSpan />
+        );
+      case 'bills':
+        return (
+          <BillsCard bills={data?.bills ?? []} delay={0.7} noGridSpan />
         );
       default:
         return null;
