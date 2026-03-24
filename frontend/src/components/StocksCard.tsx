@@ -14,6 +14,11 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
   const { searchQuery, setSearchQuery, results, isSearching } = useSymbolSearch();
 
   const [hoveredSymbol, setHoveredSymbol] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [shouldScroll, setShouldScroll] = useState(false);
+  const shouldScrollRef = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -44,7 +49,75 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showAddForm, setSearchQuery]);
 
+  useEffect(() => {
+    if (stocks.length === 0) {
+      shouldScrollRef.current = false;
+      setShouldScroll(false);
+      return;
+    }
+    const container = containerRef.current;
+    const inner = innerRef.current;
+    if (!container || !inner) return;
+    const check = () => {
+      const singleW = shouldScrollRef.current ? inner.scrollWidth / 2 : inner.scrollWidth;
+      const overflows = singleW > container.clientWidth;
+      if (overflows !== shouldScrollRef.current) {
+        shouldScrollRef.current = overflows;
+        setShouldScroll(overflows);
+      }
+    };
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(container);
+    return () => observer.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally [stocks.length]: overflow
+  // only needs rechecking when symbols are added/removed, not on every price update.
+  }, [stocks.length]);
+
+  // Set --ticker-offset on the animated div as a fixed px value measured at the time symbols
+  // change. Using a CSS variable (not -50%) means price-update re-renders cannot alter the
+  // translation target mid-animation, which would cause a visible position jump.
+  useEffect(() => {
+    const inner = innerRef.current;
+    if (!inner || !shouldScroll) return;
+    // rAF defers measurement until after the browser has painted the new layout.
+    const id = requestAnimationFrame(() => {
+      if (!innerRef.current) return;
+      const singleW = Math.round(innerRef.current.scrollWidth / 2);
+      innerRef.current.style.setProperty('--ticker-offset', `-${singleW}px`);
+    });
+    return () => cancelAnimationFrame(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally [stocks.length, shouldScroll]:
+  // same reasoning — price updates must not trigger a re-measurement.
+  }, [stocks.length, shouldScroll]);
+
+  // Set animation imperatively so React never touches element.style.animation during price-update
+  // re-renders. Assigning the animation shorthand via React inline style restarts the animation
+  // every render (CSS Animations spec: any write to the shorthand creates a new animation instance).
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    if (shouldScroll) {
+      const dur = Math.max(8, stocks.length * 4);
+      el.style.animation = `argus-ticker-scroll ${dur}s linear infinite`;
+      el.style.willChange = 'transform';
+    } else {
+      el.style.animation = '';
+      el.style.willChange = '';
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally [stocks.length, shouldScroll]:
+  // must not re-run on price updates.
+  }, [stocks.length, shouldScroll]);
+
+  // Pause/resume is also imperative to avoid touching the animation shorthand.
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el || !shouldScroll) return;
+    el.style.animationPlayState = isPaused ? 'paused' : 'running';
+  }, [isPaused, shouldScroll]);
+
   const currentSymbols = new Set(stocks.map((s) => s.symbol));
+  const marqueeItems = [...stocks, ...stocks];
 
   function yahooFinanceUrl(symbol: string): string {
     const slug = symbol === 'BTC' ? 'BTC-USD' : symbol;
@@ -96,96 +169,105 @@ export function StocksCard({ stocks: initialStocks, delay = 0 }: StocksCardProps
         }}>
           Markets
         </span>
-        {isFetching && (
-          <span style={{ fontSize: 9, color: 'var(--text-accent)', fontFamily: "'JetBrains Mono', monospace" }}>●</span>
-        )}
+        <span style={{ fontSize: 9, color: 'var(--text-accent)', fontFamily: "'JetBrains Mono', monospace", opacity: isFetching ? 1 : 0 }}>●</span>
       </div>
 
-      {/* Ticker strip — horizontally scrollable */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        flex: 1,
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-      }}>
+      {/* Ticker strip — animated marquee */}
+      <div
+        ref={containerRef}
+        style={{ flex: 1, overflow: 'hidden', display: 'flex', alignItems: 'center' }}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
         {stocks.length === 0 ? (
           <span style={{ fontSize: 12, color: 'var(--text-muted)', padding: '0 16px', whiteSpace: 'nowrap' }}>
             No tickers — add one →
           </span>
-        ) : stocks.map((stock, i) => {
-          const isPositive = stock.change >= 0;
-          const changeColor = isPositive ? '#10b981' : '#ef4444';
-          const isHovered = hoveredSymbol === stock.symbol;
-          return (
-            <React.Fragment key={stock.symbol}>
-              {i > 0 && (
-                <span style={{ width: 1, height: 18, background: 'var(--border-subtle)', flexShrink: 0 }} />
-              )}
-              <a
-                href={yahooFinanceUrl(stock.symbol)}
-                target="_blank"
-                rel="noopener noreferrer"
-                onMouseEnter={() => setHoveredSymbol(stock.symbol)}
-                onMouseLeave={() => setHoveredSymbol(null)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '11px 14px',
-                  textDecoration: 'none',
-                  background: isHovered ? 'var(--bg-elevated)' : 'transparent',
-                  transition: 'background 0.15s',
-                  flexShrink: 0,
-                  cursor: 'pointer',
-                }}
-              >
-                <span style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: 'var(--text-secondary)',
-                }}>
-                  {stock.symbol}
-                </span>
-                <span style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: 'var(--text-clock)',
-                }}>
-                  {formatStockPrice(stock.price, stock.symbol)}
-                </span>
-                <span style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 11,
-                  color: changeColor,
-                }}>
-                  {isPositive ? '+' : ''}{stock.pct.toFixed(2)}%
-                </span>
-                {/* Remove — always takes space to prevent layout shift */}
-                <button
-                  onClick={(e) => { e.preventDefault(); remove.mutate(stock.symbol); }}
-                  title={`Remove ${stock.symbol}`}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: '0 1px',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                    lineHeight: 1,
-                    color: 'var(--text-secondary)',
-                    opacity: isHovered ? 0.7 : 0,
-                    transition: 'opacity 0.15s',
-                    flexShrink: 0,
-                  }}
-                >
-                  ×
-                </button>
-              </a>
-            </React.Fragment>
-          );
-        })}
+        ) : (
+          <div
+            ref={innerRef}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              width: 'fit-content',
+              flexShrink: 0,
+            }}
+          >
+            {(shouldScroll ? marqueeItems : stocks).map((stock, i) => {
+              const isPositive = stock.change >= 0;
+              const changeColor = isPositive ? '#10b981' : '#ef4444';
+              const isHovered = hoveredSymbol === stock.symbol;
+              return (
+                <React.Fragment key={`${stock.symbol}-${i}`}>
+                  {i > 0 && (
+                    <span style={{ width: 1, height: 18, background: 'var(--border-subtle)', flexShrink: 0 }} />
+                  )}
+                  <a
+                    href={yahooFinanceUrl(stock.symbol)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onMouseEnter={() => setHoveredSymbol(stock.symbol)}
+                    onMouseLeave={() => setHoveredSymbol(null)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '11px 14px',
+                      textDecoration: 'none',
+                      background: isHovered ? 'var(--bg-elevated)' : 'transparent',
+                      transition: 'background 0.15s',
+                      flexShrink: 0,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: 'var(--text-secondary)',
+                    }}>
+                      {stock.symbol}
+                    </span>
+                    <span style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: 'var(--text-clock)',
+                    }}>
+                      {formatStockPrice(stock.price, stock.symbol)}
+                    </span>
+                    <span style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 11,
+                      color: changeColor,
+                    }}>
+                      {isPositive ? '+' : ''}{stock.pct.toFixed(2)}%
+                    </span>
+                    {/* Remove — always takes space to prevent layout shift */}
+                    <button
+                      onClick={(e) => { e.preventDefault(); remove.mutate(stock.symbol); }}
+                      title={`Remove ${stock.symbol}`}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: '0 1px',
+                        cursor: 'pointer',
+                        fontSize: 13,
+                        lineHeight: 1,
+                        color: 'var(--text-secondary)',
+                        opacity: isHovered ? 0.7 : 0,
+                        transition: 'opacity 0.15s',
+                        flexShrink: 0,
+                      }}
+                    >
+                      ×
+                    </button>
+                  </a>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Add ticker — anchored to the right */}
