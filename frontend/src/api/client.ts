@@ -1,4 +1,4 @@
-import type { Bill, DashboardResponse, NewsCategory, Task, StockQuote, SymbolSearchResult, TaskLabel, UserSettings, NewsCategoriesResponse } from '../types/dashboard';
+import type { Bill, BillDue, DashboardResponse, NewsCategory, Task, StockQuote, SymbolSearchResult, TaskLabel, UserSettings, NewsCategoriesResponse } from '../types/dashboard';
 
 export interface BillsListResponse {
   bills: Bill[];
@@ -121,6 +121,25 @@ export function updateBill(id: string, payload: BillPayload): Promise<Bill> {
 }
 export function deleteBill(id: string): Promise<void> {
   return apiFetch(`/bills/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(() => undefined);
+}
+export interface BillsDueResponse {
+  bills: BillDue[];
+  year: number;
+  month: number;
+}
+export function fetchBillsDue(year: number, month: number): Promise<BillsDueResponse> {
+  return apiFetch<BillsDueResponse>(`/bills/due?year=${year}&month=${month}`);
+}
+export interface BillsMonthEntry {
+  month: number;
+  bills: BillDue[];
+}
+export interface BillsYearResponse {
+  year: number;
+  months: BillsMonthEntry[];
+}
+export function fetchBillsDueYear(year: number): Promise<BillsYearResponse> {
+  return apiFetch<BillsYearResponse>(`/bills/due/year?year=${year}`);
 }
 export function fetchLabels(): Promise<TaskLabel[]> {
   return apiFetch<TaskLabel[]>('/labels');

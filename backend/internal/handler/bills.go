@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
@@ -30,9 +31,75 @@ func NewBillsHandler(svc *service.BillsService, v *validator.Validate) *BillsHan
 // AddRoutes registers bill routes on the given router.
 func (h *BillsHandler) AddRoutes(r chi.Router) {
 	r.Get("/api/bills", h.List)
+	r.Get("/api/bills/due", h.ListDue)
+	r.Get("/api/bills/due/year", h.ListDueYear)
 	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/bills", h.Create)
 	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Patch("/api/bills/{id}", h.Update)
 	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/bills/{id}", h.Delete)
+}
+
+func (h *BillsHandler) ListDue(w http.ResponseWriter, r *http.Request) {
+	userID, ok := userIDFromRequest(r)
+	if !ok {
+		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	now := time.Now().UTC()
+	year := now.Year()
+	month := int(now.Month())
+
+	if v := r.URL.Query().Get("year"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			year = n
+		}
+	}
+	if v := r.URL.Query().Get("month"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n >= 1 && n <= 12 {
+			month = n
+		}
+	}
+
+	bills, err := h.service.ListForMonth(r.Context(), userID, year, month)
+	if err != nil {
+		slog.Error("failed to list bills due", "error", err, "user_id", userID)
+		response.WriteError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, BillsDueResponse{
+		Bills: bills,
+		Year:  year,
+		Month: month,
+	})
+}
+
+func (h *BillsHandler) ListDueYear(w http.ResponseWriter, r *http.Request) {
+	userID, ok := userIDFromRequest(r)
+	if !ok {
+		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	year := time.Now().UTC().Year()
+	if v := r.URL.Query().Get("year"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			year = n
+		}
+	}
+
+	byMonth, err := h.service.ListYear(r.Context(), userID, year)
+	if err != nil {
+		slog.Error("failed to list bills due for year", "error", err, "user_id", userID)
+		response.WriteError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	months := make([]BillsMonthEntry, 12)
+	for i := 1; i <= 12; i++ {
+		months[i-1] = BillsMonthEntry{Month: i, Bills: byMonth[i]}
+	}
+	response.WriteJSON(w, http.StatusOK, BillsYearResponse{Year: year, Months: months})
 }
 
 func (h *BillsHandler) List(w http.ResponseWriter, r *http.Request) {

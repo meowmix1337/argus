@@ -293,7 +293,7 @@ export default function Dashboard(): React.ReactElement {
         );
       case 'bills':
         return (
-          <BillsCard bills={data?.bills ?? []} delay={0.7} noGridSpan onManage={() => setShowBills(true)} />
+          <BillsCard delay={0.7} noGridSpan onManage={() => setShowBills(true)} />
         );
       default:
         return null;

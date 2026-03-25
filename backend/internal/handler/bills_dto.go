@@ -2,6 +2,25 @@ package handler
 
 import "github.com/meowmix1337/argus/backend/internal/model"
 
+// BillsDueResponse is the JSON response for GET /api/bills/due.
+type BillsDueResponse struct {
+	Bills []model.BillDue `json:"bills"`
+	Year  int             `json:"year"`
+	Month int             `json:"month"`
+}
+
+// BillsMonthEntry holds the bills for a single month in a year response.
+type BillsMonthEntry struct {
+	Month int             `json:"month"`
+	Bills []model.BillDue `json:"bills"`
+}
+
+// BillsYearResponse is the JSON response for GET /api/bills/due/year.
+type BillsYearResponse struct {
+	Year   int               `json:"year"`
+	Months []BillsMonthEntry `json:"months"`
+}
+
 // CreateBillRequest is the JSON body for POST /api/bills.
 type CreateBillRequest struct {
 	Name           string   `json:"name"                   validate:"required,min=1,max=200"`
