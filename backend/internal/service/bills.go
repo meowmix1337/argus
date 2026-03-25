@@ -26,14 +26,23 @@ type BillStore interface {
 	ListActive(ctx context.Context, userID string) ([]model.Bill, error)
 }
 
-// BillsService manages bills via a store.
-type BillsService struct {
-	store BillStore
+// BillPaymentStore defines the data-access contract for bill payments.
+type BillPaymentStore interface {
+	Create(ctx context.Context, p model.BillPaymentCreate) (model.BillPayment, error)
+	Delete(ctx context.Context, id string, userID string) (int64, error)
+	ListForYear(ctx context.Context, userID string, year int) ([]model.BillPayment, error)
+	ListForMonth(ctx context.Context, userID string, year, month int) ([]model.BillPayment, error)
 }
 
-// NewBillsService creates a new BillsService backed by the given store.
-func NewBillsService(store BillStore) *BillsService {
-	return &BillsService{store: store}
+// BillsService manages bills via a store.
+type BillsService struct {
+	store        BillStore
+	paymentStore BillPaymentStore
+}
+
+// NewBillsService creates a new BillsService backed by the given stores.
+func NewBillsService(store BillStore, paymentStore BillPaymentStore) *BillsService {
+	return &BillsService{store: store, paymentStore: paymentStore}
 }
 
 // List returns a page of bills for the given user along with the total count.
@@ -121,6 +130,30 @@ func (s *BillsService) Delete(ctx context.Context, id string, userID string) err
 	return nil
 }
 
+// paymentKey returns the map key used to look up a payment for a bill occurrence.
+func paymentKey(billID, computedDueDate string) string {
+	return billID + "|" + computedDueDate
+}
+
+// buildPaymentMap converts a slice of payments into a lookup map keyed by billID+dueDate.
+func buildPaymentMap(payments []model.BillPayment) map[string]model.BillPayment {
+	m := make(map[string]model.BillPayment, len(payments))
+	for _, p := range payments {
+		m[paymentKey(p.BillID, p.ComputedDueDate)] = p
+	}
+	return m
+}
+
+// applyPayment fills payment fields on a BillDue using the lookup map.
+func applyPayment(due *model.BillDue, paymentMap map[string]model.BillPayment) {
+	if p, ok := paymentMap[paymentKey(due.ID, due.ComputedDueDate)]; ok {
+		due.IsPaid = true
+		due.PaidDate = &p.PaidDate
+		due.PaidNote = p.Note
+		due.PaymentID = &p.ID
+	}
+}
+
 // ListForMonth returns all bills that have an occurrence in the given calendar
 // month, sorted ascending by their computed due date within that month.
 func (s *BillsService) ListForMonth(ctx context.Context, userID string, year, month int) ([]model.BillDue, error) {
@@ -129,6 +162,12 @@ func (s *BillsService) ListForMonth(ctx context.Context, userID string, year, mo
 		return nil, fmt.Errorf("list active bills: %w", err)
 	}
 
+	payments, err := s.paymentStore.ListForMonth(ctx, userID, year, month)
+	if err != nil {
+		return nil, fmt.Errorf("list bill payments for month: %w", err)
+	}
+	paymentMap := buildPaymentMap(payments)
+
 	m := time.Month(month)
 	var result []model.BillDue
 	for _, b := range bills {
@@ -136,7 +175,7 @@ func (s *BillsService) ListForMonth(ctx context.Context, userID string, year, mo
 		if !ok {
 			continue
 		}
-		result = append(result, model.BillDue{
+		due := model.BillDue{
 			ID:              b.ID,
 			Name:            b.Name,
 			Amount:          b.Amount,
@@ -144,7 +183,9 @@ func (s *BillsService) ListForMonth(ctx context.Context, userID string, year, mo
 			RecurrenceType:  b.RecurrenceType,
 			Notes:           b.Notes,
 			ComputedDueDate: dueDate,
-		})
+		}
+		applyPayment(&due, paymentMap)
+		result = append(result, due)
 	}
 
 	sort.Slice(result, func(i, j int) bool {
@@ -161,12 +202,18 @@ func (s *BillsService) ListCurrentMonth(ctx context.Context, userID string) ([]m
 }
 
 // ListYear returns bills for all 12 months of the given year, keyed by month (1–12).
-// ListActive is called once and all months are computed in memory.
+// ListActive and payment data are each fetched once; all months are computed in memory.
 func (s *BillsService) ListYear(ctx context.Context, userID string, year int) (map[int][]model.BillDue, error) {
 	bills, err := s.store.ListActive(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("list active bills: %w", err)
 	}
+
+	payments, err := s.paymentStore.ListForYear(ctx, userID, year)
+	if err != nil {
+		return nil, fmt.Errorf("list bill payments for year: %w", err)
+	}
+	paymentMap := buildPaymentMap(payments)
 
 	result := make(map[int][]model.BillDue, 12)
 	for month := 1; month <= 12; month++ {
@@ -176,7 +223,7 @@ func (s *BillsService) ListYear(ctx context.Context, userID string, year int) (m
 			if !ok {
 				continue
 			}
-			result[month] = append(result[month], model.BillDue{
+			due := model.BillDue{
 				ID:              b.ID,
 				Name:            b.Name,
 				Amount:          b.Amount,
@@ -184,13 +231,70 @@ func (s *BillsService) ListYear(ctx context.Context, userID string, year int) (m
 				RecurrenceType:  b.RecurrenceType,
 				Notes:           b.Notes,
 				ComputedDueDate: dueDate,
-			})
+			}
+			applyPayment(&due, paymentMap)
+			result[month] = append(result[month], due)
 		}
 		sort.Slice(result[month], func(i, j int) bool {
 			return result[month][i].ComputedDueDate < result[month][j].ComputedDueDate
 		})
 	}
 	return result, nil
+}
+
+// MarkPaid records a payment for a specific bill occurrence.
+func (s *BillsService) MarkPaid(ctx context.Context, userID, billID, computedDueDate, paidDate string, note *string) (model.BillPayment, error) {
+	if note != nil && len(*note) > 32 {
+		return model.BillPayment{}, fmt.Errorf("%w: note exceeds 32 characters", apperrors.ErrBillValidation)
+	}
+	if _, err := time.Parse("2006-01-02", paidDate); err != nil {
+		return model.BillPayment{}, fmt.Errorf("%w: paid_date must be YYYY-MM-DD", apperrors.ErrBillValidation)
+	}
+	if _, err := time.Parse("2006-01-02", computedDueDate); err != nil {
+		return model.BillPayment{}, fmt.Errorf("%w: computed_due_date must be YYYY-MM-DD", apperrors.ErrBillValidation)
+	}
+
+	// Verify bill exists and belongs to this user.
+	if _, err := s.store.Get(ctx, billID, userID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.BillPayment{}, apperrors.ErrBillNotFound
+		}
+		return model.BillPayment{}, fmt.Errorf("get bill: %w", err)
+	}
+
+	id, err := uuid.NewV7()
+	if err != nil {
+		slog.Error("failed to generate UUID v7 for bill payment", "error", err)
+		return model.BillPayment{}, fmt.Errorf("generate payment id: %w", err)
+	}
+
+	payment, err := s.paymentStore.Create(ctx, model.BillPaymentCreate{
+		ID:              id.String(),
+		BillID:          billID,
+		UserID:          userID,
+		ComputedDueDate: computedDueDate,
+		PaidDate:        paidDate,
+		Note:            note,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			return model.BillPayment{}, apperrors.ErrBillAlreadyPaid
+		}
+		return model.BillPayment{}, fmt.Errorf("mark bill paid: %w", err)
+	}
+	return payment, nil
+}
+
+// Unmark removes a payment record, reverting the bill occurrence to unpaid.
+func (s *BillsService) Unmark(ctx context.Context, userID, paymentID string) error {
+	n, err := s.paymentStore.Delete(ctx, paymentID, userID)
+	if err != nil {
+		return fmt.Errorf("unmark bill payment: %w", err)
+	}
+	if n == 0 {
+		return apperrors.ErrBillPaymentNotFound
+	}
+	return nil
 }
 
 // validateBillFields validates shared bill fields for create and update.

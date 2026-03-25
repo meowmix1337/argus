@@ -141,6 +141,28 @@ export interface BillsYearResponse {
 export function fetchBillsDueYear(year: number): Promise<BillsYearResponse> {
   return apiFetch<BillsYearResponse>(`/bills/due/year?year=${year}`);
 }
+export interface BillPaymentResponse {
+  id: string;
+  billId: string;
+  computedDueDate: string;
+  paidDate: string;
+  note: string | null;
+  createdAt: string;
+}
+export interface MarkPaidPayload {
+  computedDueDate: string;
+  paidDate: string;
+  note?: string | null;
+}
+export function markBillPaid(billId: string, payload: MarkPaidPayload): Promise<BillPaymentResponse> {
+  return apiFetch<BillPaymentResponse>(`/bills/${encodeURIComponent(billId)}/pay`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+export function unmarkBillPaid(paymentId: string): Promise<void> {
+  return apiFetch(`/bills/payments/${encodeURIComponent(paymentId)}`, { method: 'DELETE' }).then(() => undefined);
+}
 export function fetchLabels(): Promise<TaskLabel[]> {
   return apiFetch<TaskLabel[]>('/labels');
 }

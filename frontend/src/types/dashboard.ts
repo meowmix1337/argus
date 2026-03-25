@@ -91,6 +91,10 @@ export interface BillDue {
   recurrenceType: string;
   notes: string | null;
   computedDueDate: string; // YYYY-MM-DD
+  isPaid: boolean;
+  paidDate: string | null;  // YYYY-MM-DD
+  paidNote: string | null;
+  paymentId: string | null; // used for DELETE (unmark)
 }
 
 export interface DashboardResponse {

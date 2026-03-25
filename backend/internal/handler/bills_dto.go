@@ -21,6 +21,23 @@ type BillsYearResponse struct {
 	Months []BillsMonthEntry `json:"months"`
 }
 
+// MarkPaidRequest is the JSON body for POST /api/bills/{id}/pay.
+type MarkPaidRequest struct {
+	ComputedDueDate string  `json:"computedDueDate" validate:"required"`
+	PaidDate        string  `json:"paidDate"        validate:"required"`
+	Note            *string `json:"note,omitempty"  validate:"omitempty,max=32"`
+}
+
+// BillPaymentResponse is the JSON response for a bill payment record.
+type BillPaymentResponse struct {
+	ID              string  `json:"id"`
+	BillID          string  `json:"billId"`
+	ComputedDueDate string  `json:"computedDueDate"`
+	PaidDate        string  `json:"paidDate"`
+	Note            *string `json:"note"`
+	CreatedAt       string  `json:"createdAt"`
+}
+
 // CreateBillRequest is the JSON body for POST /api/bills.
 type CreateBillRequest struct {
 	Name           string   `json:"name"                   validate:"required,min=1,max=200"`

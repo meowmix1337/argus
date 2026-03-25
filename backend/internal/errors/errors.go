@@ -27,5 +27,7 @@ var ErrLabelAssignmentNotFound = errors.New("label assignment not found")
 
 var ErrBillNotFound = errors.New("bill not found")
 var ErrBillValidation = errors.New("bill validation failed")
+var ErrBillPaymentNotFound = errors.New("bill payment not found")
+var ErrBillAlreadyPaid = errors.New("bill occurrence already marked as paid")
 
 var ErrUnauthorized = errors.New("unauthorized")
