@@ -34,6 +34,8 @@ func (h *BillsHandler) AddRoutes(r chi.Router) {
 	r.Get("/api/bills/due", h.ListDue)
 	r.Get("/api/bills/due/year", h.ListDueYear)
 	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/bills", h.Create)
+	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/bills/{id}/pay", h.MarkPaid)
+	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/bills/payments/{paymentId}", h.UnmarkPaid)
 	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Patch("/api/bills/{id}", h.Update)
 	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/bills/{id}", h.Delete)
 }
@@ -100,6 +102,71 @@ func (h *BillsHandler) ListDueYear(w http.ResponseWriter, r *http.Request) {
 		months[i-1] = BillsMonthEntry{Month: i, Bills: byMonth[i]}
 	}
 	response.WriteJSON(w, http.StatusOK, BillsYearResponse{Year: year, Months: months})
+}
+
+func (h *BillsHandler) MarkPaid(w http.ResponseWriter, r *http.Request) {
+	userID, ok := userIDFromRequest(r)
+	if !ok {
+		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	billID := chi.URLParam(r, "id")
+	r.Body = http.MaxBytesReader(w, r.Body, 8192)
+	var req MarkPaidRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.WriteError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if err := h.validate.Struct(&req); err != nil {
+		response.WriteError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	payment, err := h.service.MarkPaid(r.Context(), userID, billID, req.ComputedDueDate, req.PaidDate, req.Note)
+	if err != nil {
+		if errors.Is(err, apperrors.ErrBillNotFound) {
+			response.WriteError(w, http.StatusNotFound, "bill not found")
+		} else if errors.Is(err, apperrors.ErrBillValidation) {
+			response.WriteError(w, http.StatusBadRequest, "invalid request body")
+		} else if errors.Is(err, apperrors.ErrBillAlreadyPaid) {
+			response.WriteError(w, http.StatusConflict, "bill occurrence already paid")
+		} else {
+			slog.Error("failed to mark bill as paid", "error", err, "user_id", userID, "bill_id", billID)
+			response.WriteError(w, http.StatusInternalServerError, "internal server error")
+		}
+		return
+	}
+
+	response.WriteJSON(w, http.StatusCreated, BillPaymentResponse{
+		ID:              payment.ID,
+		BillID:          payment.BillID,
+		ComputedDueDate: payment.ComputedDueDate,
+		PaidDate:        payment.PaidDate,
+		Note:            payment.Note,
+		CreatedAt:       payment.CreatedAt,
+	})
+}
+
+func (h *BillsHandler) UnmarkPaid(w http.ResponseWriter, r *http.Request) {
+	userID, ok := userIDFromRequest(r)
+	if !ok {
+		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	paymentID := chi.URLParam(r, "paymentId")
+	if err := h.service.Unmark(r.Context(), userID, paymentID); err != nil {
+		if errors.Is(err, apperrors.ErrBillPaymentNotFound) {
+			response.WriteError(w, http.StatusNotFound, "bill payment not found")
+		} else {
+			slog.Error("failed to unmark bill payment", "error", err, "user_id", userID, "payment_id", paymentID)
+			response.WriteError(w, http.StatusInternalServerError, "internal server error")
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *BillsHandler) List(w http.ResponseWriter, r *http.Request) {

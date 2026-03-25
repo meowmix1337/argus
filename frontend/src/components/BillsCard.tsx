@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { Card } from './ui/Card';
 import { useBillsDueYear } from '../hooks/useBillsDueYear';
 
+function todayStr(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 const CATEGORY_LABELS: Record<string, string> = {
   rent: 'Rent / Mortgage',
   utilities: 'Utilities',
@@ -47,7 +55,11 @@ export function BillsCard({ delay = 0, noGridSpan = false, onManage }: BillsCard
   const currentMonthIdx = now.getMonth(); // 0-based
 
   const [selectedMonthIdx, setSelectedMonthIdx] = useState(currentMonthIdx);
-  const { monthBills, isLoading } = useBillsDueYear(currentYear);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [formDate, setFormDate] = useState(todayStr());
+  const [formNote, setFormNote] = useState('');
+
+  const { monthBills, isLoading, markPaid, unmark, isPending } = useBillsDueYear(currentYear);
   const bills = monthBills[selectedMonthIdx + 1] ?? [];
 
   const billsWithAmount = bills.filter((b) => b.amount != null);
@@ -181,41 +193,137 @@ export function BillsCard({ delay = 0, noGridSpan = false, onManage }: BillsCard
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {bills.map((bill) => {
-            const color = CATEGORY_COLORS[bill.categoryId] ?? CATEGORY_COLORS.other;
+            const dotColor = bill.isPaid ? '#22c55e' : (CATEGORY_COLORS[bill.categoryId] ?? CATEGORY_COLORS.other);
+            const isExpanded = expandedId === bill.id;
             return (
               <div
                 key={bill.id}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  padding: '9px 12px',
                   borderRadius: 10,
-                  background: 'var(--bg-card)',
-                  border: '1px solid transparent',
+                  background: bill.isPaid ? 'rgba(34,197,94,0.06)' : 'var(--bg-card)',
+                  border: `1px solid ${bill.isPaid ? 'rgba(34,197,94,0.15)' : 'transparent'}`,
+                  overflow: 'hidden',
                   transition: 'background 0.15s',
                 }}
               >
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                {/* Main row */}
+                <div
+                  onClick={() => {
+                    if (bill.isPaid) {
+                      if (bill.paymentId) unmark(bill.paymentId, bill.id, bill.computedDueDate);
+                    } else {
+                      if (isExpanded) {
+                        setExpandedId(null);
+                      } else {
+                        setExpandedId(bill.id);
+                        setFormDate(todayStr());
+                        setFormNote('');
+                      }
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '9px 12px',
+                    cursor: isPending ? 'not-allowed' : 'pointer',
+                    opacity: isPending ? 0.6 : 1,
+                  }}
+                >
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {bill.name}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {bill.name}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
+                      {bill.isPaid && bill.paidNote ? bill.paidNote : (CATEGORY_LABELS[bill.categoryId] ?? bill.categoryId)}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
-                    {CATEGORY_LABELS[bill.categoryId] ?? bill.categoryId}
+
+                  {bill.amount != null && (
+                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--text-secondary)', flexShrink: 0 }}>
+                      {formatAmount(bill.amount)}
+                    </div>
+                  )}
+
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: bill.isPaid ? '#22c55e' : 'var(--text-accent)', flexShrink: 0, minWidth: 44, textAlign: 'right' }}>
+                    {formatDueDate(bill.computedDueDate)}
                   </div>
                 </div>
 
-                {bill.amount != null && (
-                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--text-secondary)', flexShrink: 0 }}>
-                    {formatAmount(bill.amount)}
+                {/* Inline mark-paid form */}
+                {!bill.isPaid && isExpanded && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 12px 10px 30px',
+                      borderTop: '1px solid rgba(255,255,255,0.06)',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <input
+                      type="date"
+                      value={formDate}
+                      onChange={(e) => setFormDate(e.target.value)}
+                      style={{
+                        background: 'rgba(255,255,255,0.07)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: 6,
+                        padding: '4px 8px',
+                        fontSize: 12,
+                        color: 'var(--text-primary)',
+                        colorScheme: 'dark',
+                      }}
+                    />
+                    <input
+                      type="text"
+                      value={formNote}
+                      onChange={(e) => setFormNote(e.target.value.slice(0, 32))}
+                      placeholder="Note (optional)"
+                      maxLength={32}
+                      style={{
+                        flex: 1,
+                        minWidth: 80,
+                        background: 'rgba(255,255,255,0.07)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: 6,
+                        padding: '4px 8px',
+                        fontSize: 12,
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                    <button
+                      disabled={isPending || !formDate}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        markPaid(bill.id, {
+                          computedDueDate: bill.computedDueDate,
+                          paidDate: formDate,
+                          note: formNote.trim() || null,
+                        });
+                        setExpandedId(null);
+                        setFormDate(todayStr());
+                        setFormNote('');
+                      }}
+                      style={{
+                        background: 'rgba(34,197,94,0.2)',
+                        border: '1px solid rgba(34,197,94,0.35)',
+                        borderRadius: 6,
+                        padding: '4px 12px',
+                        fontSize: 12,
+                        color: '#22c55e',
+                        cursor: isPending || !formDate ? 'not-allowed' : 'pointer',
+                        fontWeight: 500,
+                        flexShrink: 0,
+                      }}
+                    >
+                      ✓ Mark paid
+                    </button>
                   </div>
                 )}
-
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: 'var(--text-accent)', flexShrink: 0, minWidth: 44, textAlign: 'right' }}>
-                  {formatDueDate(bill.computedDueDate)}
-                </div>
               </div>
             );
           })}

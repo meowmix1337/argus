@@ -135,6 +135,31 @@ type BillDue struct {
 	RecurrenceType  string   `json:"recurrenceType"`
 	Notes           *string  `json:"notes"`
 	ComputedDueDate string   `json:"computedDueDate"` // YYYY-MM-DD
+	IsPaid          bool     `json:"isPaid"`
+	PaidDate        *string  `json:"paidDate"`  // YYYY-MM-DD; nil when unpaid
+	PaidNote        *string  `json:"paidNote"`  // nil when no note or unpaid
+	PaymentID       *string  `json:"paymentId"` // nil when unpaid; used for DELETE
+}
+
+// BillPayment records a single payment for one occurrence of a bill.
+type BillPayment struct {
+	ID              string
+	BillID          string
+	UserID          string
+	ComputedDueDate string  // YYYY-MM-DD; identifies which occurrence was paid
+	PaidDate        string  // YYYY-MM-DD; user-entered actual payment date
+	Note            *string // optional, max 32 chars
+	CreatedAt       string
+}
+
+// BillPaymentCreate holds fields for inserting a new bill payment.
+type BillPaymentCreate struct {
+	ID              string
+	BillID          string
+	UserID          string
+	ComputedDueDate string
+	PaidDate        string
+	Note            *string
 }
 
 // BillCreate holds fields for creating a new bill.
