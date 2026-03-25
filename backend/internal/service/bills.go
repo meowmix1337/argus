@@ -121,20 +121,18 @@ func (s *BillsService) Delete(ctx context.Context, id string, userID string) err
 	return nil
 }
 
-// ListCurrentMonth returns all bills that have an occurrence in the current calendar
+// ListForMonth returns all bills that have an occurrence in the given calendar
 // month, sorted ascending by their computed due date within that month.
-func (s *BillsService) ListCurrentMonth(ctx context.Context, userID string) ([]model.BillDue, error) {
+func (s *BillsService) ListForMonth(ctx context.Context, userID string, year, month int) ([]model.BillDue, error) {
 	bills, err := s.store.ListActive(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("list active bills: %w", err)
 	}
 
-	now := time.Now().UTC()
-	year, month := now.Year(), now.Month()
-
+	m := time.Month(month)
 	var result []model.BillDue
 	for _, b := range bills {
-		dueDate, ok := computeCurrentMonthDueDate(b, year, month)
+		dueDate, ok := computeCurrentMonthDueDate(b, year, m)
 		if !ok {
 			continue
 		}
@@ -153,6 +151,45 @@ func (s *BillsService) ListCurrentMonth(ctx context.Context, userID string) ([]m
 		return result[i].ComputedDueDate < result[j].ComputedDueDate
 	})
 
+	return result, nil
+}
+
+// ListCurrentMonth returns all bills due in the current calendar month.
+func (s *BillsService) ListCurrentMonth(ctx context.Context, userID string) ([]model.BillDue, error) {
+	now := time.Now().UTC()
+	return s.ListForMonth(ctx, userID, now.Year(), int(now.Month()))
+}
+
+// ListYear returns bills for all 12 months of the given year, keyed by month (1–12).
+// ListActive is called once and all months are computed in memory.
+func (s *BillsService) ListYear(ctx context.Context, userID string, year int) (map[int][]model.BillDue, error) {
+	bills, err := s.store.ListActive(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("list active bills: %w", err)
+	}
+
+	result := make(map[int][]model.BillDue, 12)
+	for month := 1; month <= 12; month++ {
+		result[month] = []model.BillDue{}
+		for _, b := range bills {
+			dueDate, ok := computeCurrentMonthDueDate(b, year, time.Month(month))
+			if !ok {
+				continue
+			}
+			result[month] = append(result[month], model.BillDue{
+				ID:              b.ID,
+				Name:            b.Name,
+				Amount:          b.Amount,
+				CategoryID:      b.CategoryID,
+				RecurrenceType:  b.RecurrenceType,
+				Notes:           b.Notes,
+				ComputedDueDate: dueDate,
+			})
+		}
+		sort.Slice(result[month], func(i, j int) bool {
+			return result[month][i].ComputedDueDate < result[month][j].ComputedDueDate
+		})
+	}
 	return result, nil
 }
 
