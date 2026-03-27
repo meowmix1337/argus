@@ -5,13 +5,6 @@ Use 'bd' for task tracking
 
 **IMPORTANT**: This project uses **bd (beads)** for ALL issue tracking. Do NOT use markdown TODOs, task lists, or other tracking methods.
 
-### Why bd?
-
-- Dependency-aware: Track blockers and relationships between issues
-- Git-friendly: Dolt-powered version control with native sync
-- Agent-optimized: JSON output, ready work detection, discovered-from links
-- Prevents duplicate tracking systems and confusion
-
 ### Quick Start
 
 **Check for ready work:**
@@ -221,6 +214,20 @@ Each `Fetch` checks the cache first, calls the external API on miss, and returns
 - **No tests** — zero test files currently exist in backend or frontend.
 - **News uses sequential fetching** — GNews free tier requires ~1 req/s; 9 categories × 3h cache means full refresh takes ~9s on cache miss.
 
+## Git Workflow
+
+- Always use feature branches — never commit directly to `main`. Create a branch with a descriptive name before making changes.
+- Verify the current branch with `git branch` before making changes. Never apply backend changes on a frontend branch or vice versa.
+- Before opening a PR, verify the base branch with `git log --oneline --graph` to avoid branch ancestry issues.
+
+## Claude Skills
+
+- Skill files must use the subdirectory format: `.claude/skills/<skill-name>/SKILL.md` — never create flat `.md` files.
+
+## API Integration
+
+- When making concurrent calls to external services, implement rate limiting and sequential fallbacks to avoid provider rate limits.
+
 ## Documentation Rule
 
 **Always update `README.md` and `.env.example` when:**
@@ -272,10 +279,6 @@ caught in review or causes a regression.**
   must include a `userID` filter at the repository layer. Missing this is a
   data-isolation bug — user A can read/modify user B's data.
 
-- **Using `json.NewEncoder` directly in handlers**: Always use
-  `response.WriteJSON(w, status, v)` and `response.WriteError(w, status, msg)`.
-  Raw encoders bypass the shared Content-Type header and error logging.
-
 ### Services (External API / Cache)
 
 - **Skipping the cache check**: Every `Fetch` method must check
@@ -283,29 +286,15 @@ caught in review or causes a regression.**
   after a successful fetch. Forgetting this causes the API to be hammered on
   every dashboard load.
 
-- **Returning an error for optional data**: Some external calls are optional
-  (e.g. AQI in weather). Use `_ = s.httpClient.Get(...)` for optional calls and
-  fall back to zero values rather than propagating the error. The card should
-  show a degraded state, not fail entirely.
-
-- **Hardcoding URLs or secrets**: All external URLs belong as constants in the
-  service file. API keys come exclusively from `internal/config/config.go` env
-  vars — never pass raw strings from `server.go`.
-
 ### Documentation / Config
 
 - **Missing README / .env.example update**: Any new env var must appear in
   both `README.md` (Environment Variables table) and `.env.example`. CI will
   not catch this — it must be done manually.
 
-- **Outdated Known Limitations**: Update the Known Limitations section when a
-  limitation is resolved (e.g. "No tests" became false once tests were added).
+- **Outdated Known Limitations**: Update the Known Limitations section when a limitation is resolved.
 
 ### Quality Gates
-
-- **Not running the linter before pushing**: Run `golangci-lint run ./...` from
-  `backend/` before every push. CI will block the merge, but catching it
-  locally is faster. The config lives at `backend/.golangci.yml`.
 
 - **Ignoring `go test -race`**: The `-race` flag catches concurrent map writes
   and data races that plain tests miss. Always use it.
