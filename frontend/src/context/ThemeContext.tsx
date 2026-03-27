@@ -7,7 +7,7 @@ function getInitialTheme(): Theme {
   try {
     const stored = localStorage.getItem('dashboard-theme');
     if (stored === 'light' || stored === 'dark') return stored;
-  } catch {}
+  } catch {} // eslint-disable-line no-empty
   return 'dark';
 }
 
@@ -23,7 +23,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    try { localStorage.setItem('dashboard-theme', theme); } catch {}
+    try { localStorage.setItem('dashboard-theme', theme); } catch {} // eslint-disable-line no-empty
   }, [theme]);
 
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
@@ -31,4 +31,5 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTheme() { return useContext(ThemeContext); }
