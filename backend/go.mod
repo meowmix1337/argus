@@ -1,6 +1,6 @@
 module github.com/meowmix1337/argus/backend
 
-go 1.26
+go 1.25
 
 require (
 	github.com/go-chi/chi/v5 v5.1.0

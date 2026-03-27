@@ -23,8 +23,8 @@ build-frontend:  ## Build frontend for production
 test:  ## Run all tests
 	cd backend && go test -race ./...
 
-lint:  ## Run linters
-	cd backend && go vet ./...
+lint:  ## Run linters (requires golangci-lint v2: https://golangci-lint.run/welcome/install/)
+	cd backend && golangci-lint run ./...
 	cd frontend && npm run lint
 
 # --- Docker ---
