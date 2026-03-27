@@ -26,6 +26,13 @@ linters:
     errcheck:
       # _ = expr is an intentional discard; don't flag it
       check-blank: false
+      # Standard Go idioms where checking the error is not actionable
+      exclude-functions:
+        - (io.Closer).Close
+        - (io.ReadCloser).Close
+        - (*os.File).Close
+        - (*database/sql.DB).Close
+        - (net/http.ResponseWriter).Write
 
     staticcheck:
       checks:

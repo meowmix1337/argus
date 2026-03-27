@@ -28,7 +28,7 @@ func Open(path string) (*sqlx.DB, error) {
 	db.SetConnMaxLifetime(0) // no expiry — connections are cheap for SQLite
 
 	if err := db.Ping(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("sqlite ping: %w", err)
 	}
 

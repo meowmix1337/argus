@@ -27,7 +27,7 @@ type Config struct {
 	FrontendURL        string // post-login redirect target — required
 	SecureCookies      bool   // set Secure flag on cookies; default true, disable only for local HTTP dev
 	CORSOrigin         string // allowed CORS origin; defaults to http://localhost:5173
-	EncryptionKey string // hex-encoded AES-256 key for encrypting sensitive fields (optional)
+	EncryptionKey      string // hex-encoded AES-256 key for encrypting sensitive fields (optional)
 }
 
 func Load() *Config {
@@ -100,7 +100,7 @@ func parseDotEnv(path string) bool {
 		key = strings.TrimSpace(key)
 		value = strings.Trim(strings.TrimSpace(value), `"'`)
 		if key != "" && os.Getenv(key) == "" {
-			os.Setenv(key, value)
+			_ = os.Setenv(key, value)
 		}
 	}
 	return true

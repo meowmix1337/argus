@@ -76,6 +76,7 @@ export function TasksCard({ tasks, tasksTotal, delay = 0, noGridSpan = false }: 
 
   // loadMore kept in a ref so the IntersectionObserver callback never goes stale
   const loadMoreRef = useRef<() => void>(() => undefined);
+  // eslint-disable-next-line react-hooks/refs -- intentional render-time ref update to keep callback fresh
   loadMoreRef.current = () => {
     if (isLoadingMoreRef.current || !hasMore) return;
     isLoadingMoreRef.current = true;
