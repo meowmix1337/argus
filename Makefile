@@ -27,8 +27,8 @@ lint:  ## Run linters (requires golangci-lint v2: https://golangci-lint.run/welc
 	cd backend && golangci-lint run ./...
 	cd frontend && npm run lint
 
-install-hooks:  ## Install git pre-commit hook (run once after cloning)
-	git config core.hooksPath .githooks
+install-hooks:  ## Install pre-commit hooks (run once after cloning; requires: pip install pre-commit)
+	pre-commit install
 
 # --- Docker ---
 docker-build:  ## Build production images
