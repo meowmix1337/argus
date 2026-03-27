@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/jmoiron/sqlx"
-	_ "modernc.org/sqlite"
+	_ "modernc.org/sqlite" // register SQLite driver
 )
 
 // Open opens (or creates) the SQLite database at path and returns a *sqlx.DB

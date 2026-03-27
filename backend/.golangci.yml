@@ -51,8 +51,7 @@ linters:
         - name: error-strings
         - name: error-naming
         - name: exported
-          arguments:
-            - disableStutteringCheck: true
+          disabled: true
         - name: if-return
         - name: increment-decrement
         - name: var-naming

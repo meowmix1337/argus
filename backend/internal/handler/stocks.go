@@ -178,4 +178,3 @@ func (h *StocksHandler) SearchSymbols(w http.ResponseWriter, r *http.Request) {
 
 	response.WriteJSON(w, http.StatusOK, SearchResponse{Results: dtos})
 }
-

@@ -133,12 +133,12 @@ func (s *StocksService) SearchSymbols(ctx context.Context, query string) ([]mode
 	}
 
 	const maxSymbolSearchResults = 10
-	max := len(result.Result)
-	if max > maxSymbolSearchResults {
-		max = maxSymbolSearchResults
+	limit := len(result.Result)
+	if limit > maxSymbolSearchResults {
+		limit = maxSymbolSearchResults
 	}
-	out := make([]model.SymbolSearchResult, 0, max)
-	for _, item := range result.Result[:max] {
+	out := make([]model.SymbolSearchResult, 0, limit)
+	for _, item := range result.Result[:limit] {
 		out = append(out, model.SymbolSearchResult{
 			Symbol:      item.Symbol,
 			Description: item.Description,
