@@ -140,13 +140,20 @@ make docker-up       # docker compose up -d (production)
 make docker-dev      # docker compose with hot-reload overrides
 make lint            # golangci-lint + npm run lint
 make test            # go test -race ./...
-make install-hooks   # wire up .githooks/pre-commit (run once after clone)
+make install-hooks   # install pre-commit hooks via pre-commit framework (run once after clone)
 ```
 
-### Pre-commit hook
-Run `make install-hooks` once after cloning. The hook in `.githooks/pre-commit`
-runs golangci-lint (includes goimports formatting check) on staged `.go` files
-and ESLint on staged `.ts`/`.tsx` files before every commit.
+### Pre-commit hooks
+This project uses the [pre-commit](https://pre-commit.com/) framework. Run once after cloning:
+
+```bash
+pip install pre-commit   # or: brew install pre-commit
+make install-hooks       # runs: pre-commit install
+```
+
+The config lives at `.pre-commit-config.yaml` (repo root). Hooks that run on staged `.go` files:
+- **goimports** — auto-formats Go imports (`goimports -w .` in `backend/`)
+- **golangci-lint** — runs the full linter suite (`golangci-lint run ./...` in `backend/`)
 
 ## Architecture
 
