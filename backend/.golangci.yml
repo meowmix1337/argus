@@ -1,0 +1,86 @@
+version: "2"
+
+run:
+  go: "1.26"
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    # Core correctness
+    - errcheck      # unchecked error returns
+    - govet         # go vet checks
+    - staticcheck   # static analysis (SA, S, QF rules)
+    - ineffassign   # assignments whose values are never used
+    - unused        # unused code (replaces deadcode/varcheck/structcheck)
+
+    # HTTP safety
+    - bodyclose     # HTTP response bodies not closed
+
+    # Code quality
+    - nilerr        # returning nil when err != nil was checked
+    - misspell      # common spelling errors in comments/strings
+    - revive        # general code quality (replaces golint)
+
+  settings:
+    errcheck:
+      # _ = expr is an intentional discard; don't flag it
+      check-blank: false
+      # Standard Go idioms where checking the error is not actionable
+      exclude-functions:
+        - (io.Closer).Close
+        - (io.ReadCloser).Close
+        - (*os.File).Close
+        - (*database/sql.DB).Close
+        - (net/http.ResponseWriter).Write
+
+    staticcheck:
+      checks:
+        - "all"
+        - "-ST1000" # package comment — not required
+        - "-ST1020" # exported func comment — too strict for internal packages
+        - "-ST1021" # exported type comment — too strict for internal packages
+        - "-ST1022" # exported var comment — too strict for internal packages
+
+    revive:
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+        - name: exported
+          disabled: true
+        - name: if-return
+        - name: increment-decrement
+        - name: var-naming
+        - name: var-declaration
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: indent-error-flow
+        - name: superfluous-else
+        - name: unreachable-code
+        - name: redefines-builtin-id
+        # Disabled: too noisy for interface implementations and handler methods
+        - name: unused-parameter
+          disabled: true
+        # Disabled: not enforcing package-level doc comments
+        - name: package-comments
+          disabled: true
+
+  exclusions:
+    rules:
+      # Test files: relax bodyclose (test http.Client calls are intentional)
+      - path: "_test\\.go"
+        linters:
+          - bodyclose
+
+formatters:
+  enable:
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/meowmix1337/argus

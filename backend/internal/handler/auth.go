@@ -16,7 +16,6 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/session"
 )
 
-
 // AuthHandler serves the Google OAuth login / callback / logout endpoints.
 type AuthHandler struct {
 	authSvc       *service.AuthService

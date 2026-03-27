@@ -133,12 +133,12 @@ func (s *StocksService) SearchSymbols(ctx context.Context, query string) ([]mode
 	}
 
 	const maxSymbolSearchResults = 10
-	max := len(result.Result)
-	if max > maxSymbolSearchResults {
-		max = maxSymbolSearchResults
+	limit := len(result.Result)
+	if limit > maxSymbolSearchResults {
+		limit = maxSymbolSearchResults
 	}
-	out := make([]model.SymbolSearchResult, 0, max)
-	for _, item := range result.Result[:max] {
+	out := make([]model.SymbolSearchResult, 0, limit)
+	for _, item := range result.Result[:limit] {
 		out = append(out, model.SymbolSearchResult{
 			Symbol:      item.Symbol,
 			Description: item.Description,
@@ -165,7 +165,7 @@ func (s *StocksService) fetchFromAPIs(ctx context.Context, userID string) ([]mod
 			if sym == "BTC" {
 				q, err = s.fetchBTC(gctx)
 				if err != nil {
-					return nil // BTC failure is non-fatal; slot stays zero value
+					return nil //nolint:nilerr // BTC failure is non-fatal; slot stays zero value
 				}
 			} else {
 				q, err = s.fetchFinnhub(gctx, sym)

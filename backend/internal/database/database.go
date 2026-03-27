@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/jmoiron/sqlx"
-	_ "modernc.org/sqlite"
+	_ "modernc.org/sqlite" // register SQLite driver
 )
 
 // Open opens (or creates) the SQLite database at path and returns a *sqlx.DB
@@ -28,7 +28,7 @@ func Open(path string) (*sqlx.DB, error) {
 	db.SetConnMaxLifetime(0) // no expiry — connections are cheap for SQLite
 
 	if err := db.Ping(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("sqlite ping: %w", err)
 	}
 

@@ -17,7 +17,7 @@ import (
 
 // GoogleUser holds the fields we care about from Google's userinfo endpoint.
 type GoogleUser struct {
-	Sub     string `json:"sub"`     // Google's stable user ID
+	Sub     string `json:"sub"` // Google's stable user ID
 	Email   string `json:"email"`
 	Name    string `json:"name"`
 	Picture string `json:"picture"`

@@ -119,7 +119,7 @@ For more details, see README.md and docs/QUICKSTART.md.
 ```bash
 go run ./cmd/server          # Start dev server on :8080
 go build ./...               # Compile all packages
-go vet ./...                 # Lint
+golangci-lint run ./...      # Lint (install: https://golangci-lint.run/welcome/install/)
 go test -race ./...          # Run tests
 go build -o bin/server ./cmd/server  # Build binary
 govulncheck ./...            # Scan for vulnerabilities (install: go install golang.org/x/vuln/cmd/govulncheck@latest)
@@ -138,9 +138,22 @@ make dev-backend     # go run ./cmd/server
 make dev-frontend    # npm run dev
 make docker-up       # docker compose up -d (production)
 make docker-dev      # docker compose with hot-reload overrides
-make lint            # go vet + npm run lint
+make lint            # golangci-lint + npm run lint
 make test            # go test -race ./...
+make install-hooks   # install pre-commit hooks via pre-commit framework (run once after clone)
 ```
+
+### Pre-commit hooks
+This project uses the [pre-commit](https://pre-commit.com/) framework. Run once after cloning:
+
+```bash
+pip install pre-commit   # or: brew install pre-commit
+make install-hooks       # runs: pre-commit install
+```
+
+The config lives at `.pre-commit-config.yaml` (repo root). Hooks that run on staged `.go` files:
+- **goimports** — auto-formats Go imports (`goimports -w .` in `backend/`)
+- **golangci-lint** — runs the full linter suite (`golangci-lint run ./...` in `backend/`)
 
 ## Architecture
 
@@ -216,3 +229,83 @@ Each `Fetch` checks the cache first, calls the external API on miss, and returns
 - The behavior of an existing service changes in a user-visible way
 
 Keep `README.md` as the single source of truth for setup instructions.
+
+## Common Mistakes & Lessons Learned
+
+A running log of mistakes made during development. Each entry is a reminder to
+avoid repeating the same error. **Add to this section whenever a mistake is
+caught in review or causes a regression.**
+
+### Architecture / Layer Boundaries
+
+- **Importing across layers**: `service/` must never import from `handler/` or
+  `repository/`. `handler/` must never import from `repository/`. Violations
+  break the DIP and make testing impossible. Check your imports before
+  committing.
+
+- **Defining store interfaces outside service/**: Every service defines its own
+  store interface (e.g. `BillStore`, `TaskStore`) inside `internal/service/`.
+  Repositories implement these interfaces via Go duck typing — never import
+  a repository type directly into a service.
+
+- **Inline sentinel errors**: All domain errors belong in
+  `internal/errors/errors.go`. Never define `errors.New(...)` inline in a
+  handler or service. Pick the right category (domain, validation, conflict,
+  auth) and add a comment if needed.
+
+- **Error category mislabeling**: When adding errors to `internal/errors/`,
+  place them under the correct comment block. E.g. `ErrBillNotFound` belongs
+  under "Domain errors", not under "Auth errors".
+
+### Handler / Service Patterns
+
+- **Missing `_dto.go` file**: Every handler file (`foo.go`) must have a
+  matching `foo_dto.go` for its request/response structs. Never put DTOs in the
+  main handler file.
+
+- **Forgetting `AddRoutes` registration**: After creating a new handler, call
+  `fooH.AddRoutes(r)` (or `fooH.AddRoutes(protected)`) in
+  `internal/server/server.go:setupRoutes()`. The handler silently does nothing
+  if this step is skipped.
+
+- **Not scoping DB queries to `userID`**: Every query that touches user data
+  must include a `userID` filter at the repository layer. Missing this is a
+  data-isolation bug — user A can read/modify user B's data.
+
+- **Using `json.NewEncoder` directly in handlers**: Always use
+  `response.WriteJSON(w, status, v)` and `response.WriteError(w, status, msg)`.
+  Raw encoders bypass the shared Content-Type header and error logging.
+
+### Services (External API / Cache)
+
+- **Skipping the cache check**: Every `Fetch` method must check
+  `s.cache.Get(key)` before calling the external API, and call `s.cache.Set`
+  after a successful fetch. Forgetting this causes the API to be hammered on
+  every dashboard load.
+
+- **Returning an error for optional data**: Some external calls are optional
+  (e.g. AQI in weather). Use `_ = s.httpClient.Get(...)` for optional calls and
+  fall back to zero values rather than propagating the error. The card should
+  show a degraded state, not fail entirely.
+
+- **Hardcoding URLs or secrets**: All external URLs belong as constants in the
+  service file. API keys come exclusively from `internal/config/config.go` env
+  vars — never pass raw strings from `server.go`.
+
+### Documentation / Config
+
+- **Missing README / .env.example update**: Any new env var must appear in
+  both `README.md` (Environment Variables table) and `.env.example`. CI will
+  not catch this — it must be done manually.
+
+- **Outdated Known Limitations**: Update the Known Limitations section when a
+  limitation is resolved (e.g. "No tests" became false once tests were added).
+
+### Quality Gates
+
+- **Not running the linter before pushing**: Run `golangci-lint run ./...` from
+  `backend/` before every push. CI will block the merge, but catching it
+  locally is faster. The config lives at `backend/.golangci.yml`.
+
+- **Ignoring `go test -race`**: The `-race` flag catches concurrent map writes
+  and data races that plain tests miss. Always use it.
