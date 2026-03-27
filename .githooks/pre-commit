@@ -1,0 +1,22 @@
+#!/bin/sh
+# Pre-commit hook — runs Go linter (includes goimports formatting check).
+# Install once with: make install-hooks
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# --- Go (golangci-lint) ---
+if git diff --cached --name-only | grep -q '\.go$'; then
+  echo "golangci-lint..."
+  cd "$REPO_ROOT/backend"
+  golangci-lint run ./...
+  cd "$REPO_ROOT"
+fi
+
+# --- Frontend (ESLint) ---
+if git diff --cached --name-only | grep -qE '\.(ts|tsx)$'; then
+  echo "eslint..."
+  cd "$REPO_ROOT/frontend"
+  npm run lint
+  cd "$REPO_ROOT"
+fi

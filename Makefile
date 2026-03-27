@@ -1,5 +1,5 @@
 .PHONY: help dev dev-backend dev-frontend build-backend build-frontend \
-        test lint docker-build docker-up docker-down docker-dev docker-logs clean
+        test lint install-hooks docker-build docker-up docker-down docker-dev docker-logs clean
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -26,6 +26,9 @@ test:  ## Run all tests
 lint:  ## Run linters (requires golangci-lint v2: https://golangci-lint.run/welcome/install/)
 	cd backend && golangci-lint run ./...
 	cd frontend && npm run lint
+
+install-hooks:  ## Install git pre-commit hook (run once after cloning)
+	git config core.hooksPath .githooks
 
 # --- Docker ---
 docker-build:  ## Build production images

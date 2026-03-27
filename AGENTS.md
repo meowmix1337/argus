@@ -138,9 +138,15 @@ make dev-backend     # go run ./cmd/server
 make dev-frontend    # npm run dev
 make docker-up       # docker compose up -d (production)
 make docker-dev      # docker compose with hot-reload overrides
-make lint            # go vet + npm run lint
+make lint            # golangci-lint + npm run lint
 make test            # go test -race ./...
+make install-hooks   # wire up .githooks/pre-commit (run once after clone)
 ```
+
+### Pre-commit hook
+Run `make install-hooks` once after cloning. The hook in `.githooks/pre-commit`
+runs golangci-lint (includes goimports formatting check) on staged `.go` files
+and ESLint on staged `.ts`/`.tsx` files before every commit.
 
 ## Architecture
 
