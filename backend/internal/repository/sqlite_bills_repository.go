@@ -14,19 +14,19 @@ import (
 
 // sqliteBillRow mirrors the bills table with nullable fields for SQLite scanning.
 type sqliteBillRow struct {
-	ID             string         `db:"id"`
-	UserID         string         `db:"user_id"`
-	Name           string         `db:"name"`
+	ID             string          `db:"id"`
+	UserID         string          `db:"user_id"`
+	Name           string          `db:"name"`
 	Amount         sql.NullFloat64 `db:"amount"`
-	CategoryID     string         `db:"category_id"`
-	RecurrenceType string         `db:"recurrence_type"`
-	DueDate        sql.NullString `db:"due_date"`
-	DueDay         sql.NullInt64  `db:"due_day"`
-	DueMonth       sql.NullInt64  `db:"due_month"`
-	AnchorDate     sql.NullString `db:"anchor_date"`
-	Notes          sql.NullString `db:"notes"`
-	CreatedAt      string         `db:"created_at"`
-	UpdatedAt      string         `db:"updated_at"`
+	CategoryID     string          `db:"category_id"`
+	RecurrenceType string          `db:"recurrence_type"`
+	DueDate        sql.NullString  `db:"due_date"`
+	DueDay         sql.NullInt64   `db:"due_day"`
+	DueMonth       sql.NullInt64   `db:"due_month"`
+	AnchorDate     sql.NullString  `db:"anchor_date"`
+	Notes          sql.NullString  `db:"notes"`
+	CreatedAt      string          `db:"created_at"`
+	UpdatedAt      string          `db:"updated_at"`
 }
 
 func (r *sqliteBillRow) toModel() model.Bill {

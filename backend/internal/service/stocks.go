@@ -165,7 +165,7 @@ func (s *StocksService) fetchFromAPIs(ctx context.Context, userID string) ([]mod
 			if sym == "BTC" {
 				q, err = s.fetchBTC(gctx)
 				if err != nil {
-					return nil // BTC failure is non-fatal; slot stays zero value
+					return nil //nolint:nilerr // BTC failure is non-fatal; slot stays zero value
 				}
 			} else {
 				q, err = s.fetchFinnhub(gctx, sym)

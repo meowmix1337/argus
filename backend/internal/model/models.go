@@ -2,13 +2,13 @@ package model
 
 // DashboardResponse is the aggregated response for GET /api/dashboard
 type DashboardResponse struct {
-	Weather    *WeatherData    `json:"weather"`    // null = unavailable
+	Weather    *WeatherData    `json:"weather"` // null = unavailable
 	Calendar   []CalendarEvent `json:"calendar"`
 	Tasks      []Task          `json:"tasks"`
 	TasksTotal int             `json:"tasksTotal"`
-	Stocks     []StockQuote    `json:"stocks"`     // nil slice = null
-	Meta       *MetaData       `json:"meta"`       // null = unavailable
-	Bills      []BillDue       `json:"bills"`      // bills due this calendar month
+	Stocks     []StockQuote    `json:"stocks"` // nil slice = null
+	Meta       *MetaData       `json:"meta"`   // null = unavailable
+	Bills      []BillDue       `json:"bills"`  // bills due this calendar month
 }
 
 // WeatherData holds current weather conditions
@@ -113,13 +113,13 @@ type Bill struct {
 	ID             string   `json:"id"`
 	UserID         string   `json:"userId"`
 	Name           string   `json:"name"`
-	Amount         *float64 `json:"amount"`      // nil = not set
+	Amount         *float64 `json:"amount"` // nil = not set
 	CategoryID     string   `json:"categoryId"`
 	RecurrenceType string   `json:"recurrenceType"`
-	DueDate        *string  `json:"dueDate"`     // YYYY-MM-DD; for 'once'
-	DueDay         *int     `json:"dueDay"`      // 1–31; for 'monthly' and 'annual'
-	DueMonth       *int     `json:"dueMonth"`    // 1–12; for 'annual'
-	AnchorDate     *string  `json:"anchorDate"`  // YYYY-MM-DD; for 'weekly','biweekly','quarterly'
+	DueDate        *string  `json:"dueDate"`    // YYYY-MM-DD; for 'once'
+	DueDay         *int     `json:"dueDay"`     // 1–31; for 'monthly' and 'annual'
+	DueMonth       *int     `json:"dueMonth"`   // 1–12; for 'annual'
+	AnchorDate     *string  `json:"anchorDate"` // YYYY-MM-DD; for 'weekly','biweekly','quarterly'
 	Notes          *string  `json:"notes"`
 	CreatedAt      string   `json:"createdAt"`
 	UpdatedAt      string   `json:"updatedAt"`
