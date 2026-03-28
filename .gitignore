@@ -17,9 +17,6 @@ frontend/dist/
 .DS_Store
 Thumbs.db
 
-# bd / beads issue tracker
-.beads/
-
 # oh-my-claudecode agent state (ephemeral, not source code)
 .omc/
 
