@@ -47,9 +47,16 @@ func (s *QuotesService) Fetch(ctx context.Context) (model.Quote, error) {
 	return quote, nil
 }
 
+const quoteCategories = "wisdom,philosophy,life,truth,inspirational,humor,success,courage,happiness,leadership"
+
 func (s *QuotesService) fetchFromAPI(ctx context.Context) (model.Quote, error) {
 	var quotes []apiNinjasQuote
-	if err := s.httpClient.Get(ctx, "https://api.api-ninjas.com/v2/quotes", &quotes, httpclient.WithHeader("X-Api-Key", s.apiKey)); err != nil {
+	if err := s.httpClient.Get(ctx,
+		"https://api.api-ninjas.com/v2/randomquotes",
+		&quotes,
+		httpclient.WithHeader("X-Api-Key", s.apiKey),
+		httpclient.WithQueryParams(map[string]string{"categories": quoteCategories}),
+	); err != nil {
 		return model.Quote{}, err
 	}
 
