@@ -4,7 +4,7 @@ package model
 type UserIntegration struct {
 	ID               string  `db:"id"`
 	UserID           string  `db:"user_id"`
-	Provider         string  `db:"provider"`          // "github", future: "slack", "email"
+	ProviderID       string  `db:"provider_id"`       // FK to provider_types; "github", future: "slack", "email"
 	AccessToken      string  `db:"access_token"`      // encrypted
 	RefreshToken     *string `db:"refresh_token"`     // encrypted, nullable
 	ProviderUserID   string  `db:"provider_user_id"`  // e.g. GitHub numeric user ID
@@ -32,8 +32,8 @@ type WatchedRepo struct {
 type Notification struct {
 	ID               string  `db:"id"`
 	UserID           string  `db:"user_id"`
-	Provider         string  `db:"provider"`   // "github"
-	EventType        string  `db:"event_type"` // "pr_opened", "pr_merged", etc.
+	ProviderID       string  `db:"provider_id"`   // FK to provider_types
+	EventTypeID      string  `db:"event_type_id"` // FK to notification_event_types
 	Title            string  `db:"title"`
 	Body             *string `db:"body"`
 	URL              *string `db:"url"`
@@ -49,8 +49,8 @@ type Notification struct {
 type NotificationCreate struct {
 	ID               string
 	UserID           string
-	Provider         string
-	EventType        string
+	ProviderID       string
+	EventTypeID      string
 	Title            string
 	Body             *string
 	URL              *string
