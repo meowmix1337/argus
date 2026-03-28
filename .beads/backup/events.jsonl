@@ -208,3 +208,4 @@
 {"actor":"Dave Van","comment":null,"created_at":"2026-03-28T10:54:04Z","event_type":"created","id":208,"issue_id":"argus-iy3","new_value":"","old_value":""}
 {"actor":"Dave Van","comment":null,"created_at":"2026-03-28T10:54:17Z","event_type":"created","id":209,"issue_id":"argus-miv","new_value":"","old_value":""}
 {"actor":"Dave Van","comment":null,"created_at":"2026-03-28T10:54:34Z","event_type":"created","id":210,"issue_id":"argus-8so","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-03-28T11:09:38Z","event_type":"closed","id":211,"issue_id":"argus-3wd","new_value":"PR #60 merged — 3 DB migrations for notification center shipped","old_value":""}
