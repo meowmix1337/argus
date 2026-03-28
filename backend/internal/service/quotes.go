@@ -25,7 +25,10 @@ func NewQuotesService(httpClient httpclient.HTTPClient, apiKey string, cache *Ca
 	}
 }
 
-const quotesCacheTTL = 24 * time.Hour
+const (
+	quotesCacheTTL = 24 * time.Hour
+	quotesAPIURL   = "https://api.api-ninjas.com/v2/randomquotes?categories=wisdom,philosophy,life,truth,inspirational,humor,success,courage,happiness,leadership"
+)
 
 // Fetch retrieves a random daily quote.
 func (s *QuotesService) Fetch(ctx context.Context) (model.Quote, error) {
@@ -47,15 +50,12 @@ func (s *QuotesService) Fetch(ctx context.Context) (model.Quote, error) {
 	return quote, nil
 }
 
-const quoteCategories = "wisdom,philosophy,life,truth,inspirational,humor,success,courage,happiness,leadership"
-
 func (s *QuotesService) fetchFromAPI(ctx context.Context) (model.Quote, error) {
 	var quotes []apiNinjasQuote
 	if err := s.httpClient.Get(ctx,
-		"https://api.api-ninjas.com/v2/randomquotes",
+		quotesAPIURL,
 		&quotes,
 		httpclient.WithHeader("X-Api-Key", s.apiKey),
-		httpclient.WithQueryParams(map[string]string{"categories": quoteCategories}),
 	); err != nil {
 		return model.Quote{}, err
 	}
@@ -71,7 +71,7 @@ func (s *QuotesService) fetchFromAPI(ctx context.Context) (model.Quote, error) {
 }
 
 type apiNinjasQuote struct {
-	Quote    string `json:"quote"`
-	Author   string `json:"author"`
-	Category string `json:"category"`
+	Quote      string   `json:"quote"`
+	Author     string   `json:"author"`
+	Categories []string `json:"categories"`
 }
