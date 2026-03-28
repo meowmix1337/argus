@@ -74,6 +74,8 @@ func (s *Server) setupRoutes() {
 	labelsSvc := service.NewTaskLabelsService(labelRepo)
 	sunriseSvc := service.NewSunriseService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
 	quotesSvc := service.NewQuotesService(hc, s.cfg.APINinjasAPIKey, cache)
+	notificationRepo := repository.NewSQLiteNotificationRepository(s.db)
+	notificationSvc := service.NewNotificationService(notificationRepo)
 
 	// Auth
 	authSvc := service.NewAuthService(s.db, s.cfg.GoogleClientID, s.cfg.GoogleClientSecret, s.cfg.GoogleCallbackURL)
@@ -91,6 +93,7 @@ func (s *Server) setupRoutes() {
 	labelsH := handler.NewTaskLabelsHandler(labelsSvc, v)
 	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
 	billsH := handler.NewBillsHandler(billsSvc, v)
+	notificationsH := handler.NewNotificationsHandler(notificationSvc, v)
 	dashboardH := handler.NewDashboardHandler(
 		weatherSvc,
 		stocksSvc,
@@ -99,6 +102,7 @@ func (s *Server) setupRoutes() {
 		sunriseSvc,
 		quotesSvc,
 		billsSvc,
+		notificationSvc,
 	)
 
 	// Public routes — no session required
@@ -122,5 +126,6 @@ func (s *Server) setupRoutes() {
 		settingsH.AddRoutes(r)
 		labelsH.AddRoutes(r)
 		billsH.AddRoutes(r)
+		notificationsH.AddRoutes(r)
 	})
 }

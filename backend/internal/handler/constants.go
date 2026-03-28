@@ -28,4 +28,8 @@ const (
 	// Bill pagination
 	defaultBillLimit = 50
 	maxBillLimit     = 200
+
+	// Notification pagination
+	defaultNotificationLimit = 20
+	maxNotificationLimit     = 100
 )
