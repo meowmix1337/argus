@@ -23,7 +23,7 @@ DROP TABLE  IF EXISTS user_integrations;
 CREATE TABLE IF NOT EXISTS user_integrations (
     id                CHAR(36) NOT NULL PRIMARY KEY CHECK(length(id) = 36),
     user_id           CHAR(36) NOT NULL REFERENCES users(id),
-    provider          TEXT NOT NULL REFERENCES provider_types(id),
+    provider_id       TEXT NOT NULL REFERENCES provider_types(id),
     access_token      TEXT NOT NULL,              -- encrypted via EncryptionService
     refresh_token     TEXT,                       -- encrypted, nullable (GitHub doesn't use refresh tokens currently)
     provider_user_id  TEXT NOT NULL,              -- GitHub user ID
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS user_integrations (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_user_integrations_user_provider_active
-    ON user_integrations (user_id, provider) WHERE deleted_at IS NULL;
+    ON user_integrations (user_id, provider_id) WHERE deleted_at IS NULL;
 
 -- +goose StatementBegin
 CREATE TRIGGER user_integrations_updated_at
@@ -85,8 +85,8 @@ END;
 CREATE TABLE IF NOT EXISTS notifications (
     id                   CHAR(36) NOT NULL PRIMARY KEY CHECK(length(id) = 36),
     user_id              CHAR(36) NOT NULL REFERENCES users(id),
-    provider             TEXT NOT NULL REFERENCES provider_types(id),
-    event_type           TEXT NOT NULL REFERENCES notification_event_types(id),
+    provider_id          TEXT NOT NULL REFERENCES provider_types(id),
+    event_type_id        TEXT NOT NULL REFERENCES notification_event_types(id),
     title                TEXT NOT NULL,
     body                 TEXT,
     url                  TEXT,                    -- deep link to GitHub PR/comment
