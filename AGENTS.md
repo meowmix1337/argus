@@ -91,8 +91,8 @@ For more details, see README.md and docs/QUICKSTART.md.
 3. **Update issue status** - Close finished work, update in-progress items
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
+   ~/.local/bin/bd backup && git add .beads/backup/ && git diff --cached --quiet || git commit -m "chore: sync bd backup"
    git pull --rebase
-   bd sync
    git push
    git status  # MUST show "up to date with origin"
    ```
