@@ -10,6 +10,9 @@ var ErrSettingsNotFound = errors.New("user settings not found")
 var ErrCategoryNotFound = errors.New("news category not found")
 var ErrSymbolNotFound = errors.New("symbol not in watchlist")
 var ErrLabelNotFound = errors.New("label not found")
+var ErrIntegrationNotFound = errors.New("integration not found")
+var ErrWatchedRepoNotFound = errors.New("watched repo not found")
+var ErrNotificationNotFound = errors.New("notification not found")
 
 // Validation errors.
 
@@ -17,11 +20,14 @@ var ErrValidation = errors.New("validation failed")
 var ErrTaskValidation = errors.New("task validation failed")
 var ErrSettingsValidation = errors.New("settings validation failed")
 var ErrLabelValidation = errors.New("label validation failed")
+var ErrIntegrationValidation = errors.New("integration validation failed")
 
 // Conflict errors.
 
 var ErrLabelAlreadyAssigned = errors.New("label already assigned to task")
 var ErrLabelAssignmentNotFound = errors.New("label assignment not found")
+var ErrIntegrationAlreadyExists = errors.New("integration already connected")
+var ErrRepoAlreadyWatched = errors.New("repo already watched")
 
 // Auth errors.
 

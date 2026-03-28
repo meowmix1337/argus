@@ -28,6 +28,11 @@ type Config struct {
 	SecureCookies      bool   // set Secure flag on cookies; default true, disable only for local HTTP dev
 	CORSOrigin         string // allowed CORS origin; defaults to http://localhost:5173
 	EncryptionKey      string // hex-encoded AES-256 key for encrypting sensitive fields (optional)
+
+	GitHubClientID     string // GitHub OAuth App client ID
+	GitHubClientSecret string // GitHub OAuth App client secret
+	GitHubCallbackURL  string // e.g. http://localhost:8080/api/auth/github/callback
+	AppEnv             string // "development" enables debug endpoints; omit or "production" for prod
 }
 
 func Load() *Config {
@@ -66,6 +71,11 @@ func Load() *Config {
 		SecureCookies:      os.Getenv("SECURE_COOKIES") != "false",
 		CORSOrigin:         corsOrigin(os.Getenv("CORS_ORIGIN")),
 		EncryptionKey:      os.Getenv("ENCRYPTION_KEY"),
+
+		GitHubClientID:     os.Getenv("GITHUB_CLIENT_ID"),
+		GitHubClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
+		GitHubCallbackURL:  os.Getenv("GITHUB_CALLBACK_URL"),
+		AppEnv:             os.Getenv("APP_ENV"),
 	}
 }
 

@@ -294,6 +294,24 @@ caught in review or causes a regression.**
 
 - **Outdated Known Limitations**: Update the Known Limitations section when a limitation is resolved.
 
+### Database / Migrations
+
+- **CHECK constraints instead of lookup tables**: Never use `CHECK (col IN ('a','b','c'))` or raw `VARCHAR` for enumerated values. Any column representing a finite set of values (type, status, category, role, provider) **must** use a lookup table with a FK reference. Example:
+  ```sql
+  -- BAD: CHECK constraint — breaks when new values are added, no label/sort_order
+  provider TEXT NOT NULL CHECK(provider IN ('github'))
+  -- GOOD: lookup table + FK
+  provider_id TEXT NOT NULL REFERENCES provider_types(id)
+  ```
+  Create the lookup table in its own migration, seed it with known values, then FK to it.
+
+- **FK column naming**: Columns that reference a lookup or parent table must end in `_id` (e.g. `provider_id`, `event_type_id`, `category_id`). Never use a bare noun (`provider`, `event_type`) for a FK column.
+
+- **Plain UNIQUE on soft-delete columns**: Never put a plain `UNIQUE` constraint on any column in a table that uses `deleted_at`. Use a partial unique index instead:
+  ```sql
+  CREATE UNIQUE INDEX uq_<table>_<col>_active ON <table>(<col>) WHERE deleted_at IS NULL;
+  ```
+
 ### Quality Gates
 
 - **Ignoring `go test -race`**: The `-race` flag catches concurrent map writes
