@@ -57,6 +57,28 @@ type NotificationCreate struct {
 	GitHubDeliveryID *string
 }
 
+// IntegrationCreate holds the fields for inserting a new user integration.
+type IntegrationCreate struct {
+	ID               string
+	UserID           string
+	ProviderID       string
+	AccessToken      string  // pre-encrypted
+	RefreshToken     *string // pre-encrypted, nullable
+	ProviderUserID   string
+	ProviderUsername string
+}
+
+// WatchedRepoCreate holds the fields for inserting a new watched repository.
+type WatchedRepoCreate struct {
+	ID            string
+	UserID        string
+	IntegrationID string
+	Owner         string
+	Repo          string
+	WebhookID     string
+	WebhookSecret string // pre-encrypted
+}
+
 // GitHubRepo is a repository returned from the GitHub API (not stored in DB).
 type GitHubRepo struct {
 	FullName string `json:"fullName"` // "owner/repo"
