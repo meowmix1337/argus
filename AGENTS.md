@@ -204,7 +204,7 @@ Each `Fetch` checks the cache first, calls the external API on miss, and returns
 | Stocks | Finnhub (equities) + CoinGecko (BTC) | `FINNHUB_API_KEY` | unavailable state |
 | Calendar | ICS feed (parsed with golang-ical) | `CALENDAR_ICS_URL` (stored encrypted) | unavailable state |
 | Sunrise | sunrise-sunset.org | none | unavailable state |
-| Quote | api.api-ninjas.com/v2/randomquotes | `API_NINJAS_API_KEY` | unavailable state |
+| Quote | api.api-ninjas.com/v2/quoteoftheday | `API_NINJAS_API_KEY` | unavailable state |
 
 ### Config (env vars → `internal/config/config.go`)
 `PORT` (default 8080), `GNEWS_API_KEY`, `FINNHUB_API_KEY`, `API_NINJAS_API_KEY`, `CALENDAR_ICS_URL`, `LATITUDE`/`LONGITUDE` (default SF 37.7749/-122.4194), `TIMEZONE` (IANA tz name, e.g. `America/New_York`; defaults to server local time — required for correct calendar event filtering), `ENCRYPTION_KEY` (**required** — AES-256-GCM key for encrypting sensitive user settings; generate with `openssl rand -hex 32`), `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` (OAuth), `SESSION_KEY` (session signing), `FRONTEND_URL`, `CORS_ORIGIN`.
