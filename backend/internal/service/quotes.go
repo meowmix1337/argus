@@ -27,7 +27,7 @@ func NewQuotesService(httpClient httpclient.HTTPClient, apiKey string, cache *Ca
 
 const (
 	quotesCacheTTL = 24 * time.Hour
-	quotesAPIURL   = "https://api.api-ninjas.com/v2/randomquotes?categories=wisdom,philosophy,life,truth,inspirational,humor,success,courage,happiness,leadership"
+	quotesAPIURL   = "https://api.api-ninjas.com/v2/quoteoftheday?categories=wisdom,philosophy,life,truth,inspirational"
 )
 
 // Fetch retrieves a random daily quote.
@@ -73,5 +73,6 @@ func (s *QuotesService) fetchFromAPI(ctx context.Context) (model.Quote, error) {
 type apiNinjasQuote struct {
 	Quote      string   `json:"quote"`
 	Author     string   `json:"author"`
+	Work       string   `json:"work"`
 	Categories []string `json:"categories"`
 }
