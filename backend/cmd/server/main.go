@@ -26,14 +26,17 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
+	// Warn if Google OAuth credentials are absent — server starts but login will not work.
+	if cfg.GoogleClientID == "" || cfg.GoogleClientSecret == "" {
+		slog.Warn("GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set — OAuth login disabled")
+	}
+
 	// Fail fast on missing or weak required configuration.
 	missing := false
 	for _, check := range []struct {
 		val  string
 		name string
 	}{
-		{cfg.GoogleClientID, "GOOGLE_CLIENT_ID"},
-		{cfg.GoogleClientSecret, "GOOGLE_CLIENT_SECRET"},
 		{cfg.GoogleCallbackURL, "GOOGLE_CALLBACK_URL"},
 		{cfg.FrontendURL, "FRONTEND_URL"},
 	} {
