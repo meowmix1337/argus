@@ -73,13 +73,18 @@ func (s *NewsService) fetchAllCategories(ctx context.Context) ([]model.NewsCateg
 }
 
 func (s *NewsService) fetchCategory(ctx context.Context, category string) ([]model.NewsItem, error) {
-	u := fmt.Sprintf(
-		"https://gnews.io/api/v4/top-headlines?category=%s&country=us&lang=en&max=8&apikey=%s",
-		category, s.apiKey,
-	)
-
 	var gnewsResp gNewsResponse
-	if err := s.httpClient.Get(ctx, u, &gnewsResp); err != nil {
+	if err := s.httpClient.Get(ctx,
+		"https://gnews.io/api/v4/top-headlines",
+		&gnewsResp,
+		httpclient.WithHeader("X-Api-Key", s.apiKey),
+		httpclient.WithQueryParams(map[string]string{
+			"category": category,
+			"country":  "us",
+			"lang":     "en",
+			"max":      "8",
+		}),
+	); err != nil {
 		return nil, err
 	}
 
