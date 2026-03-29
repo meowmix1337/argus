@@ -3,8 +3,10 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
@@ -14,6 +16,9 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
+
+// repoNameRe matches valid GitHub "owner/repo" full names.
+var repoNameRe = regexp.MustCompile(`^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$`)
 
 // IntegrationsHandler handles GitHub integration management endpoints.
 type IntegrationsHandler struct {
@@ -87,8 +92,14 @@ func (h *IntegrationsHandler) UpdateWatchedRepos(w http.ResponseWriter, r *http.
 		return
 	}
 	if len(req.Repos) > maxWatchedRepos {
-		response.WriteError(w, http.StatusBadRequest, "max 20 repos allowed")
+		response.WriteError(w, http.StatusBadRequest, fmt.Sprintf("max %d repos allowed", maxWatchedRepos))
 		return
+	}
+	for _, r := range req.Repos {
+		if !repoNameRe.MatchString(r) {
+			response.WriteError(w, http.StatusBadRequest, fmt.Sprintf("invalid repo name: %q", r))
+			return
+		}
 	}
 	if err := h.validate.Struct(&req); err != nil {
 		response.WriteError(w, http.StatusBadRequest, "validation failed")

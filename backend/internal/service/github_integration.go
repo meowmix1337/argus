@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -198,8 +199,7 @@ func (s *GitHubIntegrationService) UpdateWatchedRepos(ctx context.Context, userI
 		if _, keep := selectedSet[fullName]; keep {
 			continue
 		}
-		parts := strings.SplitN(fullName, "/", 2)
-		if err := s.removeGitHubWebhook(ctx, token, parts[0], parts[1], w.WebhookID); err != nil {
+		if err := s.removeGitHubWebhook(ctx, token, w.Owner, w.Repo, w.WebhookID); err != nil {
 			slog.Warn("github: failed to remove webhook", "repo", fullName, "error", err)
 		}
 		if _, err := s.watchedRepos.Delete(ctx, w.ID, userID); err != nil {
@@ -307,7 +307,8 @@ func (s *GitHubIntegrationService) createGitHubWebhook(
 	ctx context.Context,
 	token, owner, repo, secret string,
 ) (gitHubWebhookResponse, error) {
-	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/hooks", owner, repo)
+	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/hooks",
+		url.PathEscape(owner), url.PathEscape(repo))
 	body := gitHubWebhookCreate{
 		Name: "web",
 		Config: map[string]string{
@@ -335,7 +336,8 @@ func (s *GitHubIntegrationService) removeGitHubWebhook(
 	ctx context.Context,
 	token, owner, repo, webhookID string,
 ) error {
-	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/hooks/%s", owner, repo, webhookID)
+	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/hooks/%s",
+		url.PathEscape(owner), url.PathEscape(repo), url.PathEscape(webhookID))
 	err := s.httpClient.Delete(ctx, apiURL, nil,
 		httpclient.WithHeader("Authorization", "Bearer "+token),
 		httpclient.WithHeader("Accept", "application/vnd.github+json"),
