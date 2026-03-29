@@ -32,4 +32,7 @@ const (
 	// Notification pagination
 	defaultNotificationLimit = 20
 	maxNotificationLimit     = 100
+
+	// GitHub integration
+	maxWatchedRepos = 20
 )

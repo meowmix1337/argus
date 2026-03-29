@@ -17,11 +17,6 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
-// WatchedRepoStore defines the data-access contract needed by WebhookService.
-type WatchedRepoStore interface {
-	GetByOwnerRepo(ctx context.Context, owner, repo string) ([]model.WatchedRepo, error)
-}
-
 // WebhookService orchestrates HMAC authentication, event parsing, and notification
 // creation for incoming GitHub webhook deliveries.
 type WebhookService struct {

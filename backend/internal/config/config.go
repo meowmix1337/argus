@@ -32,6 +32,7 @@ type Config struct {
 	GitHubClientID     string // GitHub OAuth App client ID
 	GitHubClientSecret string // GitHub OAuth App client secret
 	GitHubCallbackURL  string // e.g. http://localhost:8080/api/auth/github/callback
+	GitHubWebhookURL   string // public URL GitHub posts webhook deliveries to (e.g. https://argus.example.com/api/webhooks/github)
 	AppEnv             string // "development" enables debug endpoints; omit or "production" for prod
 }
 
@@ -75,6 +76,7 @@ func Load() *Config {
 		GitHubClientID:     os.Getenv("GITHUB_CLIENT_ID"),
 		GitHubClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
 		GitHubCallbackURL:  os.Getenv("GITHUB_CALLBACK_URL"),
+		GitHubWebhookURL:   os.Getenv("GITHUB_WEBHOOK_URL"),
 		AppEnv:             os.Getenv("APP_ENV"),
 	}
 }
