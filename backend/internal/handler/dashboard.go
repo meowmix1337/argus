@@ -15,13 +15,14 @@ import (
 
 // DashboardHandler aggregates all widget data into a single response.
 type DashboardHandler struct {
-	weather  *service.WeatherService
-	stocks   *service.StocksService
-	calendar *service.CalendarService
-	tasks    *service.TasksService
-	sunrise  *service.SunriseService
-	quotes   *service.QuotesService
-	bills    *service.BillsService
+	weather       *service.WeatherService
+	stocks        *service.StocksService
+	calendar      *service.CalendarService
+	tasks         *service.TasksService
+	sunrise       *service.SunriseService
+	quotes        *service.QuotesService
+	bills         *service.BillsService
+	notifications *service.NotificationService
 }
 
 // NewDashboardHandler creates a new DashboardHandler.
@@ -33,15 +34,17 @@ func NewDashboardHandler(
 	sunrise *service.SunriseService,
 	quotes *service.QuotesService,
 	bills *service.BillsService,
+	notifications *service.NotificationService,
 ) *DashboardHandler {
 	return &DashboardHandler{
-		weather:  weather,
-		stocks:   stocks,
-		calendar: calendar,
-		tasks:    tasks,
-		sunrise:  sunrise,
-		quotes:   quotes,
-		bills:    bills,
+		weather:       weather,
+		stocks:        stocks,
+		calendar:      calendar,
+		tasks:         tasks,
+		sunrise:       sunrise,
+		quotes:        quotes,
+		bills:         bills,
+		notifications: notifications,
 	}
 }
 
@@ -143,6 +146,21 @@ func (h *DashboardHandler) Get(w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 		resp.Bills = data
+		return nil
+	})
+
+	g.Go(func() error {
+		sess, ok := middleware.SessionFromContext(gctx)
+		if !ok {
+			slog.Warn("unread notifications fetch skipped: no session in context")
+			return nil
+		}
+		count, err := h.notifications.CountUnread(gctx, sess.UserID)
+		if err != nil {
+			slog.Warn("unread notifications count failed", "error", err)
+			return nil
+		}
+		resp.UnreadNotifications = count
 		return nil
 	})
 

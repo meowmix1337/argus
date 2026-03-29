@@ -54,6 +54,25 @@ make dev-frontend
 # Starts Vite dev server at http://localhost:5173
 ```
 
+### Testing authenticated endpoints locally
+
+Argus uses Google OAuth for login, which requires a browser flow. For local API testing (e.g. `curl`) you can mint a valid signed session cookie without going through OAuth:
+
+```bash
+cd backend && go run ./cmd/devtoken
+# Prints a signed session token, e.g.:
+# eyJ1c2VySUQiOiJkZXYtdGVzdC11c2VyLTAwMDAwMDAwIiwiZ....<sig>
+```
+
+Use the token as a cookie in your requests:
+
+```bash
+TOKEN=$(cd backend && go run ./cmd/devtoken)
+curl -s -H "Cookie: session=$TOKEN" http://localhost:8080/api/dashboard | jq .
+```
+
+The token is valid for 1 hour and uses `SESSION_SECRET` from your `.env` file. **Never use this tool in production.**
+
 ## Obtaining API Keys & Config
 
 Cards that require credentials show an unavailable state when their key/URL is not set — no crashes or mock data.

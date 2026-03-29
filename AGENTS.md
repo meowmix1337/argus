@@ -111,6 +111,7 @@ For more details, see README.md and docs/QUICKSTART.md.
 ### Backend (run from `backend/`)
 ```bash
 go run ./cmd/server          # Start dev server on :8080
+go run ./cmd/devtoken        # Mint a signed session cookie for local endpoint testing (reads SESSION_SECRET from .env)
 go build ./...               # Compile all packages
 golangci-lint run ./...      # Lint (install: https://golangci-lint.run/welcome/install/)
 go test -race ./...          # Run tests
