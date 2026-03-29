@@ -28,6 +28,7 @@ var ErrLabelAlreadyAssigned = errors.New("label already assigned to task")
 var ErrLabelAssignmentNotFound = errors.New("label assignment not found")
 var ErrIntegrationAlreadyExists = errors.New("integration already connected")
 var ErrRepoAlreadyWatched = errors.New("repo already watched")
+var ErrDuplicateDelivery = errors.New("duplicate webhook delivery")
 
 // Auth errors.
 

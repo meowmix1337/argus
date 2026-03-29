@@ -76,6 +76,8 @@ func (s *Server) setupRoutes() {
 	quotesSvc := service.NewQuotesService(hc, s.cfg.APINinjasAPIKey, cache)
 	notificationRepo := repository.NewSQLiteNotificationRepository(s.db)
 	notificationSvc := service.NewNotificationService(notificationRepo)
+	watchedRepoRepo := repository.NewSQLiteWatchedRepoRepository(s.db)
+	webhookSvc := service.NewWebhookService(watchedRepoRepo, s.encSvc)
 
 	// Auth
 	authSvc := service.NewAuthService(s.db, s.cfg.GoogleClientID, s.cfg.GoogleClientSecret, s.cfg.GoogleCallbackURL)
@@ -94,6 +96,7 @@ func (s *Server) setupRoutes() {
 	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
 	billsH := handler.NewBillsHandler(billsSvc, v)
 	notificationsH := handler.NewNotificationsHandler(notificationSvc, v)
+	webhooksH := handler.NewWebhooksHandler(webhookSvc, notificationSvc, s.cfg.AppEnv)
 	dashboardH := handler.NewDashboardHandler(
 		weatherSvc,
 		stocksSvc,
@@ -110,6 +113,7 @@ func (s *Server) setupRoutes() {
 		response.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 	authH.AddRoutes(r)
+	webhooksH.AddRoutes(r)
 
 	// Protected routes — valid session cookie required
 	r.Group(func(r chi.Router) {

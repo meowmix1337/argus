@@ -10,6 +10,7 @@ import (
 
 // NotificationStore defines the data-access contract for notifications.
 type NotificationStore interface {
+	Create(ctx context.Context, n model.NotificationCreate) (model.Notification, error)
 	List(ctx context.Context, userID, state string, limit, offset int) ([]model.Notification, int, error)
 	GetByID(ctx context.Context, id, userID string) (model.Notification, error)
 	MarkRead(ctx context.Context, id, userID string) (int64, error)
@@ -89,4 +90,14 @@ func (s *NotificationService) CountUnread(ctx context.Context, userID string) (i
 		return 0, fmt.Errorf("count unread notifications: %w", err)
 	}
 	return count, nil
+}
+
+// Create persists a new notification. Returns ErrDuplicateDelivery if a notification
+// with the same github_delivery_id already exists.
+func (s *NotificationService) Create(ctx context.Context, n model.NotificationCreate) (model.Notification, error) {
+	result, err := s.store.Create(ctx, n)
+	if err != nil {
+		return model.Notification{}, fmt.Errorf("create notification: %w", err)
+	}
+	return result, nil
 }
