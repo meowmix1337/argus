@@ -77,7 +77,7 @@ func (s *Server) setupRoutes() {
 	notificationRepo := repository.NewSQLiteNotificationRepository(s.db)
 	notificationSvc := service.NewNotificationService(notificationRepo)
 	watchedRepoRepo := repository.NewSQLiteWatchedRepoRepository(s.db)
-	webhookSvc := service.NewWebhookService(watchedRepoRepo, s.encSvc)
+	webhookSvc := service.NewWebhookService(watchedRepoRepo, notificationRepo, s.encSvc)
 
 	// Auth
 	authSvc := service.NewAuthService(s.db, s.cfg.GoogleClientID, s.cfg.GoogleClientSecret, s.cfg.GoogleCallbackURL)
@@ -96,7 +96,7 @@ func (s *Server) setupRoutes() {
 	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
 	billsH := handler.NewBillsHandler(billsSvc, v)
 	notificationsH := handler.NewNotificationsHandler(notificationSvc, v)
-	webhooksH := handler.NewWebhooksHandler(webhookSvc, notificationSvc, s.cfg.AppEnv)
+	webhooksH := handler.NewWebhooksHandler(webhookSvc, v, s.cfg.AppEnv)
 	dashboardH := handler.NewDashboardHandler(
 		weatherSvc,
 		stocksSvc,

@@ -30,6 +30,11 @@ var ErrIntegrationAlreadyExists = errors.New("integration already connected")
 var ErrRepoAlreadyWatched = errors.New("repo already watched")
 var ErrDuplicateDelivery = errors.New("duplicate webhook delivery")
 
+// Webhook errors.
+
+var ErrInvalidWebhookPayload = errors.New("invalid webhook payload")
+var ErrUnhandledEvent = errors.New("unhandled webhook event type or action")
+
 // Auth errors.
 
 var ErrBillNotFound = errors.New("bill not found")

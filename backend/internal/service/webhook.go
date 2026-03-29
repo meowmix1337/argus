@@ -6,9 +6,14 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
+	"github.com/google/uuid"
+
+	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
@@ -17,35 +22,173 @@ type WatchedRepoStore interface {
 	GetByOwnerRepo(ctx context.Context, owner, repo string) ([]model.WatchedRepo, error)
 }
 
-// WebhookService handles HMAC signature validation and GitHub event parsing.
+// WebhookService orchestrates HMAC authentication, event parsing, and notification
+// creation for incoming GitHub webhook deliveries.
 type WebhookService struct {
-	watchedRepos WatchedRepoStore
-	encSvc       *EncryptionService
+	watchedRepos  WatchedRepoStore
+	notifications NotificationStore // reuses the interface defined in notification.go
+	encSvc        *EncryptionService
 }
 
 // NewWebhookService creates a new WebhookService.
-func NewWebhookService(store WatchedRepoStore, encSvc *EncryptionService) *WebhookService {
-	return &WebhookService{watchedRepos: store, encSvc: encSvc}
+func NewWebhookService(
+	watchedRepos WatchedRepoStore,
+	notifications NotificationStore,
+	encSvc *EncryptionService,
+) *WebhookService {
+	return &WebhookService{
+		watchedRepos:  watchedRepos,
+		notifications: notifications,
+		encSvc:        encSvc,
+	}
 }
 
-// GetWatchedRepos returns all active watched repos for the given owner and repo name.
-func (s *WebhookService) GetWatchedRepos(ctx context.Context, owner, repo string) ([]model.WatchedRepo, error) {
+// ProcessDelivery validates an incoming GitHub webhook delivery end-to-end:
+// extracts the repository, authenticates the HMAC signature, parses the event,
+// and persists a notification for the matched user.
+//
+// Possible sentinel errors (map to HTTP status in the handler):
+//   - ErrInvalidWebhookPayload → 400
+//   - ErrUnauthorized          → 401
+//   - ErrDuplicateDelivery     → 200 (idempotent re-delivery)
+//   - ErrUnhandledEvent        → 200 (no notification needed)
+func (s *WebhookService) ProcessDelivery(
+	ctx context.Context,
+	eventType string,
+	payload []byte,
+	sigHeader string,
+	deliveryID string,
+) error {
+	owner, repo, err := extractOwnerRepo(payload)
+	if err != nil {
+		return apperrors.ErrInvalidWebhookPayload
+	}
+
+	matched, err := s.authenticateDelivery(ctx, owner, repo, payload, sigHeader)
+	if err != nil {
+		return err // ErrUnauthorized or wrapped DB error
+	}
+
+	parsed, err := parseGitHubEvent(eventType, payload)
+	if err != nil {
+		return apperrors.ErrInvalidWebhookPayload
+	}
+	if parsed == nil {
+		return apperrors.ErrUnhandledEvent
+	}
+
+	id, err := uuid.NewV7()
+	if err != nil {
+		return fmt.Errorf("generate notification ID: %w", err)
+	}
+	parsed.ID = id.String()
+	parsed.UserID = matched.UserID
+	if deliveryID != "" {
+		parsed.GitHubDeliveryID = &deliveryID
+	}
+
+	if _, err := s.notifications.Create(ctx, *parsed); err != nil {
+		return err // includes ErrDuplicateDelivery
+	}
+	return nil
+}
+
+// SimulateDelivery processes a delivery without HMAC validation, creating
+// notifications for all users watching the target repository. Intended for
+// local development testing only (registered behind APP_ENV=development).
+//
+// Returns the count of notifications created, or ErrInvalidWebhookPayload /
+// ErrWatchedRepoNotFound / ErrUnhandledEvent on failure.
+func (s *WebhookService) SimulateDelivery(
+	ctx context.Context,
+	eventType string,
+	payload []byte,
+	deliveryID string,
+) (int, error) {
+	owner, repo, err := extractOwnerRepo(payload)
+	if err != nil {
+		return 0, apperrors.ErrInvalidWebhookPayload
+	}
+
+	watchedRepos, err := s.watchedRepos.GetByOwnerRepo(ctx, owner, repo)
+	if err != nil {
+		return 0, fmt.Errorf("get watched repos: %w", err)
+	}
+	if len(watchedRepos) == 0 {
+		return 0, apperrors.ErrWatchedRepoNotFound
+	}
+
+	parsed, err := parseGitHubEvent(eventType, payload)
+	if err != nil {
+		return 0, apperrors.ErrInvalidWebhookPayload
+	}
+	if parsed == nil {
+		return 0, apperrors.ErrUnhandledEvent
+	}
+
+	if deliveryID == "" {
+		generated, err := uuid.NewV7()
+		if err != nil {
+			return 0, fmt.Errorf("generate delivery ID: %w", err)
+		}
+		deliveryID = generated.String()
+	}
+
+	created := 0
+	for _, wr := range watchedRepos {
+		id, err := uuid.NewV7()
+		if err != nil {
+			slog.Error("simulate: failed to generate notification ID", "error", err, "user_id", wr.UserID)
+			continue
+		}
+		n := *parsed
+		n.ID = id.String()
+		n.UserID = wr.UserID
+		n.GitHubDeliveryID = &deliveryID
+
+		if _, err := s.notifications.Create(ctx, n); err != nil {
+			if errors.Is(err, apperrors.ErrDuplicateDelivery) {
+				continue
+			}
+			slog.Error("simulate: failed to create notification", "error", err, "user_id", wr.UserID)
+			continue
+		}
+		created++
+	}
+	return created, nil
+}
+
+// authenticateDelivery finds the WatchedRepo whose decrypted webhook secret
+// validates the HMAC signature. Returns ErrUnauthorized if no match is found.
+func (s *WebhookService) authenticateDelivery(
+	ctx context.Context,
+	owner, repo string,
+	payload []byte,
+	sigHeader string,
+) (*model.WatchedRepo, error) {
 	repos, err := s.watchedRepos.GetByOwnerRepo(ctx, owner, repo)
 	if err != nil {
 		return nil, fmt.Errorf("get watched repos: %w", err)
 	}
-	return repos, nil
+	for i := range repos {
+		secret, err := s.encSvc.Decrypt(repos[i].WebhookSecret)
+		if err != nil {
+			slog.Warn("webhook: failed to decrypt webhook secret", "watched_repo_id", repos[i].ID, "error", err)
+			continue
+		}
+		if validateHMACSignature([]byte(secret), payload, sigHeader) {
+			return &repos[i], nil
+		}
+	}
+	return nil, apperrors.ErrUnauthorized
 }
 
-// DecryptWebhookSecret decrypts an encrypted webhook secret stored in the DB.
-func (s *WebhookService) DecryptWebhookSecret(encrypted string) (string, error) {
-	return s.encSvc.Decrypt(encrypted)
-}
+// --- HMAC and payload helpers (unexported) ---
 
-// ValidateHMACSignature returns true if sigHeader is a valid HMAC-SHA256 signature
+// validateHMACSignature returns true if sigHeader is a valid HMAC-SHA256 signature
 // of payload using secret. Uses constant-time comparison to prevent timing attacks.
 // sigHeader must be in the form "sha256=<hex>".
-func ValidateHMACSignature(secret, payload []byte, sigHeader string) bool {
+func validateHMACSignature(secret, payload []byte, sigHeader string) bool {
 	const prefix = "sha256="
 	if !strings.HasPrefix(sigHeader, prefix) {
 		return false
@@ -60,9 +203,9 @@ func ValidateHMACSignature(secret, payload []byte, sigHeader string) bool {
 	return hmac.Equal(expected, sig)
 }
 
-// ExtractOwnerRepo parses the repository full_name from a GitHub webhook payload
+// extractOwnerRepo parses the repository full_name from a GitHub webhook payload
 // and returns the owner and repo name separately.
-func ExtractOwnerRepo(payload []byte) (owner, repo string, err error) {
+func extractOwnerRepo(payload []byte) (owner, repo string, err error) {
 	var base struct {
 		Repository struct {
 			FullName string `json:"full_name"`
@@ -78,12 +221,10 @@ func ExtractOwnerRepo(payload []byte) (owner, repo string, err error) {
 	return parts[0], parts[1], nil
 }
 
-// ParseGitHubEvent converts a raw GitHub webhook payload into a partial NotificationCreate.
-// The returned struct has ProviderID, EventTypeID, Title, Body, and URL populated;
-// the caller must set ID, UserID, and GitHubDeliveryID before persisting.
-// Returns nil (no error) for unhandled event types or unhandled action values —
-// the caller should skip notification creation but still return 200 OK to GitHub.
-func ParseGitHubEvent(eventType string, payload []byte) (*model.NotificationCreate, error) {
+// parseGitHubEvent converts a raw GitHub webhook payload into a partial
+// NotificationCreate. The caller must set ID, UserID, and GitHubDeliveryID.
+// Returns nil (no error) for unhandled event types or actions.
+func parseGitHubEvent(eventType string, payload []byte) (*model.NotificationCreate, error) {
 	switch eventType {
 	case "pull_request":
 		return parsePullRequestEvent(payload)
@@ -96,16 +237,28 @@ func ParseGitHubEvent(eventType string, payload []byte) (*model.NotificationCrea
 	}
 }
 
-// --- private event parsers ---
+// --- Named types for GitHub webhook JSON shapes ---
+
+type gitHubUser struct {
+	Login string `json:"login"`
+}
+
+type gitHubComment struct {
+	HTMLURL string     `json:"html_url"`
+	Body    string     `json:"body"`
+	User    gitHubUser `json:"user"`
+}
+
+type gitHubPR struct {
+	Number  int    `json:"number"`
+	Title   string `json:"title"`
+	HTMLURL string `json:"html_url"`
+	Merged  bool   `json:"merged"`
+}
 
 type gitHubPRPayload struct {
-	Action      string `json:"action"`
-	PullRequest struct {
-		Number  int    `json:"number"`
-		Title   string `json:"title"`
-		HTMLURL string `json:"html_url"`
-		Merged  bool   `json:"merged"`
-	} `json:"pull_request"`
+	Action      string   `json:"action"`
+	PullRequest gitHubPR `json:"pull_request"`
 }
 
 type gitHubIssueCommentPayload struct {
@@ -114,29 +267,16 @@ type gitHubIssueCommentPayload struct {
 		Number      int              `json:"number"`
 		PullRequest *json.RawMessage `json:"pull_request"` // non-nil means comment is on a PR
 	} `json:"issue"`
-	Comment struct {
-		HTMLURL string `json:"html_url"`
-		Body    string `json:"body"`
-		User    struct {
-			Login string `json:"login"`
-		} `json:"user"`
-	} `json:"comment"`
+	Comment gitHubComment `json:"comment"`
 }
 
 type gitHubPRReviewCommentPayload struct {
-	Action  string `json:"action"`
-	Comment struct {
-		HTMLURL string `json:"html_url"`
-		Body    string `json:"body"`
-		User    struct {
-			Login string `json:"login"`
-		} `json:"user"`
-	} `json:"comment"`
-	PullRequest struct {
-		Number int    `json:"number"`
-		Title  string `json:"title"`
-	} `json:"pull_request"`
+	Action      string        `json:"action"`
+	Comment     gitHubComment `json:"comment"`
+	PullRequest gitHubPR      `json:"pull_request"`
 }
+
+// --- Event parsers ---
 
 func parsePullRequestEvent(payload []byte) (*model.NotificationCreate, error) {
 	var p gitHubPRPayload
