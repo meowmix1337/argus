@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -97,6 +98,9 @@ func (r *SQLiteNotificationRepository) Create(ctx context.Context, n model.Notif
 		n.ID, n.UserID, n.ProviderID, n.EventTypeID, n.Title, n.Body, n.URL, n.GitHubDeliveryID, now, now,
 	)
 	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			return model.Notification{}, apperrors.ErrDuplicateDelivery
+		}
 		return model.Notification{}, fmt.Errorf("create notification: %w", err)
 	}
 	return r.GetByID(ctx, n.ID, n.UserID)
