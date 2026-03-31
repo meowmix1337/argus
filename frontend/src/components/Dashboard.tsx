@@ -36,6 +36,7 @@ import { UserProfile } from './UserProfile';
 import { UnavailableCard } from './ui/UnavailableCard';
 import { SettingsPanel } from './SettingsPanel';
 import { BillsPanel } from './BillsPanel';
+import { IntegrationsPanel } from './IntegrationsPanel';
 import { NotificationBell } from './NotificationBell';
 import { NotificationPanel } from './NotificationPanel';
 import { useUnreadCount } from '../hooks/useNotifications';
@@ -226,6 +227,7 @@ export default function Dashboard(): React.ReactElement {
   const [activeId, setActiveId] = useState<CardId | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showBills, setShowBills] = useState(false);
+  const [showIntegrations, setShowIntegrations] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const { data: unreadData } = useUnreadCount();
 
@@ -419,7 +421,7 @@ export default function Dashboard(): React.ReactElement {
               onClick={() => setShowNotifications((v) => !v)}
               isOpen={showNotifications}
             />
-            {user && <UserProfile user={user} onOpenSettings={() => setShowSettings(true)} />}
+            {user && <UserProfile user={user} onOpenSettings={() => setShowSettings(true)} onOpenIntegrations={() => setShowIntegrations(true)} />}
           </div>
         </div>
 
@@ -522,6 +524,7 @@ export default function Dashboard(): React.ReactElement {
 
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
       {showBills && <BillsPanel onClose={() => setShowBills(false)} />}
+      {showIntegrations && <IntegrationsPanel onClose={() => setShowIntegrations(false)} />}
       {showNotifications && <NotificationPanel onClose={() => setShowNotifications(false)} />}
     </div>
   );

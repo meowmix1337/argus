@@ -6,6 +6,7 @@ import type { User } from '../types/auth';
 interface Props {
   user: User;
   onOpenSettings?: () => void;
+  onOpenIntegrations?: () => void;
 }
 
 function getInitials(name: string): string {
@@ -25,12 +26,13 @@ async function signOut(
   }
 }
 
-export function UserProfile({ user, onOpenSettings }: Props): React.ReactElement {
+export function UserProfile({ user, onOpenSettings, onOpenIntegrations }: Props): React.ReactElement {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [settingsHovered, setSettingsHovered] = useState(false);
+  const [integrationsHovered, setIntegrationsHovered] = useState(false);
   const [signOutHovered, setSignOutHovered] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -191,6 +193,40 @@ export function UserProfile({ user, onOpenSettings }: Props): React.ReactElement
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
               Settings
+            </button>
+          )}
+
+          {/* Integrations */}
+          {onOpenIntegrations && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onOpenIntegrations();
+              }}
+              onMouseEnter={() => setIntegrationsHovered(true)}
+              onMouseLeave={() => setIntegrationsHovered(false)}
+              style={{
+                width: '100%',
+                textAlign: 'left',
+                padding: '10px 16px',
+                fontSize: 13,
+                color: integrationsHovered ? 'var(--text-primary)' : 'var(--text-secondary)',
+                background: integrationsHovered ? 'var(--bg-elevated)' : 'none',
+                border: 'none',
+                borderBottom: '1px solid var(--border-subtle)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                transition: 'color 0.15s, background 0.15s',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M9.5 6.5L6.5 9.5M7 4l.707-.707a3 3 0 0 1 4.243 4.243L11.243 8M9 12l-.707.707a3 3 0 0 1-4.243-4.243L4.757 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Integrations
             </button>
           )}
 

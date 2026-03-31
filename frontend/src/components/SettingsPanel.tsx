@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useUserSettings, useNewsCategories, useSettingsMutations } from '../hooks/useUserSettings';
-import { useGitHubIntegration, useGitHubRepos, useGitHubMutations } from '../hooks/useGitHubIntegration';
-import { GitHubIcon } from './ui/GitHubIcon';
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -13,16 +11,6 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
   const { settings } = useUserSettings();
   const { data: categoriesData } = useNewsCategories();
   const { save, saveCategories } = useSettingsMutations();
-
-  const { data: githubStatus } = useGitHubIntegration();
-  const { data: githubRepos, isLoading: reposLoading } = useGitHubRepos(githubStatus?.connected ?? false);
-  const { disconnect, updateWatchedRepos } = useGitHubMutations();
-  const [showRepoPicker, setShowRepoPicker] = useState(false);
-  const [selectedRepos, setSelectedRepos] = useState<string[]>(
-    () => githubRepos?.filter((r) => r.watched).map((r) => r.fullName) ?? []
-  );
-  const [reposSaved, setReposSaved] = useState(false);
-  const reposSavedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const [isOpen, setIsOpen] = useState(false);
   const [latitude, setLatitude] = useState<string>('');
@@ -57,7 +45,6 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
     return () => {
       clearTimeout(closeTimerRef.current);
       clearTimeout(savedTimerRef.current);
-      clearTimeout(reposSavedTimerRef.current);
     };
   }, []);
 
@@ -117,12 +104,6 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
   if (categoriesData && categoriesData !== prevCategories) {
     setPrevCategories(categoriesData);
     setSelectedCategoryIds(categoriesData.selected.map((c) => c.id));
-  }
-
-  const [prevRepos, setPrevRepos] = useState(githubRepos);
-  if (githubRepos && githubRepos !== prevRepos) {
-    setPrevRepos(githubRepos);
-    setSelectedRepos(githubRepos.filter((r) => r.watched).map((r) => r.fullName));
   }
 
   // Auto-save for news categories
@@ -454,162 +435,6 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
             </div>
           </div>
 
-          {/* Divider */}
-          <div style={{ ...sectionStyle(6), height: 1, background: 'rgba(255,255,255,0.08)' }} />
-
-          {/* Section: Integrations */}
-          <div style={sectionStyle(7)}>
-            <div style={sectionLabelStyle}>Integrations</div>
-
-            {/* GitHub row */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <GitHubIcon size={20} style={{ color: 'var(--text-secondary)' }} />
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>GitHub</div>
-                  {githubStatus?.connected && githubStatus.providerUsername && (
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                      @{githubStatus.providerUsername}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {githubStatus?.connected ? (
-                <button
-                  onClick={() => void disconnect.mutateAsync(undefined)}
-                  disabled={disconnect.isPending}
-                  style={{
-                    background: 'rgba(239,68,68,0.1)',
-                    border: '1px solid rgba(239,68,68,0.3)',
-                    borderRadius: 8,
-                    padding: '6px 14px',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: '#f87171',
-                    cursor: disconnect.isPending ? 'not-allowed' : 'pointer',
-                    opacity: disconnect.isPending ? 0.6 : 1,
-                    transition: 'opacity 0.15s ease',
-                  }}
-                >
-                  {disconnect.isPending ? 'Disconnecting...' : 'Disconnect'}
-                </button>
-              ) : (
-                <a
-                  href="/api/auth/github"
-                  style={{
-                    background: 'rgba(99,102,241,0.15)',
-                    border: '1px solid rgba(99,102,241,0.35)',
-                    borderRadius: 8,
-                    padding: '6px 14px',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: 'var(--text-accent)',
-                    textDecoration: 'none',
-                    transition: 'opacity 0.15s ease',
-                  }}
-                >
-                  Connect
-                </a>
-              )}
-            </div>
-
-            {/* Repo picker (shown when connected) */}
-            {githubStatus?.connected && (
-              <div style={{ marginTop: 12 }}>
-                <button
-                  onClick={() => setShowRepoPicker((v) => !v)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    fontSize: 12,
-                    color: 'var(--text-accent)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                >
-                  {showRepoPicker ? '▲' : '▼'} Manage watched repos
-                </button>
-
-                {showRepoPicker && (
-                  <div style={{ marginTop: 10 }}>
-                    {reposLoading ? (
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Loading repos...</div>
-                    ) : !githubRepos || githubRepos.length === 0 ? (
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>No repos found.</div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto' }}>
-                        {githubRepos.map((repo) => {
-                          const isSelected = selectedRepos.includes(repo.fullName);
-                          return (
-                            <label
-                              key={repo.fullName}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 8,
-                                fontSize: 12,
-                                color: 'var(--text-primary)',
-                                cursor: 'pointer',
-                                padding: '4px 0',
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onChange={() => {
-                                  setSelectedRepos((prev) =>
-                                    isSelected ? prev.filter((r) => r !== repo.fullName) : [...prev, repo.fullName]
-                                  );
-                                }}
-                                style={{ accentColor: '#6366f1' }}
-                              />
-                              {repo.fullName}
-                              {repo.private && (
-                                <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 4 }}>private</span>
-                              )}
-                            </label>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {githubRepos && githubRepos.length > 0 && (
-                      <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <button
-                          onClick={() => {
-                            void updateWatchedRepos.mutateAsync(selectedRepos).then(() => {
-                              setReposSaved(true);
-                              reposSavedTimerRef.current = setTimeout(() => setReposSaved(false), 2000);
-                            });
-                          }}
-                          disabled={updateWatchedRepos.isPending}
-                          style={{
-                            background: '#6366f1',
-                            border: 'none',
-                            borderRadius: 8,
-                            padding: '7px 18px',
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: '#fff',
-                            cursor: updateWatchedRepos.isPending ? 'not-allowed' : 'pointer',
-                            opacity: updateWatchedRepos.isPending ? 0.7 : 1,
-                            transition: 'opacity 0.15s ease',
-                          }}
-                        >
-                          {updateWatchedRepos.isPending ? 'Saving...' : 'Save'}
-                        </button>
-                        {reposSaved && <span style={{ fontSize: 12, color: '#34d399' }}>Saved</span>}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>
