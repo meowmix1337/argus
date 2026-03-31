@@ -18,7 +18,9 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
   const { data: githubRepos, isLoading: reposLoading } = useGitHubRepos(githubStatus?.connected ?? false);
   const { disconnect, updateWatchedRepos } = useGitHubMutations();
   const [showRepoPicker, setShowRepoPicker] = useState(false);
-  const [selectedRepos, setSelectedRepos] = useState<string[]>([]);
+  const [selectedRepos, setSelectedRepos] = useState<string[]>(
+    () => githubRepos?.filter((r) => r.watched).map((r) => r.fullName) ?? []
+  );
   const [reposSaved, setReposSaved] = useState(false);
   const reposSavedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
