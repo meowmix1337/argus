@@ -67,7 +67,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
         return [...prev, ...newItems];
       });
     }
-  }, [data, page]);
+  }, [data, page, tab]); // tab: re-fire when switching back to a tab with cached data
 
   // Reset accumulator when tab changes
   useEffect(() => {
