@@ -69,9 +69,8 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
     }
   }, [data, page, tab]); // tab: re-fire when switching back to a tab with cached data
 
-  // Reset accumulator when tab changes
+  // Reset page when tab changes (allNotifications is replaced by the data effect above)
   useEffect(() => {
-    setAllNotifications([]);
     setPage(0);
   }, [tab]);
 
