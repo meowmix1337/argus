@@ -230,6 +230,15 @@ func (s *GitHubIntegrationService) UpdateWatchedRepos(ctx context.Context, userI
 	return nil
 }
 
+// GetStatus returns the GitHub integration for the user, or ErrIntegrationNotFound.
+func (s *GitHubIntegrationService) GetStatus(ctx context.Context, userID string) (model.UserIntegration, error) {
+	integration, err := s.integrations.GetByUserAndProvider(ctx, userID, providerGitHub)
+	if err != nil {
+		return model.UserIntegration{}, err
+	}
+	return integration, nil
+}
+
 // Disconnect removes all webhooks for the user's watched repos, deletes the
 // watched repo records, and soft-deletes the GitHub integration.
 func (s *GitHubIntegrationService) Disconnect(ctx context.Context, userID string) error {

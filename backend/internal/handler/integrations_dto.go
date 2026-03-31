@@ -5,3 +5,10 @@ package handler
 type UpdateWatchedReposRequest struct {
 	Repos []string `json:"repos" validate:"dive,required"`
 }
+
+// IntegrationStatusResponse is returned by GET /api/integrations/github.
+type IntegrationStatusResponse struct {
+	Connected        bool   `json:"connected"`
+	ProviderUsername string `json:"providerUsername,omitempty"`
+	ConnectedAt      string `json:"connectedAt,omitempty"`
+}

@@ -33,9 +33,35 @@ func NewIntegrationsHandler(githubSvc *service.GitHubIntegrationService, validat
 
 // AddRoutes registers the integration management routes (all require an active session).
 func (h *IntegrationsHandler) AddRoutes(r chi.Router) {
+	r.Get("/api/integrations/github", h.GetStatus)
 	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/integrations/github", h.Disconnect)
 	r.Get("/api/integrations/github/repos", h.ListRepos)
 	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Put("/api/integrations/github/repos", h.UpdateWatchedRepos)
+}
+
+// GetStatus handles GET /api/integrations/github.
+// Returns {connected: false} when no integration exists; {connected: true, ...} otherwise.
+func (h *IntegrationsHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
+	userID, ok := userIDFromRequest(r)
+	if !ok {
+		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	integration, err := h.githubSvc.GetStatus(r.Context(), userID)
+	if err != nil {
+		if errors.Is(err, apperrors.ErrIntegrationNotFound) {
+			response.WriteJSON(w, http.StatusOK, IntegrationStatusResponse{Connected: false})
+			return
+		}
+		slog.Error("integrations: get status failed", "error", err)
+		response.WriteError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+	response.WriteJSON(w, http.StatusOK, IntegrationStatusResponse{
+		Connected:        true,
+		ProviderUsername: integration.ProviderUsername,
+		ConnectedAt:      integration.CreatedAt,
+	})
 }
 
 // Disconnect handles DELETE /api/integrations/github.

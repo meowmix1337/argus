@@ -36,6 +36,9 @@ import { UserProfile } from './UserProfile';
 import { UnavailableCard } from './ui/UnavailableCard';
 import { SettingsPanel } from './SettingsPanel';
 import { BillsPanel } from './BillsPanel';
+import { NotificationBell } from './NotificationBell';
+import { NotificationPanel } from './NotificationPanel';
+import { useUnreadCount } from '../hooks/useNotifications';
 
 function getGreeting(date: Date): string {
   const h = date.getHours();
@@ -223,6 +226,8 @@ export default function Dashboard(): React.ReactElement {
   const [activeId, setActiveId] = useState<CardId | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showBills, setShowBills] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const { data: unreadData } = useUnreadCount();
 
   const isMobile = breakpoint === 'mobile';
   const isTablet = breakpoint === 'tablet';
@@ -409,6 +414,11 @@ export default function Dashboard(): React.ReactElement {
             >
               {theme === 'dark' ? '☀️' : '🌙'}
             </button>
+            <NotificationBell
+              unreadCount={unreadData?.count ?? 0}
+              onClick={() => setShowNotifications((v) => !v)}
+              isOpen={showNotifications}
+            />
             {user && <UserProfile user={user} onOpenSettings={() => setShowSettings(true)} />}
           </div>
         </div>
@@ -512,6 +522,7 @@ export default function Dashboard(): React.ReactElement {
 
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
       {showBills && <BillsPanel onClose={() => setShowBills(false)} />}
+      {showNotifications && <NotificationPanel onClose={() => setShowNotifications(false)} />}
     </div>
   );
 }
