@@ -77,7 +77,12 @@ func (s *Server) setupRoutes() {
 	notificationRepo := repository.NewSQLiteNotificationRepository(s.db)
 	notificationSvc := service.NewNotificationService(notificationRepo)
 	watchedRepoRepo := repository.NewSQLiteWatchedRepoRepository(s.db)
+	integrationRepo := repository.NewSQLiteIntegrationRepository(s.db)
 	webhookSvc := service.NewWebhookService(watchedRepoRepo, notificationRepo, s.encSvc)
+	githubIntegrationSvc := service.NewGitHubIntegrationService(
+		integrationRepo, watchedRepoRepo, s.encSvc, hc,
+		s.cfg.GitHubClientID, s.cfg.GitHubClientSecret, s.cfg.GitHubCallbackURL, s.cfg.GitHubWebhookURL,
+	)
 
 	// Auth
 	authSvc := service.NewAuthService(s.db, s.cfg.GoogleClientID, s.cfg.GoogleClientSecret, s.cfg.GoogleCallbackURL)
@@ -97,6 +102,8 @@ func (s *Server) setupRoutes() {
 	billsH := handler.NewBillsHandler(billsSvc, v)
 	notificationsH := handler.NewNotificationsHandler(notificationSvc, v)
 	webhooksH := handler.NewWebhooksHandler(webhookSvc, v, s.cfg.AppEnv)
+	githubAuthH := handler.NewGitHubAuthHandler(githubIntegrationSvc, s.cfg.FrontendURL, s.cfg.SecureCookies)
+	integrationsH := handler.NewIntegrationsHandler(githubIntegrationSvc, v)
 	dashboardH := handler.NewDashboardHandler(
 		weatherSvc,
 		stocksSvc,
@@ -131,5 +138,7 @@ func (s *Server) setupRoutes() {
 		labelsH.AddRoutes(r)
 		billsH.AddRoutes(r)
 		notificationsH.AddRoutes(r)
+		githubAuthH.AddRoutes(r)
+		integrationsH.AddRoutes(r)
 	})
 }

@@ -131,6 +131,11 @@ The calendar card reads any standard ICS/iCal feed — no OAuth required.
 | `CORS_ORIGIN` | Allowed CORS origin for the API | No | `http://localhost:5173` |
 | `FRONTEND_URL` | Frontend URL for OAuth redirects | No | `http://localhost:5173` |
 | `SECURE_COOKIES` | Set `true` in production (HTTPS only cookies) | No | false |
+| `GITHUB_CLIENT_ID` | GitHub OAuth App client ID (for notification center integration) | No | — (integration disabled) |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App client secret | No | — (integration disabled) |
+| `GITHUB_CALLBACK_URL` | GitHub OAuth redirect URL (e.g. `http://localhost:8080/api/auth/github/callback`) | No | — |
+| `GITHUB_WEBHOOK_URL` | Public URL where GitHub delivers webhook events (must be reachable by GitHub; use ngrok for local dev) | No | — (webhooks not installed) |
+| `APP_ENV` | Set to `development` to enable the `POST /api/webhooks/github/_simulate` debug endpoint | No | — (simulate disabled) |
 
 ## API Endpoints
 

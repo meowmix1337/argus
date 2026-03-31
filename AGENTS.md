@@ -5,6 +5,8 @@ Use 'bd' for task tracking
 
 **IMPORTANT**: This project uses **bd (beads)** for ALL issue tracking. Do NOT use markdown TODOs, task lists, or other tracking methods.
 
+Always use the `bd` bead tracking tool for task updates as specified in AGENTS.md. Never skip bead tracking even when focused on code changes.
+
 ### Quick Start
 
 **Check for ready work:**
@@ -196,6 +198,8 @@ Each `Fetch` checks the cache first, calls the external API on miss, and returns
 **Styling**: Components use inline styles exclusively (no Tailwind classes in JSX). Tailwind is imported in `index.css` via `@import "tailwindcss"` but the design system is all inline to match the exact pixel values from the mock.
 
 **UI primitives**: `components/ui/Card.tsx` handles the glass-morphism card shell and staggered fade-in animation. `CardHeader.tsx` and `MiniStat.tsx` are the other shared primitives — import these for any new card.
+
+When user describes UI positioning (e.g., 'at the top'), ask a clarifying question before implementing. Distinguish between 'within the current layout' vs 'above/outside the current layout'.
 
 ### External APIs
 | Service | API | Key env var | Fallback |
