@@ -41,7 +41,7 @@ export function useNotificationMutations() {
       const snapshots = new Map<string, NotificationsResponse | undefined>();
       let wasUnread = false;
       queryClient.getQueriesData<NotificationsResponse>({ queryKey: ['notifications'] }).forEach(([key, data]) => {
-        if (!data) return;
+        if (!data?.notifications) return;
         snapshots.set(JSON.stringify(key), data);
         const target = data.notifications.find((n: Notification) => n.id === id);
         if (target && !target.readAt) wasUnread = true;
@@ -76,7 +76,7 @@ export function useNotificationMutations() {
       const snapshots = new Map<string, NotificationsResponse | undefined>();
       let wasUnread = false;
       queryClient.getQueriesData<NotificationsResponse>({ queryKey: ['notifications'] }).forEach(([key, data]) => {
-        if (!data) return;
+        if (!data?.notifications) return;
         snapshots.set(JSON.stringify(key), data);
         const target = data.notifications.find((n: Notification) => n.id === id);
         if (target && !target.readAt) wasUnread = true;
@@ -109,7 +109,7 @@ export function useNotificationMutations() {
       await queryClient.cancelQueries({ queryKey: ['notifications'] });
       const snapshots = new Map<string, NotificationsResponse | undefined>();
       queryClient.getQueriesData<NotificationsResponse>({ queryKey: ['notifications'] }).forEach(([key, data]) => {
-        if (!data) return;
+        if (!data?.notifications) return;
         snapshots.set(JSON.stringify(key), data);
         queryClient.setQueryData<NotificationsResponse>(key as string[], {
           ...data,
