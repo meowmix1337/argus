@@ -20,6 +20,9 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
+// providerGitHub is the provider_types.id value for GitHub integrations.
+const providerGitHub = "github"
+
 // IntegrationStore defines the data-access contract for user integrations.
 type IntegrationStore interface {
 	Create(ctx context.Context, i model.IntegrationCreate) (model.UserIntegration, error)
@@ -33,6 +36,9 @@ type WatchedRepoStore interface {
 	Create(ctx context.Context, w model.WatchedRepoCreate) (model.WatchedRepo, error)
 	GetByID(ctx context.Context, id, userID string) (model.WatchedRepo, error)
 	ListByIntegration(ctx context.Context, integrationID, userID string) ([]model.WatchedRepo, error)
+	// GetByOwnerRepo returns all watched repos for the given owner/repo across all users.
+	// Intentionally omits userID scoping — webhook dispatch receives an owner/repo from the
+	// payload with no user context, and must match every user watching that repo.
 	GetByOwnerRepo(ctx context.Context, owner, repo string) ([]model.WatchedRepo, error)
 	Delete(ctx context.Context, id, userID string) (int64, error)
 }
@@ -113,7 +119,7 @@ func (s *GitHubIntegrationService) ExchangeCode(ctx context.Context, userID, cod
 	return s.integrations.Create(ctx, model.IntegrationCreate{
 		ID:               id.String(),
 		UserID:           userID,
-		ProviderID:       "github",
+		ProviderID:       providerGitHub,
 		AccessToken:      encToken,
 		ProviderUserID:   strconv.FormatInt(ghUser.ID, 10),
 		ProviderUsername: ghUser.Login,
@@ -123,7 +129,7 @@ func (s *GitHubIntegrationService) ExchangeCode(ctx context.Context, userID, cod
 // ListUserRepos returns the user's GitHub repos (up to 100, sorted by last push)
 // annotated with whether each is already watched by Argus.
 func (s *GitHubIntegrationService) ListUserRepos(ctx context.Context, userID string) ([]model.GitHubRepo, error) {
-	integration, err := s.integrations.GetByUserAndProvider(ctx, userID, "github")
+	integration, err := s.integrations.GetByUserAndProvider(ctx, userID, providerGitHub)
 	if err != nil {
 		return nil, fmt.Errorf("list repos: %w", err)
 	}
@@ -170,7 +176,7 @@ func (s *GitHubIntegrationService) ListUserRepos(ctx context.Context, userID str
 // installing webhooks for new entries and removing them for deselected ones.
 // selectedRepos is a slice of "owner/repo" full names (may be empty to clear all).
 func (s *GitHubIntegrationService) UpdateWatchedRepos(ctx context.Context, userID string, selectedRepos []string) error {
-	integration, err := s.integrations.GetByUserAndProvider(ctx, userID, "github")
+	integration, err := s.integrations.GetByUserAndProvider(ctx, userID, providerGitHub)
 	if err != nil {
 		return fmt.Errorf("update watched repos: %w", err)
 	}
@@ -219,7 +225,6 @@ func (s *GitHubIntegrationService) UpdateWatchedRepos(ctx context.Context, userI
 		}
 		if err := s.installWatchedRepo(ctx, userID, integration.ID, token, parts[0], parts[1]); err != nil {
 			slog.Error("github: failed to install webhook", "repo", fullName, "error", err)
-			return fmt.Errorf("install webhook for %s: %w", fullName, err)
 		}
 	}
 	return nil
@@ -228,7 +233,7 @@ func (s *GitHubIntegrationService) UpdateWatchedRepos(ctx context.Context, userI
 // Disconnect removes all webhooks for the user's watched repos, deletes the
 // watched repo records, and soft-deletes the GitHub integration.
 func (s *GitHubIntegrationService) Disconnect(ctx context.Context, userID string) error {
-	integration, err := s.integrations.GetByUserAndProvider(ctx, userID, "github")
+	integration, err := s.integrations.GetByUserAndProvider(ctx, userID, providerGitHub)
 	if err != nil {
 		return fmt.Errorf("disconnect: %w", err)
 	}

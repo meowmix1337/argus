@@ -17,6 +17,15 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
+// GitHub notification event type IDs — must match rows in notification_event_types table.
+const (
+	eventTypePROpened        = "pr_opened"
+	eventTypePRMerged        = "pr_merged"
+	eventTypePRClosed        = "pr_closed"
+	eventTypePRComment       = "pr_comment"
+	eventTypePRReviewComment = "pr_review_comment"
+)
+
 // WebhookService orchestrates HMAC authentication, event parsing, and notification
 // creation for incoming GitHub webhook deliveries.
 type WebhookService struct {
@@ -282,14 +291,14 @@ func parsePullRequestEvent(payload []byte) (*model.NotificationCreate, error) {
 	var eventTypeID, title string
 	switch p.Action {
 	case "opened":
-		eventTypeID = "pr_opened"
+		eventTypeID = eventTypePROpened
 		title = fmt.Sprintf("PR #%d opened: %s", p.PullRequest.Number, p.PullRequest.Title)
 	case "closed":
 		if p.PullRequest.Merged {
-			eventTypeID = "pr_merged"
+			eventTypeID = eventTypePRMerged
 			title = fmt.Sprintf("PR #%d merged: %s", p.PullRequest.Number, p.PullRequest.Title)
 		} else {
-			eventTypeID = "pr_closed"
+			eventTypeID = eventTypePRClosed
 			title = fmt.Sprintf("PR #%d closed: %s", p.PullRequest.Number, p.PullRequest.Title)
 		}
 	default:
@@ -298,7 +307,7 @@ func parsePullRequestEvent(payload []byte) (*model.NotificationCreate, error) {
 
 	url := p.PullRequest.HTMLURL
 	return &model.NotificationCreate{
-		ProviderID:  "github",
+		ProviderID:  providerGitHub,
 		EventTypeID: eventTypeID,
 		Title:       title,
 		URL:         &url,
@@ -320,8 +329,8 @@ func parseIssueCommentEvent(payload []byte) (*model.NotificationCreate, error) {
 	url := p.Comment.HTMLURL
 	body := truncateText(p.Comment.Body, 200)
 	return &model.NotificationCreate{
-		ProviderID:  "github",
-		EventTypeID: "pr_comment",
+		ProviderID:  providerGitHub,
+		EventTypeID: eventTypePRComment,
 		Title:       title,
 		Body:        &body,
 		URL:         &url,
@@ -342,8 +351,8 @@ func parsePRReviewCommentEvent(payload []byte) (*model.NotificationCreate, error
 	url := p.Comment.HTMLURL
 	body := truncateText(p.Comment.Body, 200)
 	return &model.NotificationCreate{
-		ProviderID:  "github",
-		EventTypeID: "pr_review_comment",
+		ProviderID:  providerGitHub,
+		EventTypeID: eventTypePRReviewComment,
 		Title:       title,
 		Body:        &body,
 		URL:         &url,
