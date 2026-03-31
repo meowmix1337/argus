@@ -107,6 +107,9 @@ func (r *SQLiteWatchedRepoRepository) ListByIntegration(ctx context.Context, int
 	return result, nil
 }
 
+// GetByOwnerRepo returns all watched repos for the given owner/repo across all users.
+// Intentionally omits userID scoping — webhook dispatch receives an owner/repo from the
+// payload with no user context, and must match every user watching that repo.
 func (r *SQLiteWatchedRepoRepository) GetByOwnerRepo(ctx context.Context, owner, repo string) ([]model.WatchedRepo, error) {
 	var rows []sqliteWatchedRepoRow
 	err := r.db.SelectContext(ctx, &rows,

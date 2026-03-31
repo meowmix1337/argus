@@ -35,11 +35,13 @@ var ErrDuplicateDelivery = errors.New("duplicate webhook delivery")
 var ErrInvalidWebhookPayload = errors.New("invalid webhook payload")
 var ErrUnhandledEvent = errors.New("unhandled webhook event type or action")
 
-// Auth errors.
+// Bill errors.
 
 var ErrBillNotFound = errors.New("bill not found")
 var ErrBillValidation = errors.New("bill validation failed")
 var ErrBillPaymentNotFound = errors.New("bill payment not found")
 var ErrBillAlreadyPaid = errors.New("bill occurrence already marked as paid")
+
+// Auth errors.
 
 var ErrUnauthorized = errors.New("unauthorized")

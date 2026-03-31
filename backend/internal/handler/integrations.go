@@ -18,7 +18,7 @@ import (
 )
 
 // repoNameRe matches valid GitHub "owner/repo" full names.
-var repoNameRe = regexp.MustCompile(`^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$`)
+var repoNameRe = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*/[a-zA-Z0-9][a-zA-Z0-9._-]*$`)
 
 // IntegrationsHandler handles GitHub integration management endpoints.
 type IntegrationsHandler struct {
