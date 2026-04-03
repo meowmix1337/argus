@@ -7,7 +7,7 @@ import {
 } from '../api/client';
 import type { Notification, NotificationsResponse } from '../types/dashboard';
 
-export function useNotifications(state = 'all', page = 0, limit = 20) {
+export function useNotifications(state = 'all', page = 0, limit = 10) {
   return useQuery({
     queryKey: ['notifications', state, page],
     queryFn: () => fetchNotifications(state, limit, page * limit),
