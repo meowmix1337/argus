@@ -37,6 +37,20 @@ function ProviderIcon({ providerId }: { providerId: string }): React.ReactElemen
   }
 }
 
+const PROVIDERS: { id: string; label: string }[] = [
+  { id: '', label: 'All' },
+  { id: 'github', label: 'GitHub' },
+];
+
+const EVENT_TYPES: { id: string; label: string }[] = [
+  { id: '', label: 'All' },
+  { id: 'pr_opened', label: 'PR Opened' },
+  { id: 'pr_merged', label: 'PR Merged' },
+  { id: 'pr_closed', label: 'PR Closed' },
+  { id: 'pr_comment', label: 'PR Comment' },
+  { id: 'pr_review_comment', label: 'PR Review' },
+];
+
 export function NotificationPanel({ onClose }: NotificationPanelProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const [tab, setTab] = useState<'all' | 'unread' | 'read'>('all');
@@ -45,6 +59,8 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   const [allNotifications, setAllNotifications] = useState<Notification[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState('');
+  const [selectedEventType, setSelectedEventType] = useState('');
 
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -52,15 +68,25 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   const closingRef = useRef(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const { data, isLoading } = useNotifications(tab, page, 10, debouncedQuery);
+  const { data, isLoading } = useNotifications(tab, page, 10, debouncedQuery, selectedProvider, selectedEventType);
   const { markRead, markAllRead } = useNotificationMutations();
 
   const [prevDebouncedQuery, setPrevDebouncedQuery] = useState(debouncedQuery);
+  const [prevProvider, setPrevProvider] = useState(selectedProvider);
+  const [prevEventType, setPrevEventType] = useState(selectedEventType);
   const [prevQueryData, setPrevQueryData] = useState(data);
 
   // Reset pagination when search query changes (render-time setState avoids setState-in-effect lint error).
   if (debouncedQuery !== prevDebouncedQuery) {
     setPrevDebouncedQuery(debouncedQuery);
+    setPage(0);
+    setAllNotifications([]);
+  }
+
+  // Reset pagination when provider or event type filter changes.
+  if (selectedProvider !== prevProvider || selectedEventType !== prevEventType) {
+    setPrevProvider(selectedProvider);
+    setPrevEventType(selectedEventType);
     setPage(0);
     setAllNotifications([]);
   }
@@ -139,6 +165,8 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
     setAllNotifications([]);
     setSearchInput('');
     setDebouncedQuery('');
+    setSelectedProvider('');
+    setSelectedEventType('');
   }
 
   function handleNotificationClick(n: Notification): void {
@@ -155,6 +183,19 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
     border: active ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent',
     borderRadius: 6,
     cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  });
+
+  const pillStyle = (active: boolean): React.CSSProperties => ({
+    padding: '2px 10px',
+    fontSize: 11,
+    fontWeight: active ? 600 : 400,
+    color: active ? '#a5b4fc' : 'rgba(255,255,255,0.5)',
+    background: active ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.06)',
+    border: active ? '1px solid rgba(99,102,241,0.45)' : '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    cursor: 'pointer',
+    flexShrink: 0,
     transition: 'all 0.15s ease',
   });
 
@@ -236,8 +277,26 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
           ))}
         </div>
 
+        {/* Provider + event type filters */}
+        <div style={{ padding: '0 24px 10px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 4, overflowX: 'auto', scrollbarWidth: 'none' as const }}>
+            {PROVIDERS.map((p) => (
+              <button type="button" key={p.id} onClick={() => setSelectedProvider(p.id)} style={pillStyle(selectedProvider === p.id)}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 4, overflowX: 'auto', scrollbarWidth: 'none' as const }}>
+            {EVENT_TYPES.map((e) => (
+              <button type="button" key={e.id} onClick={() => setSelectedEventType(e.id)} style={pillStyle(selectedEventType === e.id)}>
+                {e.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Search */}
-        <div style={{ padding: '8px 24px 10px', flexShrink: 0 }}>
+        <div style={{ padding: '0 24px 10px', flexShrink: 0 }}>
           <div style={{ position: 'relative' }}>
             <input
               type="text"

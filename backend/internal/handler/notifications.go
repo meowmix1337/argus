@@ -76,7 +76,23 @@ func (h *NotificationsHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	notifications, total, err := h.service.List(r.Context(), userID, state, q, limit, offset)
+	providerID := r.URL.Query().Get("provider")
+	if providerID != "" {
+		if _, ok := allowedNotificationProviders[providerID]; !ok {
+			response.WriteError(w, http.StatusBadRequest, "invalid provider value")
+			return
+		}
+	}
+
+	eventTypeID := r.URL.Query().Get("event_type")
+	if eventTypeID != "" {
+		if _, ok := allowedNotificationEventTypes[eventTypeID]; !ok {
+			response.WriteError(w, http.StatusBadRequest, "invalid event_type value")
+			return
+		}
+	}
+
+	notifications, total, err := h.service.List(r.Context(), userID, state, q, providerID, eventTypeID, limit, offset)
 	if err != nil {
 		slog.Error("failed to list notifications", "error", err, "user_id", userID)
 		response.WriteError(w, http.StatusInternalServerError, "internal server error")

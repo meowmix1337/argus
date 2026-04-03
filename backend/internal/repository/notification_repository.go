@@ -9,7 +9,7 @@ import (
 // NotificationRepository defines the data-access contract for notifications.
 type NotificationRepository interface {
 	Create(ctx context.Context, n model.NotificationCreate) (model.Notification, error)
-	List(ctx context.Context, userID, state string, limit, offset int) ([]model.Notification, int, error)
+	List(ctx context.Context, userID, state, query, providerID, eventTypeID string, limit, offset int) ([]model.Notification, int, error)
 	GetByID(ctx context.Context, id, userID string) (model.Notification, error)
 	MarkRead(ctx context.Context, id, userID string) (int64, error)
 	MarkDismissed(ctx context.Context, id, userID string) (int64, error)
