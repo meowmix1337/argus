@@ -189,16 +189,21 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   });
 
   const pillStyle = (active: boolean): React.CSSProperties => ({
-    padding: '2px 10px',
+    padding: '3px 9px',
     fontSize: 11,
+    lineHeight: '16px',
     fontWeight: active ? 600 : 400,
-    color: active ? '#a5b4fc' : 'rgba(255,255,255,0.5)',
-    background: active ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.06)',
-    border: active ? '1px solid rgba(99,102,241,0.45)' : '1px solid rgba(255,255,255,0.1)',
-    borderRadius: 12,
+    color: active ? '#a5b4fc' : 'rgba(255,255,255,0.45)',
+    background: active ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.05)',
+    border: active ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(255,255,255,0.09)',
+    borderRadius: 10,
     cursor: 'pointer',
     flexShrink: 0,
+    whiteSpace: 'nowrap' as const,
     transition: 'all 0.15s ease',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
   });
 
   return (
@@ -280,25 +285,49 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
         </div>
 
         {/* Provider + event type filters */}
-        <div style={{ padding: '0 24px 10px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <div style={{ display: 'flex', gap: 4, overflowX: 'auto', scrollbarWidth: 'none' as const }}>
-            {PROVIDERS.map((p) => (
-              <button type="button" key={p.id} onClick={() => setSelectedProvider(p.id)} style={pillStyle(selectedProvider === p.id)}>
-                {p.label}
-              </button>
-            ))}
+        <div style={{
+          padding: '10px 24px 12px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              width: 44, fontSize: 10, fontWeight: 600, letterSpacing: '0.07em',
+              textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.28)', flexShrink: 0,
+            }}>
+              Source
+            </span>
+            <div style={{ display: 'flex', gap: 5, overflowX: 'auto', scrollbarWidth: 'none' as const }}>
+              {PROVIDERS.map((p) => (
+                <button type="button" key={p.id} onClick={() => setSelectedProvider(p.id)} style={pillStyle(selectedProvider === p.id)}>
+                  {p.id === 'github' && <GitHubIcon size={10} />}
+                  {p.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: 4, overflowX: 'auto', scrollbarWidth: 'none' as const }}>
-            {EVENT_TYPES.map((e) => (
-              <button type="button" key={e.id} onClick={() => setSelectedEventType(e.id)} style={pillStyle(selectedEventType === e.id)}>
-                {e.label}
-              </button>
-            ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              width: 44, fontSize: 10, fontWeight: 600, letterSpacing: '0.07em',
+              textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.28)', flexShrink: 0,
+            }}>
+              Type
+            </span>
+            <div style={{ display: 'flex', gap: 5, overflowX: 'auto', scrollbarWidth: 'none' as const }}>
+              {EVENT_TYPES.map((e) => (
+                <button type="button" key={e.id} onClick={() => setSelectedEventType(e.id)} style={pillStyle(selectedEventType === e.id)}>
+                  {e.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Search */}
-        <div style={{ padding: '0 24px 10px', flexShrink: 0 }}>
+        <div style={{ padding: '10px 24px 12px', flexShrink: 0 }}>
           <div style={{ position: 'relative' }}>
             <input
               type="text"
