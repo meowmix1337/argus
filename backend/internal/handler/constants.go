@@ -30,8 +30,9 @@ const (
 	maxBillLimit     = 200
 
 	// Notification pagination
-	defaultNotificationLimit = 20
-	maxNotificationLimit     = 100
+	defaultNotificationLimit   = 20
+	maxNotificationLimit       = 100
+	maxNotificationSearchQuery = 200
 
 	// GitHub integration
 	maxWatchedRepos = 20
