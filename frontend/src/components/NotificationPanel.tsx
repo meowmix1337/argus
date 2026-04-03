@@ -37,6 +37,20 @@ function ProviderIcon({ providerId }: { providerId: string }): React.ReactElemen
   }
 }
 
+const PROVIDERS: { id: string; label: string }[] = [
+  { id: '', label: 'All' },
+  { id: 'github', label: 'GitHub' },
+];
+
+const EVENT_TYPES: { id: string; label: string }[] = [
+  { id: '', label: 'All' },
+  { id: 'pr_opened', label: 'PR Opened' },
+  { id: 'pr_merged', label: 'PR Merged' },
+  { id: 'pr_closed', label: 'PR Closed' },
+  { id: 'pr_comment', label: 'PR Comment' },
+  { id: 'pr_review_comment', label: 'PR Review' },
+];
+
 export function NotificationPanel({ onClose }: NotificationPanelProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const [tab, setTab] = useState<'all' | 'unread' | 'read'>('all');
@@ -45,6 +59,8 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   const [allNotifications, setAllNotifications] = useState<Notification[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState('');
+  const [selectedEventType, setSelectedEventType] = useState('');
 
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -52,15 +68,27 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   const closingRef = useRef(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const { data, isLoading } = useNotifications(tab, page, 10, debouncedQuery);
+  const { data, isLoading } = useNotifications(tab, page, 10, debouncedQuery, selectedProvider, selectedEventType);
   const { markRead, markAllRead } = useNotificationMutations();
 
   const [prevDebouncedQuery, setPrevDebouncedQuery] = useState(debouncedQuery);
-  const [prevQueryData, setPrevQueryData] = useState(data);
+  const [prevProvider, setPrevProvider] = useState(selectedProvider);
+  const [prevEventType, setPrevEventType] = useState(selectedEventType);
+  // Initialize to undefined (not data) so the accumulation block fires on first render
+  // even when React Query returns cached data immediately on panel re-open.
+  const [prevQueryData, setPrevQueryData] = useState<typeof data>(undefined);
 
   // Reset pagination when search query changes (render-time setState avoids setState-in-effect lint error).
   if (debouncedQuery !== prevDebouncedQuery) {
     setPrevDebouncedQuery(debouncedQuery);
+    setPage(0);
+    setAllNotifications([]);
+  }
+
+  // Reset pagination when provider or event type filter changes.
+  if (selectedProvider !== prevProvider || selectedEventType !== prevEventType) {
+    setPrevProvider(selectedProvider);
+    setPrevEventType(selectedEventType);
     setPage(0);
     setAllNotifications([]);
   }
@@ -139,6 +167,8 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
     setAllNotifications([]);
     setSearchInput('');
     setDebouncedQuery('');
+    setSelectedProvider('');
+    setSelectedEventType('');
   }
 
   function handleNotificationClick(n: Notification): void {
@@ -156,6 +186,24 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
     borderRadius: 6,
     cursor: 'pointer',
     transition: 'all 0.15s ease',
+  });
+
+  const pillStyle = (active: boolean): React.CSSProperties => ({
+    padding: '3px 9px',
+    fontSize: 11,
+    lineHeight: '16px',
+    fontWeight: active ? 600 : 400,
+    color: active ? '#a5b4fc' : 'rgba(255,255,255,0.45)',
+    background: active ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.05)',
+    border: active ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(255,255,255,0.09)',
+    borderRadius: 10,
+    cursor: 'pointer',
+    flexShrink: 0,
+    whiteSpace: 'nowrap' as const,
+    transition: 'all 0.15s ease',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
   });
 
   return (
@@ -236,8 +284,50 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
           ))}
         </div>
 
+        {/* Provider + event type filters */}
+        <div style={{
+          padding: '10px 24px 12px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              width: 44, fontSize: 10, fontWeight: 600, letterSpacing: '0.07em',
+              textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.28)', flexShrink: 0,
+            }}>
+              Source
+            </span>
+            <div style={{ display: 'flex', gap: 5, overflowX: 'auto', scrollbarWidth: 'none' as const }}>
+              {PROVIDERS.map((p) => (
+                <button type="button" key={p.id} onClick={() => setSelectedProvider(p.id)} style={pillStyle(selectedProvider === p.id)}>
+                  {p.id === 'github' && <GitHubIcon size={10} />}
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{
+              width: 44, fontSize: 10, fontWeight: 600, letterSpacing: '0.07em',
+              textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.28)', flexShrink: 0,
+            }}>
+              Type
+            </span>
+            <div style={{ display: 'flex', gap: 5, overflowX: 'auto', scrollbarWidth: 'none' as const }}>
+              {EVENT_TYPES.map((e) => (
+                <button type="button" key={e.id} onClick={() => setSelectedEventType(e.id)} style={pillStyle(selectedEventType === e.id)}>
+                  {e.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Search */}
-        <div style={{ padding: '8px 24px 10px', flexShrink: 0 }}>
+        <div style={{ padding: '10px 24px 12px', flexShrink: 0 }}>
           <div style={{ position: 'relative' }}>
             <input
               type="text"
@@ -279,7 +369,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
             <div style={{ padding: 24, fontSize: 13, color: 'var(--text-muted)' }}>Loading...</div>
           ) : allNotifications.length === 0 ? (
             <div style={{ padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
-              {debouncedQuery ? `No results for "${debouncedQuery}"` : 'No notifications'}
+              {debouncedQuery || selectedProvider || selectedEventType ? 'No results for current filters' : 'No notifications'}
             </div>
           ) : (
             <>
