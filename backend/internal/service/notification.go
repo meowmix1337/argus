@@ -11,7 +11,7 @@ import (
 // NotificationStore defines the data-access contract for notifications.
 type NotificationStore interface {
 	Create(ctx context.Context, n model.NotificationCreate) (model.Notification, error)
-	List(ctx context.Context, userID, state, query string, limit, offset int) ([]model.Notification, int, error)
+	List(ctx context.Context, userID, state, query, providerID, eventTypeID string, limit, offset int) ([]model.Notification, int, error)
 	GetByID(ctx context.Context, id, userID string) (model.Notification, error)
 	MarkRead(ctx context.Context, id, userID string) (int64, error)
 	MarkDismissed(ctx context.Context, id, userID string) (int64, error)
@@ -29,11 +29,11 @@ func NewNotificationService(store NotificationStore) *NotificationService {
 	return &NotificationService{store: store}
 }
 
-// List returns a paginated list of notifications filtered by state and an optional search query.
+// List returns a paginated list of notifications filtered by state and optional search/filter params.
 // Valid state values: "unread" (default), "read", "dismissed", "all".
-// query is an optional search string matched against title and body; empty string means no search.
-func (s *NotificationService) List(ctx context.Context, userID, state, query string, limit, offset int) ([]model.Notification, int, error) {
-	notifications, total, err := s.store.List(ctx, userID, state, query, limit, offset)
+// query is matched against title and body; providerID and eventTypeID filter by FK value; empty means no filter.
+func (s *NotificationService) List(ctx context.Context, userID, state, query, providerID, eventTypeID string, limit, offset int) ([]model.Notification, int, error) {
+	notifications, total, err := s.store.List(ctx, userID, state, query, providerID, eventTypeID, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("list notifications: %w", err)
 	}

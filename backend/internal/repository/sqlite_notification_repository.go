@@ -106,7 +106,7 @@ func (r *SQLiteNotificationRepository) Create(ctx context.Context, n model.Notif
 	return r.GetByID(ctx, n.ID, n.UserID)
 }
 
-func (r *SQLiteNotificationRepository) List(ctx context.Context, userID, state, query string, limit, offset int) ([]model.Notification, int, error) {
+func (r *SQLiteNotificationRepository) List(ctx context.Context, userID, state, query, providerID, eventTypeID string, limit, offset int) ([]model.Notification, int, error) {
 	filter := notificationStateFilter(state)
 
 	args := []any{userID}
@@ -115,6 +115,14 @@ func (r *SQLiteNotificationRepository) List(ctx context.Context, userID, state, 
 		escaped := strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(query)
 		like := "%" + escaped + "%"
 		args = append(args, like, like)
+	}
+	if providerID != "" {
+		filter += " AND provider_id = ?"
+		args = append(args, providerID)
+	}
+	if eventTypeID != "" {
+		filter += " AND event_type_id = ?"
+		args = append(args, eventTypeID)
 	}
 
 	var total int
