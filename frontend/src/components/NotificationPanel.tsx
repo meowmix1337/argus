@@ -235,7 +235,9 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
                   style={{
                     display: 'flex', alignItems: 'flex-start', gap: 10,
                     padding: '10px 24px',
-                    background: hoveredId === n.id ? 'rgba(255,255,255,0.04)' : 'transparent',
+                    background: !n.readAt
+                      ? hoveredId === n.id ? 'rgba(99,102,241,0.10)' : 'rgba(99,102,241,0.06)'
+                      : hoveredId === n.id ? 'rgba(255,255,255,0.04)' : 'transparent',
                     transition: 'background 0.15s ease',
                     borderLeft: !n.readAt ? '2px solid rgba(99,102,241,0.7)' : '2px solid transparent',
                     position: 'relative',

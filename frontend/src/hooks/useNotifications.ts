@@ -12,7 +12,7 @@ export function useNotifications(state = 'all', page = 0, limit = 20) {
   return useQuery({
     queryKey: ['notifications', state, page],
     queryFn: () => fetchNotifications(state, limit, page * limit),
-    staleTime: 30_000,
+    staleTime: 0,
     refetchInterval: 15_000,
   });
 }
