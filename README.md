@@ -73,6 +73,49 @@ curl -s -H "Cookie: session=$TOKEN" http://localhost:8080/api/dashboard | jq .
 
 The token is valid for 1 hour and uses `SESSION_SECRET` from your `.env` file. **Never use this tool in production.**
 
+### Testing GitHub Webhooks Locally
+
+There are two ways to deliver GitHub webhook events to your local server:
+
+#### Option A — `gh webhook forward` (real GitHub events)
+
+The [GitHub CLI](https://cli.github.com/) can forward live webhook deliveries from GitHub to your local server without exposing a public URL:
+
+```bash
+gh webhook forward \
+  --repo=<owner>/<repo> \
+  --events=pull_request,issue_comment,pull_request_review_comment \
+  --url=http://localhost:8080/api/webhooks/github
+```
+
+Events are forwarded in real time and validated via HMAC just like production. Requires `gh` to be installed and authenticated (`gh auth login`).
+
+#### Option B — `_simulate` endpoint (synthetic events, no HMAC)
+
+When `APP_ENV=development`, the server exposes a debug endpoint that injects a synthetic event directly into the notification pipeline — no HMAC signature required:
+
+```bash
+curl -s -X POST http://localhost:8080/api/webhooks/github/_simulate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_type": "pull_request",
+    "payload": {
+      "action": "opened",
+      "number": 42,
+      "pull_request": {
+        "title": "Test PR",
+        "html_url": "https://github.com/owner/repo/pull/42",
+        "user": { "login": "octocat" }
+      },
+      "repository": {
+        "full_name": "owner/repo"
+      }
+    }
+  }' | jq .
+```
+
+The endpoint returns `404` when `APP_ENV` is not set to `development`.
+
 ## Obtaining API Keys & Config
 
 Cards that require credentials show an unavailable state when their key/URL is not set — no crashes or mock data.
@@ -146,6 +189,7 @@ The calendar card reads any standard ICS/iCal feed — no OAuth required.
 | GET | `/auth/google` | Initiate Google OAuth flow |
 | GET | `/auth/google/callback` | OAuth callback |
 | POST | `/auth/logout` | Clear session |
+| POST | `/api/webhooks/github` | Receive GitHub webhook deliveries (HMAC-validated) |
 
 ### Protected (requires auth session)
 | Method | Path | Description |
@@ -176,6 +220,11 @@ The calendar card reads any standard ICS/iCal feed — no OAuth required.
 | PUT | `/api/settings` | Update user settings |
 | GET | `/api/settings/news-categories` | Available + selected news categories |
 | PUT | `/api/settings/news-categories` | Set selected news categories |
+
+### Development only (`APP_ENV=development`)
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/webhooks/github/_simulate` | Inject a synthetic GitHub event without HMAC validation |
 
 ## Project Structure
 
