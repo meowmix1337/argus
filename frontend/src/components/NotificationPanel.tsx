@@ -74,7 +74,9 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   const [prevDebouncedQuery, setPrevDebouncedQuery] = useState(debouncedQuery);
   const [prevProvider, setPrevProvider] = useState(selectedProvider);
   const [prevEventType, setPrevEventType] = useState(selectedEventType);
-  const [prevQueryData, setPrevQueryData] = useState(data);
+  // Initialize to undefined (not data) so the accumulation block fires on first render
+  // even when React Query returns cached data immediately on panel re-open.
+  const [prevQueryData, setPrevQueryData] = useState<typeof data>(undefined);
 
   // Reset pagination when search query changes (render-time setState avoids setState-in-effect lint error).
   if (debouncedQuery !== prevDebouncedQuery) {
