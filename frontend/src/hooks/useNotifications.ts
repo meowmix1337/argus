@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   fetchNotifications,
   markNotificationRead as apiMarkRead,
-  markNotificationDismissed as apiMarkDismissed,
   markAllNotificationsRead as apiMarkAllRead,
   fetchUnreadCount,
 } from '../api/client';
@@ -69,40 +68,6 @@ export function useNotificationMutations() {
     onSettled: invalidateAll,
   });
 
-  const markDismissed = useMutation({
-    mutationFn: (id: string) => apiMarkDismissed(id),
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ['notifications'] });
-      const snapshots = new Map<string, NotificationsResponse | undefined>();
-      let wasUnread = false;
-      queryClient.getQueriesData<NotificationsResponse>({ queryKey: ['notifications'] }).forEach(([key, data]) => {
-        if (!data?.notifications) return;
-        snapshots.set(JSON.stringify(key), data);
-        const target = data.notifications.find((n: Notification) => n.id === id);
-        if (target && !target.readAt) wasUnread = true;
-        queryClient.setQueryData<NotificationsResponse>(key as string[], {
-          ...data,
-          notifications: data.notifications.filter((n: Notification) => n.id !== id),
-          total: data.total - 1,
-        });
-      });
-      // Decrement unread badge if the dismissed notification was unread
-      if (wasUnread) {
-        const prev = queryClient.getQueryData<{ count: number }>(['notifications', 'unread-count']);
-        if (prev) {
-          queryClient.setQueryData(['notifications', 'unread-count'], { count: Math.max(0, prev.count - 1) });
-        }
-      }
-      return { snapshots };
-    },
-    onError: (_err, _id, ctx) => {
-      ctx?.snapshots.forEach((data, keyStr) => {
-        queryClient.setQueryData(JSON.parse(keyStr), data);
-      });
-    },
-    onSettled: invalidateAll,
-  });
-
   const markAllRead = useMutation({
     mutationFn: apiMarkAllRead,
     onMutate: async () => {
@@ -128,5 +93,5 @@ export function useNotificationMutations() {
     onSettled: invalidateAll,
   });
 
-  return { markRead, markDismissed, markAllRead };
+  return { markRead, markAllRead };
 }

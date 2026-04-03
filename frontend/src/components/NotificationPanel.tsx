@@ -51,7 +51,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const { data, isLoading } = useNotifications(tab, page);
-  const { markRead, markDismissed, markAllRead } = useNotificationMutations();
+  const { markRead, markAllRead } = useNotificationMutations();
 
   const total = data?.total ?? 0;
 
@@ -288,22 +288,6 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
                     </div>
                   </div>
 
-                  {/* Dismiss button — always rendered for keyboard accessibility, visible on hover */}
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); markDismissed.mutate(n.id); }}
-                    aria-label="Dismiss notification"
-                    style={{
-                      background: 'none', border: 'none',
-                      color: 'var(--text-muted)', cursor: 'pointer',
-                      fontSize: 12, padding: '2px 4px',
-                      display: 'flex', alignItems: 'center',
-                      borderRadius: 4,
-                      flexShrink: 0,
-                      opacity: hoveredId === n.id ? 1 : 0,
-                      transition: 'opacity 0.15s ease',
-                    }}
-                  >✕</button>
                 </div>
               ))}
 

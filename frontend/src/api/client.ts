@@ -192,9 +192,6 @@ export function fetchNotifications(state = 'all', limit = 20, offset = 0): Promi
 export function markNotificationRead(id: string): Promise<void> {
   return apiFetch(`/notifications/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ action: 'read' }) }).then(() => undefined);
 }
-export function markNotificationDismissed(id: string): Promise<void> {
-  return apiFetch(`/notifications/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ action: 'dismissed' }) }).then(() => undefined);
-}
 export function markAllNotificationsRead(): Promise<void> {
   return apiFetch('/notifications/mark-all-read', { method: 'POST' }).then(() => undefined);
 }
