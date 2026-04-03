@@ -338,7 +338,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
             <div style={{ padding: 24, fontSize: 13, color: 'var(--text-muted)' }}>Loading...</div>
           ) : allNotifications.length === 0 ? (
             <div style={{ padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
-              {debouncedQuery ? `No results for "${debouncedQuery}"` : 'No notifications'}
+              {debouncedQuery || selectedProvider || selectedEventType ? 'No results for current filters' : 'No notifications'}
             </div>
           ) : (
             <>
