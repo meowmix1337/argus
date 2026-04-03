@@ -43,6 +43,8 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   const [page, setPage] = useState(0);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [allNotifications, setAllNotifications] = useState<Notification[]>([]);
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
 
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -50,10 +52,18 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   const closingRef = useRef(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const { data, isLoading } = useNotifications(tab, page);
+  const { data, isLoading } = useNotifications(tab, page, 10, debouncedQuery);
   const { markRead, markAllRead } = useNotificationMutations();
 
+  const [prevDebouncedQuery, setPrevDebouncedQuery] = useState(debouncedQuery);
   const [prevQueryData, setPrevQueryData] = useState(data);
+
+  // Reset pagination when search query changes (render-time setState avoids setState-in-effect lint error).
+  if (debouncedQuery !== prevDebouncedQuery) {
+    setPrevDebouncedQuery(debouncedQuery);
+    setPage(0);
+    setAllNotifications([]);
+  }
 
   // Accumulate pages during render (avoids setState-in-effect lint error).
   // React allows calling setState during render to derive state from props/query data.
@@ -99,6 +109,11 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   }, [isOpen]);
 
   useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchInput), 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') { handleClose(); return; }
       if (e.key === 'Tab' && panelRef.current) {
@@ -122,6 +137,8 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
     setTab(newTab);
     setPage(0);
     setAllNotifications([]);
+    setSearchInput('');
+    setDebouncedQuery('');
   }
 
   function handleNotificationClick(n: Notification): void {
@@ -219,13 +236,50 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
           ))}
         </div>
 
+        {/* Search */}
+        <div style={{ padding: '8px 24px 10px', flexShrink: 0 }}>
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search notifications..."
+              style={{
+                width: '100%',
+                padding: '7px 12px',
+                paddingRight: searchInput ? 32 : 12,
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 8,
+                color: 'var(--text-primary)',
+                fontSize: 13,
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => setSearchInput('')}
+                aria-label="Clear search"
+                style={{
+                  position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--text-muted)', fontSize: 14, padding: 0,
+                  display: 'flex', alignItems: 'center',
+                }}
+              >✕</button>
+            )}
+          </div>
+        </div>
+
         {/* Notification list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
           {isLoading && allNotifications.length === 0 ? (
             <div style={{ padding: 24, fontSize: 13, color: 'var(--text-muted)' }}>Loading...</div>
           ) : allNotifications.length === 0 ? (
             <div style={{ padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
-              No notifications
+              {debouncedQuery ? `No results for "${debouncedQuery}"` : 'No notifications'}
             </div>
           ) : (
             <>
