@@ -434,6 +434,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
               })}
             </div>
           </div>
+
         </div>
       </div>
     </div>

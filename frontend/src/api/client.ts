@@ -1,4 +1,4 @@
-import type { Bill, BillDue, DashboardResponse, NewsCategory, Task, StockQuote, SymbolSearchResult, TaskLabel, UserSettings, NewsCategoriesResponse } from '../types/dashboard';
+import type { Bill, BillDue, DashboardResponse, NewsCategory, Task, StockQuote, SymbolSearchResult, TaskLabel, UserSettings, NewsCategoriesResponse, NotificationsResponse, GitHubIntegrationStatus, GitHubRepo } from '../types/dashboard';
 
 export interface BillsListResponse {
   bills: Bill[];
@@ -183,4 +183,32 @@ export function assignLabelToTask(taskId: string, labelId: string): Promise<void
 }
 export function removeLabelFromTask(taskId: string, labelId: string): Promise<void> {
   return apiFetch(`/tasks/${encodeURIComponent(taskId)}/labels/${encodeURIComponent(labelId)}`, { method: 'DELETE' }).then(() => undefined);
+}
+
+// Notifications
+export function fetchNotifications(state = 'all', limit = 20, offset = 0): Promise<NotificationsResponse> {
+  return apiFetch<NotificationsResponse>(`/notifications?state=${encodeURIComponent(state)}&limit=${limit}&offset=${offset}`);
+}
+export function markNotificationRead(id: string): Promise<void> {
+  return apiFetch(`/notifications/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ action: 'read' }) }).then(() => undefined);
+}
+export function markAllNotificationsRead(): Promise<void> {
+  return apiFetch('/notifications/mark-all-read', { method: 'POST' }).then(() => undefined);
+}
+export function fetchUnreadCount(): Promise<{ count: number }> {
+  return apiFetch<NotificationsResponse>('/notifications?state=unread&limit=1&offset=0').then((r) => ({ count: r.total }));
+}
+
+// GitHub Integration
+export function getGitHubIntegrationStatus(): Promise<GitHubIntegrationStatus> {
+  return apiFetch<GitHubIntegrationStatus>('/integrations/github');
+}
+export function disconnectGitHub(): Promise<void> {
+  return apiFetch('/integrations/github', { method: 'DELETE' }).then(() => undefined);
+}
+export function fetchGitHubRepos(): Promise<GitHubRepo[]> {
+  return apiFetch<GitHubRepo[]>('/integrations/github/repos');
+}
+export function updateWatchedRepos(repos: string[]): Promise<void> {
+  return apiFetch('/integrations/github/repos', { method: 'PUT', body: JSON.stringify({ repos }) }).then(() => undefined);
 }

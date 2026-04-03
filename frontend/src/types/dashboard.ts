@@ -105,6 +105,38 @@ export interface DashboardResponse {
   stocks: StockQuote[] | null;
   meta: MetaData | null;
   bills: BillDue[];
+  unreadNotifications: number;
+}
+
+export interface Notification {
+  id: string;
+  providerId: string;
+  eventTypeId: string;
+  title: string;
+  body: string | null;
+  url: string | null;
+  readAt: string | null;
+  dismissedAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface GitHubIntegrationStatus {
+  connected: boolean;
+  providerUsername?: string;
+  connectedAt?: string;
+}
+
+export interface GitHubRepo {
+  fullName: string;  // "owner/repo" — matches backend model.GitHubRepo.FullName json:"fullName"
+  private: boolean;
+  watched: boolean;
 }
 
 export interface UserSettings {
