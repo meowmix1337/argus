@@ -53,26 +53,27 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
   const { data, isLoading } = useNotifications(tab, page);
   const { markRead, markAllRead } = useNotificationMutations();
 
+  const [prevQueryData, setPrevQueryData] = useState(data);
+
+  // Accumulate pages during render (avoids setState-in-effect lint error).
+  // React allows calling setState during render to derive state from props/query data.
+  if (data !== prevQueryData) {
+    setPrevQueryData(data);
+    if (data) {
+      if (page === 0) {
+        setAllNotifications(data.notifications);
+      } else {
+        setAllNotifications((prev) => {
+          const existingIds = new Set(prev.map((n) => n.id));
+          const newItems = data.notifications.filter((n) => !existingIds.has(n.id));
+          return [...prev, ...newItems];
+        });
+      }
+    }
+  }
+
   const total = data?.total ?? 0;
 
-  // Accumulate pages: page 0 replaces, subsequent pages append
-  useEffect(() => {
-    if (!data) return;
-    if (page === 0) {
-      setAllNotifications(data.notifications);
-    } else {
-      setAllNotifications((prev) => {
-        const existingIds = new Set(prev.map((n) => n.id));
-        const newItems = data.notifications.filter((n) => !existingIds.has(n.id));
-        return [...prev, ...newItems];
-      });
-    }
-  }, [data, page, tab]); // tab: re-fire when switching back to a tab with cached data
-
-  // Reset page when tab changes (allNotifications is replaced by the data effect above)
-  useEffect(() => {
-    setPage(0);
-  }, [tab]);
 
   const handleClose = useCallback((): void => {
     if (closingRef.current) return;
@@ -119,7 +120,8 @@ export function NotificationPanel({ onClose }: NotificationPanelProps): React.Re
 
   function handleTabChange(newTab: 'all' | 'unread' | 'read'): void {
     setTab(newTab);
-    // page + allNotifications reset handled by the tab useEffect
+    setPage(0);
+    setAllNotifications([]);
   }
 
   function handleNotificationClick(n: Notification): void {
