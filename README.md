@@ -114,7 +114,9 @@ curl -s -X POST http://localhost:8080/api/webhooks/github/_simulate \
   }' | jq .
 ```
 
-The endpoint returns `404` when `APP_ENV` is not set to `development`.
+> **Prerequisite:** The `full_name` in the payload must match a repository the user has added via the GitHub integration settings. If no watched repo matches, the endpoint returns `400`.
+
+The route is not registered when `APP_ENV` is not set to `development` — requests to that path will receive the server's default not-found response.
 
 ## Obtaining API Keys & Config
 
