@@ -34,7 +34,7 @@ export function CalendarCard({ events, delay = 0, noGridSpan = false }: Calendar
   return (
     <Card delay={delay} noGridSpan={noGridSpan}>
       <CardHeader icon="▦" title="Today's Schedule" badge={`${events.length} events`} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, scrollbarWidth: 'thin', scrollbarColor: 'rgba(99,102,241,0.25) transparent' }}>
         {events.map((event, i) => {
           const past = isPast(event);
           const isNext = nextIndex !== -1 && i === nextIndex;

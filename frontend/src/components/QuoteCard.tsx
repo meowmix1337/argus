@@ -12,7 +12,7 @@ export function QuoteCard({ data, delay = 0, noGridSpan = false }: QuoteCardProp
   return (
     <Card delay={delay} noGridSpan={noGridSpan}>
       <div style={{
-        height: '100%',
+        flex: 1,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',

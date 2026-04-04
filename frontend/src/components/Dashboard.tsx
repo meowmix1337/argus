@@ -78,10 +78,12 @@ function Skeleton({ width = '100%', height = 16 }: { width?: string | number; he
   );
 }
 
-function CardSkeleton({ span = 1, rows = 3 }: { span?: number; rows?: number }): React.ReactElement {
+function CardSkeleton({ span = 1, rowSpan = 1, rows = 3 }: { span?: number; rowSpan?: number; rows?: number }): React.ReactElement {
   return (
     <div style={{
       gridColumn: `span ${span}`,
+      ...(rowSpan > 1 ? { gridRow: `span ${rowSpan}` } : {}),
+      height: '100%',
       background: 'var(--bg-card)',
       border: '1px solid var(--bg-card-border)',
       borderRadius: 16,
@@ -101,10 +103,11 @@ function CardSkeleton({ span = 1, rows = 3 }: { span?: number; rows?: number }):
 interface SortableCardWrapperProps {
   id: CardId;
   span: number;
+  rowSpan?: number;
   children: React.ReactNode;
 }
 
-function SortableCardWrapper({ id, span, children }: SortableCardWrapperProps): React.ReactElement {
+function SortableCardWrapper({ id, span, rowSpan = 1, children }: SortableCardWrapperProps): React.ReactElement {
   const {
     attributes,
     listeners,
@@ -122,22 +125,25 @@ function SortableCardWrapper({ id, span, children }: SortableCardWrapperProps): 
     return (
       <div
         ref={setNodeRef}
-        style={{ gridColumn: `span ${span}`, borderRadius: 16 }}
+        style={{ gridColumn: `span ${span}`, ...(rowSpan > 1 ? { gridRow: `span ${rowSpan}` } : {}), height: '100%', borderRadius: 16 }}
       >
         <div style={{ visibility: 'hidden', pointerEvents: 'none' }}>{children}</div>
       </div>
     );
   }
 
-  // TO location: dashed ghost slot — shows exactly where the dragged card will land
+  // TO location: dashed ghost slot — shows exactly where the dragged card will land.
+  // No transform/transition here — the drop zone must stay at the card's natural grid
+  // position, not follow the sort-preview animation (which would shift it far off-screen
+  // for multi-row cards like News).
   if (isOver) {
     return (
       <div
         ref={setNodeRef}
         style={{
           gridColumn: `span ${span}`,
-          transform: CSS.Transform.toString(transform) ?? undefined,
-          transition,
+          ...(rowSpan > 1 ? { gridRow: `span ${rowSpan}` } : {}),
+          height: '100%',
           borderRadius: 16,
           border: '2px dashed rgba(99,102,241,0.55)',
           background: 'rgba(99,102,241,0.07)',
@@ -154,6 +160,8 @@ function SortableCardWrapper({ id, span, children }: SortableCardWrapperProps): 
       ref={setNodeRef}
       style={{
         gridColumn: `span ${span}`,
+        ...(rowSpan > 1 ? { gridRow: `span ${rowSpan}` } : {}),
+        height: '100%',
         position: 'relative',
         transform: CSS.Transform.toString(transform) ?? undefined,
         transition,
@@ -243,6 +251,11 @@ export default function Dashboard(): React.ReactElement {
 
   function getSpan(id: CardId): number {
     if (id === 'news') return isMobile ? 1 : 2;
+    return 1;
+  }
+
+  function getRowSpan(id: CardId): number {
+    if (id === 'news' && !isMobile && !isTablet) return 2;
     return 1;
   }
 
@@ -463,6 +476,7 @@ export default function Dashboard(): React.ReactElement {
         <div style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr',
+          gridAutoRows: isMobile || isTablet ? 'auto' : '420px',
           gap: isMobile ? 12 : 20,
         }}>
           {isLoading ? (
@@ -470,7 +484,7 @@ export default function Dashboard(): React.ReactElement {
               <CardSkeleton span={1} rows={4} />
               <CardSkeleton span={1} rows={5} />
               <CardSkeleton span={1} rows={5} />
-              <CardSkeleton span={isMobile ? 1 : 2} rows={4} />
+              <CardSkeleton span={isMobile ? 1 : 2} rowSpan={isMobile || isTablet ? 1 : 2} rows={4} />
               <CardSkeleton span={1} rows={2} />
             </>
           ) : (
@@ -483,7 +497,7 @@ export default function Dashboard(): React.ReactElement {
             >
               <SortableContext items={cardOrder} strategy={rectSortingStrategy}>
                 {cardOrder.map((id) => (
-                  <SortableCardWrapper key={id} id={id} span={getSpan(id)}>
+                  <SortableCardWrapper key={id} id={id} span={getSpan(id)} rowSpan={getRowSpan(id)}>
                     {renderCard(id)}
                   </SortableCardWrapper>
                 ))}
