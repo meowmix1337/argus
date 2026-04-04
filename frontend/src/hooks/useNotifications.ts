@@ -7,12 +7,12 @@ import {
 } from '../api/client';
 import type { Notification, NotificationsResponse } from '../types/dashboard';
 
-export function useNotifications(state = 'all', page = 0, limit = 10) {
+export function useNotifications(state = 'all', page = 0, limit = 10, query = '', providerID = '', eventTypeID = '') {
   return useQuery({
-    queryKey: ['notifications', state, page],
-    queryFn: () => fetchNotifications(state, limit, page * limit),
+    queryKey: ['notifications', state, page, query, providerID, eventTypeID],
+    queryFn: () => fetchNotifications(state, limit, page * limit, query, providerID, eventTypeID),
     staleTime: 0,
-    refetchInterval: 15_000,
+    refetchInterval: query || providerID || eventTypeID ? undefined : 15_000,
   });
 }
 

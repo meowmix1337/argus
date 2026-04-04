@@ -186,8 +186,12 @@ export function removeLabelFromTask(taskId: string, labelId: string): Promise<vo
 }
 
 // Notifications
-export function fetchNotifications(state = 'all', limit = 20, offset = 0): Promise<NotificationsResponse> {
-  return apiFetch<NotificationsResponse>(`/notifications?state=${encodeURIComponent(state)}&limit=${limit}&offset=${offset}`);
+export function fetchNotifications(state = 'all', limit = 20, offset = 0, query = '', providerID = '', eventTypeID = ''): Promise<NotificationsResponse> {
+  let url = `/notifications?state=${encodeURIComponent(state)}&limit=${limit}&offset=${offset}`;
+  if (query) url += `&q=${encodeURIComponent(query)}`;
+  if (providerID) url += `&provider=${encodeURIComponent(providerID)}`;
+  if (eventTypeID) url += `&event_type=${encodeURIComponent(eventTypeID)}`;
+  return apiFetch<NotificationsResponse>(url);
 }
 export function markNotificationRead(id: string): Promise<void> {
   return apiFetch(`/notifications/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ action: 'read' }) }).then(() => undefined);

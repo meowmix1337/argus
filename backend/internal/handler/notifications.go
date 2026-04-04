@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
@@ -29,7 +30,7 @@ func NewNotificationsHandler(svc *service.NotificationService, v *validator.Vali
 
 // AddRoutes registers notification routes on the given router.
 func (h *NotificationsHandler) AddRoutes(r chi.Router) {
-	r.Get("/api/notifications", h.List)
+	r.With(httprate.LimitByIP(searchRateLimit, rateLimitWindow)).Get("/api/notifications", h.List)
 	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Patch("/api/notifications/{id}", h.Patch)
 	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/notifications/mark-all-read", h.MarkAllRead)
 }
@@ -69,7 +70,29 @@ func (h *NotificationsHandler) List(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	notifications, total, err := h.service.List(r.Context(), userID, state, limit, offset)
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	if len(q) > maxNotificationSearchQuery {
+		response.WriteError(w, http.StatusBadRequest, "search query too long")
+		return
+	}
+
+	providerID := r.URL.Query().Get("provider")
+	if providerID != "" {
+		if _, ok := allowedNotificationProviders[providerID]; !ok {
+			response.WriteError(w, http.StatusBadRequest, "invalid provider value")
+			return
+		}
+	}
+
+	eventTypeID := r.URL.Query().Get("event_type")
+	if eventTypeID != "" {
+		if _, ok := allowedNotificationEventTypes[eventTypeID]; !ok {
+			response.WriteError(w, http.StatusBadRequest, "invalid event_type value")
+			return
+		}
+	}
+
+	notifications, total, err := h.service.List(r.Context(), userID, state, q, providerID, eventTypeID, limit, offset)
 	if err != nil {
 		slog.Error("failed to list notifications", "error", err, "user_id", userID)
 		response.WriteError(w, http.StatusInternalServerError, "internal server error")

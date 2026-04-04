@@ -106,17 +106,34 @@ func (r *SQLiteNotificationRepository) Create(ctx context.Context, n model.Notif
 	return r.GetByID(ctx, n.ID, n.UserID)
 }
 
-func (r *SQLiteNotificationRepository) List(ctx context.Context, userID, state string, limit, offset int) ([]model.Notification, int, error) {
+func (r *SQLiteNotificationRepository) List(ctx context.Context, userID, state, query, providerID, eventTypeID string, limit, offset int) ([]model.Notification, int, error) {
 	filter := notificationStateFilter(state)
+
+	args := []any{userID}
+	if query != "" {
+		filter += ` AND (title LIKE ? ESCAPE '!' OR body LIKE ? ESCAPE '!')`
+		escaped := strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(query)
+		like := "%" + escaped + "%"
+		args = append(args, like, like)
+	}
+	if providerID != "" {
+		filter += " AND provider_id = ?"
+		args = append(args, providerID)
+	}
+	if eventTypeID != "" {
+		filter += " AND event_type_id = ?"
+		args = append(args, eventTypeID)
+	}
 
 	var total int
 	if err := r.db.GetContext(ctx, &total,
 		`SELECT COUNT(*) FROM notifications WHERE user_id = ? AND deleted_at IS NULL`+filter,
-		userID,
+		args...,
 	); err != nil {
 		return nil, 0, fmt.Errorf("count notifications: %w", err)
 	}
 
+	selectArgs := append(args, limit, offset)
 	var rows []sqliteNotificationRow
 	err := r.db.SelectContext(ctx, &rows,
 		`SELECT `+notificationColumns+`
@@ -124,7 +141,7 @@ func (r *SQLiteNotificationRepository) List(ctx context.Context, userID, state s
 		 WHERE user_id = ? AND deleted_at IS NULL`+filter+`
 		 ORDER BY created_at DESC
 		 LIMIT ? OFFSET ?`,
-		userID, limit, offset,
+		selectArgs...,
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("list notifications: %w", err)
