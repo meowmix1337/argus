@@ -21,6 +21,7 @@ export function useBills() {
     mutationFn: (payload: BillPayload) => apiCreateBill(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bills'] });
+      queryClient.invalidateQueries({ queryKey: ['billsDueYear'] });
     },
   });
 
@@ -32,6 +33,7 @@ export function useBills() {
         if (!old) return old;
         return { ...old, bills: old.bills.map((b) => (b.id === updated.id ? updated : b)) };
       });
+      queryClient.invalidateQueries({ queryKey: ['billsDueYear'] });
     },
   });
 
@@ -51,6 +53,7 @@ export function useBills() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['bills'] });
+      queryClient.invalidateQueries({ queryKey: ['billsDueYear'] });
     },
   });
 
