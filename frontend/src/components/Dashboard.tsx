@@ -132,7 +132,10 @@ function SortableCardWrapper({ id, span, rowSpan = 1, children }: SortableCardWr
     );
   }
 
-  // TO location: dashed ghost slot — shows exactly where the dragged card will land
+  // TO location: dashed ghost slot — shows exactly where the dragged card will land.
+  // No transform/transition here — the drop zone must stay at the card's natural grid
+  // position, not follow the sort-preview animation (which would shift it far off-screen
+  // for multi-row cards like News).
   if (isOver) {
     return (
       <div
@@ -141,8 +144,6 @@ function SortableCardWrapper({ id, span, rowSpan = 1, children }: SortableCardWr
           gridColumn: `span ${span}`,
           ...(rowSpan > 1 ? { gridRow: `span ${rowSpan}` } : {}),
           height: '100%',
-          transform: CSS.Transform.toString(transform) ?? undefined,
-          transition,
           borderRadius: 16,
           border: '2px dashed rgba(99,102,241,0.55)',
           background: 'rgba(99,102,241,0.07)',
