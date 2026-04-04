@@ -75,7 +75,7 @@ The token is valid for 1 hour and uses `SESSION_SECRET` from your `.env` file. *
 
 ### Testing GitHub Webhooks Locally
 
-There are two ways to deliver GitHub webhook events to your local server:
+There are three ways to deliver GitHub webhook events to your local server:
 
 #### Option A — `gh webhook forward` (real GitHub events)
 
@@ -90,7 +90,22 @@ gh webhook forward \
 
 Events are forwarded in real time and validated via HMAC just like production. Requires `gh` to be installed and authenticated (`gh auth login`).
 
-#### Option B — `_simulate` endpoint (synthetic events, no HMAC)
+#### Option B — ngrok (real GitHub events via public tunnel)
+
+Expose your local server with a public URL so GitHub delivers webhooks directly:
+
+```bash
+ngrok http 8080
+```
+
+Copy the `Forwarding` URL (e.g. `https://abc123.ngrok-free.app`) and:
+
+1. Set `GITHUB_WEBHOOK_URL=https://abc123.ngrok-free.app/api/webhooks/github` in your `.env`
+2. Configure the webhook in your GitHub repo settings (**Settings → Webhooks → Add webhook**) pointing to that URL
+
+Events are HMAC-validated end-to-end just like production.
+
+#### Option C — `_simulate` endpoint (synthetic events, no HMAC)
 
 When `APP_ENV=development`, the server exposes a debug endpoint that injects a synthetic event directly into the notification pipeline — no HMAC signature required:
 
