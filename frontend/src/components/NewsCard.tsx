@@ -119,31 +119,33 @@ export function NewsCard({ delay = 0, isMobile = false, isTablet = false, noGrid
               No articles available
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
-              {active.items.map((item, i) => (
-                <div
-                  key={i}
-                  onClick={() => item.url && window.open(item.url, '_blank', 'noopener,noreferrer')}
-                  style={{
-                    padding: '14px 16px',
-                    borderRadius: 10,
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border-subtle)',
-                    cursor: item.url ? 'pointer' : 'default',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <div style={{ marginBottom: 8 }}>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{item.time}</span>
+            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: 'rgba(99,102,241,0.25) transparent' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
+                {active.items.map((item, i) => (
+                  <div
+                    key={i}
+                    onClick={() => item.url && window.open(item.url, '_blank', 'noopener,noreferrer')}
+                    style={{
+                      padding: '14px 16px',
+                      borderRadius: 10,
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border-subtle)',
+                      cursor: item.url ? 'pointer' : 'default',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <div style={{ marginBottom: 8 }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{item.time}</span>
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.45 }}>
+                      {item.title}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>
+                      {item.source}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.45 }}>
-                    {item.title}
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>
-                    {item.source}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </>

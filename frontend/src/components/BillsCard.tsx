@@ -191,6 +191,7 @@ export function BillsCard({ delay = 0, noGridSpan = false, onManage }: BillsCard
           No bills due in {MONTH_NAMES_FULL[selectedMonthIdx]}
         </div>
       ) : (
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: 'rgba(99,102,241,0.25) transparent', WebkitMaskImage: 'linear-gradient(to bottom, black calc(100% - 24px), transparent 100%)', maskImage: 'linear-gradient(to bottom, black calc(100% - 24px), transparent 100%)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {bills.map((bill) => {
             const dotColor = bill.isPaid ? '#22c55e' : (CATEGORY_COLORS[bill.categoryId] ?? CATEGORY_COLORS.other);
@@ -336,6 +337,7 @@ export function BillsCard({ delay = 0, noGridSpan = false, onManage }: BillsCard
               </span>
             </div>
           )}
+        </div>
         </div>
       )}
     </Card>

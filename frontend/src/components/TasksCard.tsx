@@ -235,7 +235,8 @@ export function TasksCard({ tasks, tasksTotal, delay = 0, noGridSpan = false }: 
       <div
         ref={scrollContainerRef}
         style={{
-          maxHeight: 'min(320px, 40vh)',
+          flex: 1,
+          minHeight: 0,
           overflowY: 'auto',
           overflowX: 'hidden',
           // Thin scrollbar: WebKit thumb blends with the glass-morphism palette

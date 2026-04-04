@@ -25,6 +25,10 @@ export function Card({ children, delay = 0, span = 1, className = '', noGridSpan
         borderRadius: 16,
         padding: 24,
         backdropFilter: 'blur(20px)',
+        height: '100%',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
         opacity: loaded ? 1 : 0,
         transform: loaded ? 'translateY(0)' : 'translateY(16px)',
         // Once loaded, remove transform from transition so dnd-kit can own the transform property
