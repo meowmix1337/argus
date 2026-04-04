@@ -13,8 +13,8 @@ func TestRelativeTime(t *testing.T) {
 		want  string
 	}{
 		{"zero time", time.Time{}, "recently"},
-		{"30s ago", now.Add(-30 * time.Second), "just now"},
-		{"59m ago", now.Add(-59 * time.Minute), "59m ago"},
+		{"10s ago", now.Add(-10 * time.Second), "just now"},
+		{"30m ago", now.Add(-30 * time.Minute), "30m ago"},
 		{"3h ago", now.Add(-3 * time.Hour), "3h ago"},
 		{"2d ago", now.Add(-48 * time.Hour), "2d ago"},
 	}

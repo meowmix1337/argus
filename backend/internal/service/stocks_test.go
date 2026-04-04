@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"testing"
+	"time"
 
 	"github.com/meowmix1337/argus/backend/internal/httpclient"
 )
@@ -31,6 +33,7 @@ func (f *fakeWatchlistStore) ListSymbols(_ context.Context, _ string, limit, off
 			out = append(out, sym)
 		}
 	}
+	sort.Strings(out)
 	total := len(out)
 	if limit > 0 {
 		if offset >= total {
@@ -71,7 +74,10 @@ func (f *fakeHTTPClient) Get(_ context.Context, _ string, result any, _ ...httpc
 	if f.err != nil {
 		return f.err
 	}
-	b, _ := json.Marshal(f.responseBody)
+	b, err := json.Marshal(f.responseBody)
+	if err != nil {
+		return fmt.Errorf("fakeHTTPClient: marshal: %w", err)
+	}
 	return json.Unmarshal(b, result)
 }
 
@@ -137,7 +143,7 @@ func TestAddSymbol_InvalidatesCacheOnSuccess(t *testing.T) {
 	svc := NewStocksService(&fakeHTTPClient{}, "test-key", cache, store)
 
 	// Pre-populate cache
-	cache.Set("stocks:user1", []any{}, 0)
+	cache.Set("stocks:user1", []any{}, time.Minute)
 
 	if err := svc.AddSymbol(context.Background(), "user1", "TSLA"); err != nil {
 		t.Fatalf("AddSymbol: %v", err)
@@ -175,7 +181,7 @@ func TestRemoveSymbol_InvalidatesCacheOnSuccess(t *testing.T) {
 	cache := NewCacheService()
 	svc := NewStocksService(&fakeHTTPClient{}, "test-key", cache, store)
 
-	cache.Set("stocks:user1", []any{}, 0)
+	cache.Set("stocks:user1", []any{}, time.Minute)
 
 	if err := svc.RemoveSymbol(context.Background(), "user1", "TSLA"); err != nil {
 		t.Fatalf("RemoveSymbol: %v", err)

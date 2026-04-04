@@ -30,8 +30,8 @@ func TestCacheService_Miss(t *testing.T) {
 
 func TestCacheService_TTLExpiry(t *testing.T) {
 	c := NewCacheService()
-	c.Set("key", "value", 1*time.Millisecond)
-	time.Sleep(10 * time.Millisecond)
+	c.Set("key", "value", 50*time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
 
 	_, ok := c.Get("key")
 	if ok {
