@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card } from './ui/Card';
 import { useBillsDueYear } from '../hooks/useBillsDueYear';
 
@@ -89,11 +89,16 @@ export function BillsCard({ delay = 0, noGridSpan = false, onManage }: BillsCard
   const total = billsWithAmount.reduce((sum, b) => sum + (b.amount ?? 0), 0);
   const hasPartialAmounts = billsWithAmount.length > 0 && billsWithAmount.length < bills.length;
 
-  // Annual total across all months in the year
-  const allMonthBills = Object.values(monthBills).flat();
-  const annualBillsWithAmount = allMonthBills.filter((b) => b.amount != null);
-  const annualTotal = annualBillsWithAmount.reduce((sum, b) => sum + (b.amount ?? 0), 0);
-  const hasPartialAnnual = annualBillsWithAmount.length > 0 && annualBillsWithAmount.length < allMonthBills.length;
+  // Annual total across all months in the year — memoized to avoid recomputing on every render
+  const { annualTotal, hasPartialAnnual, annualBillsWithAmount } = useMemo(() => {
+    const all = Object.values(monthBills).flat();
+    const withAmount = all.filter((b) => b.amount != null);
+    return {
+      annualTotal: withAmount.reduce((sum, b) => sum + (b.amount ?? 0), 0),
+      hasPartialAnnual: withAmount.length > 0 && withAmount.length < all.length,
+      annualBillsWithAmount: withAmount,
+    };
+  }, [monthBills]);
 
   const canGoPrev = selectedMonthIdx > 0;
   const canGoNext = selectedMonthIdx < 11;
@@ -128,6 +133,7 @@ export function BillsCard({ delay = 0, noGridSpan = false, onManage }: BillsCard
           <button
             onClick={() => setAmountsVisible((v) => !v)}
             aria-label={amountsVisible ? 'Hide amounts' : 'Show amounts'}
+            title={amountsVisible ? 'Hide amounts' : 'Show amounts'}
             style={{
               background: 'none',
               border: 'none',
@@ -290,7 +296,7 @@ export function BillsCard({ delay = 0, noGridSpan = false, onManage }: BillsCard
                       </div>
 
                       {bill.amount != null && (
-                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--text-secondary)', flexShrink: 0 }}>
+                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: 'var(--text-secondary)', flexShrink: 0, minWidth: 52, textAlign: 'right' }}>
                           {amountsVisible ? formatAmount(bill.amount) : '••••'}
                         </div>
                       )}
@@ -379,28 +385,32 @@ export function BillsCard({ delay = 0, noGridSpan = false, onManage }: BillsCard
           </div>
 
           {/* Pinned footer — monthly + annual totals, always visible */}
-          {annualBillsWithAmount.length > 0 && (
+          {(billsWithAmount.length > 0 || annualBillsWithAmount.length > 0) && (
             <div style={{
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent: billsWithAmount.length > 0 && annualBillsWithAmount.length > 0 ? 'space-between' : 'flex-end',
               alignItems: 'center',
               padding: '8px 12px',
-              borderTop: '1px solid rgba(255,255,255,0.06)',
+              borderTop: '1px solid rgba(255,255,255,0.10)',
               marginTop: 4,
               flexShrink: 0,
             }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Monthly</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {amountsVisible ? `${formatAmount(total)}${hasPartialAmounts ? '+' : ''}` : '••••'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
-                <span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Annual</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {amountsVisible ? `${formatAmount(annualTotal)}${hasPartialAnnual ? '+' : ''}` : '••••'}
-                </span>
-              </div>
+              {billsWithAmount.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Monthly</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {amountsVisible ? `${formatAmount(total)}${hasPartialAmounts ? '+' : ''}` : '••••'}
+                  </span>
+                </div>
+              )}
+              {annualBillsWithAmount.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
+                  <span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Annual</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {amountsVisible ? `${formatAmount(annualTotal)}${hasPartialAnnual ? '+' : ''}` : '••••'}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </>
