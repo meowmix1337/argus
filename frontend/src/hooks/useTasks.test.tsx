@@ -31,7 +31,8 @@ describe('useTasks', () => {
     it('optimistically sets done=true before server responds', async () => {
       const qc = makeQueryClient()
       qc.setQueryData(['dashboard'], { tasks: [sampleTask] })
-      vi.mocked(toggleTask).mockResolvedValue({ ...sampleTask, done: true })
+      // Never resolves: waitFor can only pass once onMutate applied the optimistic update
+      vi.mocked(toggleTask).mockImplementation(() => new Promise<Task>(() => {}))
 
       const { result } = renderHook(() => useTasks(), { wrapper: makeWrapper(qc) })
 
@@ -61,7 +62,7 @@ describe('useTasks', () => {
     it('optimistically adds a temp task before server responds', async () => {
       const qc = makeQueryClient()
       qc.setQueryData(['dashboard'], { tasks: [sampleTask] })
-      vi.mocked(createTask).mockResolvedValue({ id: 'server-1', text: 'New task', done: false, priority: 'low' })
+      vi.mocked(createTask).mockImplementation(() => new Promise<Task>(() => {}))
 
       const { result } = renderHook(() => useTasks(), { wrapper: makeWrapper(qc) })
 
@@ -93,7 +94,7 @@ describe('useTasks', () => {
     it('optimistically removes the task before server responds', async () => {
       const qc = makeQueryClient()
       qc.setQueryData(['dashboard'], { tasks: [sampleTask] })
-      vi.mocked(deleteTask).mockResolvedValue(undefined)
+      vi.mocked(deleteTask).mockImplementation(() => new Promise<void>(() => {}))
 
       const { result } = renderHook(() => useTasks(), { wrapper: makeWrapper(qc) })
 
