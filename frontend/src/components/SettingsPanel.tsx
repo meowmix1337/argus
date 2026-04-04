@@ -91,19 +91,24 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
   }, [handleClose]);
 
   // Sync form state when server data arrives (React "adjust state during render" pattern)
-  const [prevSettings, setPrevSettings] = useState(settings);
-  if (settings && settings !== prevSettings) {
+  // Initialize prevSettings to undefined so the first comparison always detects the cached value
+  const [prevSettings, setPrevSettings] = useState<typeof settings>(undefined);
+  if (settings !== prevSettings) {
     setPrevSettings(settings);
-    setLatitude(settings.latitude !== null ? String(settings.latitude) : '');
-    setLongitude(settings.longitude !== null ? String(settings.longitude) : '');
-    setTimezone(settings.timezone ?? '');
-    setCalendarIcsUrl(settings.calendar_ics_url ?? '');
+    if (settings) {
+      setLatitude(settings.latitude !== null ? String(settings.latitude) : '');
+      setLongitude(settings.longitude !== null ? String(settings.longitude) : '');
+      setTimezone(settings.timezone ?? '');
+      setCalendarIcsUrl(settings.calendar_ics_url ?? '');
+    }
   }
 
-  const [prevCategories, setPrevCategories] = useState(categoriesData);
-  if (categoriesData && categoriesData !== prevCategories) {
+  const [prevCategories, setPrevCategories] = useState<typeof categoriesData>(undefined);
+  if (categoriesData !== prevCategories) {
     setPrevCategories(categoriesData);
-    setSelectedCategoryIds(categoriesData.selected.map((c) => c.id));
+    if (categoriesData) {
+      setSelectedCategoryIds(categoriesData.selected.map((c) => c.id));
+    }
   }
 
   // Auto-save for news categories
