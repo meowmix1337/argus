@@ -94,7 +94,9 @@ func (s *StocksService) AddSymbol(ctx context.Context, userID string, sym string
 	if err := s.store.Add(ctx, userID, sym); err != nil {
 		return err
 	}
-	s.cache.Delete("stocks:" + userID)
+	if s.cache != nil {
+		s.cache.Delete("stocks:" + userID)
+	}
 	return nil
 }
 
@@ -114,7 +116,9 @@ func (s *StocksService) RemoveSymbol(ctx context.Context, userID string, sym str
 	if err := s.store.Remove(ctx, userID, sym); err != nil {
 		return fmt.Errorf("remove symbol: %w", err)
 	}
-	s.cache.Delete("stocks:" + userID)
+	if s.cache != nil {
+		s.cache.Delete("stocks:" + userID)
+	}
 	return nil
 }
 
