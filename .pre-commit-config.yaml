@@ -14,3 +14,10 @@ repos:
         entry: bash -c 'cd backend && golangci-lint run ./...'
         pass_filenames: false
         types: [go]
+
+      - id: go-test
+        name: go tests
+        language: system
+        entry: bash -c 'cd backend && go test -race ./...'
+        pass_filenames: false
+        types: [go]

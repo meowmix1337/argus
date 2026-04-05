@@ -1,5 +1,5 @@
 .PHONY: help dev dev-backend dev-frontend build-backend build-frontend \
-        test lint install-hooks docker-build docker-up docker-down docker-dev docker-logs clean
+        test coverage lint install-hooks docker-build docker-up docker-down docker-dev docker-logs clean
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -22,6 +22,9 @@ build-frontend:  ## Build frontend for production
 # --- Quality ---
 test:  ## Run all tests
 	cd backend && go test -race ./...
+
+coverage:  ## Run tests and print per-package coverage report
+	cd backend && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
 
 lint:  ## Run linters (requires golangci-lint v2: https://golangci-lint.run/welcome/install/)
 	cd backend && golangci-lint run ./...
