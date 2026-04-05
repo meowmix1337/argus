@@ -16,6 +16,7 @@ type fakeWatchlistStore struct {
 	symbols map[string]bool // symbol -> active
 	addErr  error
 	remErr  error
+	listErr error
 }
 
 func newFakeWatchlistStore(symbols ...string) *fakeWatchlistStore {
@@ -27,6 +28,9 @@ func newFakeWatchlistStore(symbols ...string) *fakeWatchlistStore {
 }
 
 func (f *fakeWatchlistStore) ListSymbols(_ context.Context, _ string, limit, offset int) ([]string, int, error) {
+	if f.listErr != nil {
+		return nil, 0, f.listErr
+	}
 	out := make([]string, 0, len(f.symbols))
 	for sym, active := range f.symbols {
 		if active {
@@ -65,8 +69,10 @@ func (f *fakeWatchlistStore) Remove(_ context.Context, _ string, sym string) err
 }
 
 // fakeHTTPClient is a minimal HTTPClient that marshals responseBody into the result parameter.
+// Set rawBytes to return raw bytes from GetBytes (e.g. ICS content for calendar tests).
 type fakeHTTPClient struct {
 	responseBody any
+	rawBytes     []byte
 	err          error
 }
 
@@ -96,6 +102,9 @@ func (f *fakeHTTPClient) Delete(_ context.Context, _ string, _ any, _ ...httpcli
 func (f *fakeHTTPClient) GetBytes(_ context.Context, _ string, _ ...httpclient.RequestOption) ([]byte, error) {
 	if f.err != nil {
 		return nil, f.err
+	}
+	if f.rawBytes != nil {
+		return f.rawBytes, nil
 	}
 	return json.Marshal(f.responseBody)
 }
@@ -254,5 +263,23 @@ func TestSearchSymbols_NoAPIKey_ReturnsError(t *testing.T) {
 	_, err := svc.SearchSymbols(context.Background(), "TSLA")
 	if err == nil {
 		t.Error("expected error when API key is empty")
+	}
+}
+
+func TestGetSymbols_StoreError_Propagates(t *testing.T) {
+	store := newFakeWatchlistStore()
+	store.listErr = fmt.Errorf("db failure")
+	svc := newTestStocksService(store)
+	if _, err := svc.GetSymbols(context.Background(), "user1"); err == nil {
+		t.Error("expected store error to propagate, got nil")
+	}
+}
+
+func TestGetSymbolsPaginated_StoreError_Propagates(t *testing.T) {
+	store := newFakeWatchlistStore()
+	store.listErr = fmt.Errorf("db failure")
+	svc := newTestStocksService(store)
+	if _, _, err := svc.GetSymbolsPaginated(context.Background(), "user1", 10, 0); err == nil {
+		t.Error("expected store error to propagate, got nil")
 	}
 }

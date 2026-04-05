@@ -1,6 +1,13 @@
 package service
 
-import "testing"
+import (
+	"context"
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/meowmix1337/argus/backend/internal/model"
+)
 
 func TestWmoToCondition_KnownCodes(t *testing.T) {
 	cases := []struct {
@@ -40,6 +47,76 @@ func TestWmoToCondition_UnknownCode(t *testing.T) {
 	}
 	if icon != "🌡️" {
 		t.Errorf("expected 🌡️, got %q", icon)
+	}
+}
+
+// ---- WeatherService.Fetch ----
+
+func TestWeatherService_Fetch_CacheHit(t *testing.T) {
+	cache := NewCacheService()
+	cached := model.WeatherData{Temp: 72.0, Condition: "Clear Sky"}
+	cache.Set("weather", cached, time.Minute)
+
+	svc := NewWeatherService(
+		&fakeHTTPClient{err: fmt.Errorf("HTTP must not be called on cache hit")},
+		cache, 37.77, -122.41,
+	)
+	data, err := svc.Fetch(context.Background())
+	if err != nil {
+		t.Fatalf("Fetch: %v", err)
+	}
+	if data.Condition != "Clear Sky" {
+		t.Errorf("Condition = %q, want cached %q", data.Condition, "Clear Sky")
+	}
+}
+
+func TestWeatherService_Fetch_Success(t *testing.T) {
+	forecast := openMeteoForecast{}
+	forecast.Current.Temperature2m = 68.0
+	forecast.Current.WeatherCode = 1 // Mainly Clear
+	forecast.Current.RelativeHumidity2m = 55
+	forecast.Current.WindSpeed10m = 10.0
+	forecast.Daily.Temperature2mMax = []float64{75.0}
+	forecast.Daily.Temperature2mMin = []float64{55.0}
+
+	cache := NewCacheService()
+	svc := NewWeatherService(&fakeHTTPClient{responseBody: forecast}, cache, 37.77, -122.41)
+
+	data, err := svc.Fetch(context.Background())
+	if err != nil {
+		t.Fatalf("Fetch: %v", err)
+	}
+	if data.Temp != 68.0 {
+		t.Errorf("Temp = %v, want 68.0", data.Temp)
+	}
+	if data.High != 75.0 {
+		t.Errorf("High = %v, want 75.0", data.High)
+	}
+	if data.Condition != "Mainly Clear" {
+		t.Errorf("Condition = %q, want %q", data.Condition, "Mainly Clear")
+	}
+}
+
+func TestWeatherService_Fetch_PopulatesCache(t *testing.T) {
+	forecast := openMeteoForecast{}
+	forecast.Current.Temperature2m = 65.0
+
+	cache := NewCacheService()
+	svc := NewWeatherService(&fakeHTTPClient{responseBody: forecast}, cache, 37.77, -122.41)
+
+	if _, err := svc.Fetch(context.Background()); err != nil {
+		t.Fatalf("Fetch: %v", err)
+	}
+	if _, ok := cache.Get("weather"); !ok {
+		t.Error("expected result to be cached after successful fetch")
+	}
+}
+
+func TestWeatherService_Fetch_HTTPError_Propagates(t *testing.T) {
+	cache := NewCacheService()
+	svc := NewWeatherService(&fakeHTTPClient{err: fmt.Errorf("network failure")}, cache, 37.77, -122.41)
+	if _, err := svc.Fetch(context.Background()); err == nil {
+		t.Error("expected error on HTTP failure")
 	}
 }
 

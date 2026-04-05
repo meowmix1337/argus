@@ -216,7 +216,6 @@ When user describes UI positioning (e.g., 'at the top'), ask a clarifying questi
 
 ## Known Limitations
 
-- **No tests** — zero test files currently exist in backend or frontend.
 - **News uses sequential fetching** — GNews free tier requires ~1 req/s; 9 categories × 3h cache means full refresh takes ~9s on cache miss.
 
 ## Git Workflow
@@ -321,3 +320,12 @@ caught in review or causes a regression.**
 
 - **Ignoring `go test -race`**: The `-race` flag catches concurrent map writes
   and data races that plain tests miss. Always use it.
+
+- **Skipping coverage checks**: Backend test coverage must remain at or above **80%**
+  across `internal/service`. Run `go test -coverprofile=coverage.out ./...` and
+  `go tool cover -func=coverage.out` to verify before opening a PR. New service
+  code without tests will not be accepted.
+
+- **Writing coverage-padding tests**: Tests must verify real behaviour — correct
+  outputs, error types, cache interactions, validation rules. Tests that exist only
+  to tick a line-covered box will be rejected in review.

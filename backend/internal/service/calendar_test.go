@@ -1,12 +1,15 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	ics "github.com/arran4/golang-ical"
+
+	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
 func TestFormatDuration(t *testing.T) {
@@ -184,6 +187,59 @@ END:VCALENDAR`, start.Format("20060102T150405Z"), end.Format("20060102T150405Z")
 	}
 }
 
+// ---- CalendarService.Fetch ----
+
+func TestCalendarService_Fetch_CacheHit(t *testing.T) {
+	cache := NewCacheService()
+	cache.Set("calendar", []model.CalendarEvent{{Title: "Standup"}}, time.Minute)
+
+	svc := NewCalendarService(
+		&fakeHTTPClient{err: fmt.Errorf("HTTP must not be called on cache hit")},
+		"https://example.com/cal.ics", cache, time.UTC,
+	)
+	events, err := svc.Fetch(context.Background())
+	if err != nil {
+		t.Fatalf("Fetch: %v", err)
+	}
+	if len(events) != 1 || events[0].Title != "Standup" {
+		t.Errorf("expected cached event, got: %+v", events)
+	}
+}
+
+func TestCalendarService_Fetch_NoURL_ReturnsError(t *testing.T) {
+	svc := NewCalendarService(&fakeHTTPClient{}, "", NewCacheService(), time.UTC)
+	if _, err := svc.Fetch(context.Background()); err == nil {
+		t.Error("expected error when ICS URL is empty")
+	}
+}
+
+func TestCalendarService_Fetch_HTTPError_Propagates(t *testing.T) {
+	svc := NewCalendarService(
+		&fakeHTTPClient{err: fmt.Errorf("connection refused")},
+		"https://example.com/cal.ics", NewCacheService(), time.UTC,
+	)
+	if _, err := svc.Fetch(context.Background()); err == nil {
+		t.Error("expected error on HTTP failure")
+	}
+}
+
+func TestCalendarService_Fetch_PopulatesCache(t *testing.T) {
+	today := time.Now().UTC().Format("20060102")
+	icsContent := "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nSUMMARY:Test\r\nDTSTART;VALUE=DATE:" + today + "\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n"
+
+	cache := NewCacheService()
+	svc := NewCalendarService(
+		&fakeHTTPClient{rawBytes: []byte(icsContent)},
+		"https://example.com/cal.ics", cache, time.UTC,
+	)
+	if _, err := svc.Fetch(context.Background()); err != nil {
+		t.Fatalf("Fetch: %v", err)
+	}
+	if _, ok := cache.Get("calendar"); !ok {
+		t.Error("expected result to be cached after successful fetch")
+	}
+}
+
 func TestFilterToday_MultipleTimedEvents_ChronologicalOrder(t *testing.T) {
 	now := todayUTC()
 	early := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.UTC)
@@ -216,5 +272,13 @@ END:VCALENDAR`,
 	}
 	if events[1].Title != "Late Meeting" {
 		t.Errorf("expected second event to be 'Late Meeting', got %q", events[1].Title)
+	}
+}
+
+// TestNewCalendarService_NilLoc verifies that a nil location falls back to time.Local.
+func TestNewCalendarService_NilLoc(t *testing.T) {
+	svc := NewCalendarService(&fakeHTTPClient{}, "https://example.com/cal.ics", NewCacheService(), nil)
+	if svc == nil {
+		t.Fatal("expected non-nil CalendarService when loc is nil")
 	}
 }
