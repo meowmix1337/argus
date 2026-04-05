@@ -50,8 +50,10 @@ const stocksCacheTTL = 10 * time.Second
 // Fetch retrieves stock quotes for the current watchlist.
 func (s *StocksService) Fetch(ctx context.Context, userID string) ([]model.StockQuote, error) {
 	cacheKey := "stocks:" + userID
-	if v, ok := s.cache.Get(cacheKey); ok {
-		return v.([]model.StockQuote), nil
+	if s.cache != nil {
+		if v, ok := s.cache.Get(cacheKey); ok {
+			return v.([]model.StockQuote), nil
+		}
 	}
 
 	if s.apiKey == "" {
@@ -63,7 +65,9 @@ func (s *StocksService) Fetch(ctx context.Context, userID string) ([]model.Stock
 		return nil, err
 	}
 
-	s.cache.Set(cacheKey, quotes, stocksCacheTTL)
+	if s.cache != nil {
+		s.cache.Set(cacheKey, quotes, stocksCacheTTL)
+	}
 	return quotes, nil
 }
 

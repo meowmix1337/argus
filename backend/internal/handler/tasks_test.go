@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -33,6 +34,7 @@ func (f *fakeTaskStore) List(_ context.Context, _ string, limit, offset int) ([]
 	for _, t := range f.tasks {
 		all = append(all, t)
 	}
+	sort.Slice(all, func(i, j int) bool { return all[i].ID < all[j].ID })
 	total := len(all)
 	if offset >= total {
 		return []model.Task{}, total, nil
