@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sort"
@@ -114,6 +115,7 @@ func TestListTasks(t *testing.T) {
 		name       string
 		query      string
 		noSession  bool
+		listErr    error
 		wantStatus int
 		wantTotal  int
 		wantLimit  int
@@ -155,11 +157,16 @@ func TestListTasks(t *testing.T) {
 			wantLimit:  maxTaskLimit,
 			wantOffset: 0,
 		},
+		{
+			name:       "service error returns 500",
+			listErr:    fmt.Errorf("db error"),
+			wantStatus: http.StatusInternalServerError,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			store := &fakeTaskStore{tasks: allTasks}
+			store := &fakeTaskStore{tasks: allTasks, listErr: tt.listErr}
 			h := newTestTasksHandler(store)
 
 			req := httptest.NewRequest(http.MethodGet, "/api/tasks"+tt.query, nil)
@@ -198,6 +205,7 @@ func TestCreateTask(t *testing.T) {
 		name       string
 		body       string
 		noSession  bool
+		createErr  error
 		wantStatus int
 	}{
 		{
@@ -230,11 +238,17 @@ func TestCreateTask(t *testing.T) {
 			body:       `{"text":"buy milk"}`,
 			wantStatus: http.StatusCreated,
 		},
+		{
+			name:       "service error returns 500",
+			body:       `{"text":"buy milk","priority":"high"}`,
+			createErr:  fmt.Errorf("db error"),
+			wantStatus: http.StatusInternalServerError,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			store := &fakeTaskStore{}
+			store := &fakeTaskStore{createErr: tt.createErr}
 			h := newTestTasksHandler(store)
 
 			req := httptest.NewRequest(http.MethodPost, "/api/tasks", bytes.NewReader([]byte(tt.body)))
@@ -272,6 +286,7 @@ func TestUpdateTask(t *testing.T) {
 		body       string
 		noSession  bool
 		tasks      map[string]model.Task
+		updateErr  error
 		wantStatus int
 	}{
 		{
@@ -280,6 +295,12 @@ func TestUpdateTask(t *testing.T) {
 			body:       `{"done":true}`,
 			noSession:  true,
 			wantStatus: http.StatusUnauthorized,
+		},
+		{
+			name:       "empty body returns 400",
+			taskID:     "task-1",
+			body:       "",
+			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "task not found returns 404",
@@ -302,11 +323,19 @@ func TestUpdateTask(t *testing.T) {
 			tasks:      map[string]model.Task{"task-1": existingTask},
 			wantStatus: http.StatusOK,
 		},
+		{
+			name:       "service error returns 500",
+			taskID:     "task-1",
+			body:       `{"done":true}`,
+			tasks:      map[string]model.Task{"task-1": existingTask},
+			updateErr:  fmt.Errorf("db error"),
+			wantStatus: http.StatusInternalServerError,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			store := &fakeTaskStore{tasks: tt.tasks}
+			store := &fakeTaskStore{tasks: tt.tasks, updateErr: tt.updateErr}
 			h := newTestTasksHandler(store)
 
 			req := httptest.NewRequest(http.MethodPatch, "/api/tasks/"+tt.taskID, bytes.NewReader([]byte(tt.body)))
@@ -344,6 +373,7 @@ func TestDeleteTask(t *testing.T) {
 		taskID     string
 		noSession  bool
 		tasks      map[string]model.Task
+		deleteErr  error
 		wantStatus int
 	}{
 		{
@@ -364,11 +394,18 @@ func TestDeleteTask(t *testing.T) {
 			tasks:      map[string]model.Task{"task-1": existingTask},
 			wantStatus: http.StatusNoContent,
 		},
+		{
+			name:       "service error returns 500",
+			taskID:     "task-1",
+			tasks:      map[string]model.Task{"task-1": existingTask},
+			deleteErr:  fmt.Errorf("db error"),
+			wantStatus: http.StatusInternalServerError,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			store := &fakeTaskStore{tasks: tt.tasks}
+			store := &fakeTaskStore{tasks: tt.tasks, deleteErr: tt.deleteErr}
 			h := newTestTasksHandler(store)
 
 			req := httptest.NewRequest(http.MethodDelete, "/api/tasks/"+tt.taskID, nil)
