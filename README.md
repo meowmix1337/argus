@@ -54,6 +54,32 @@ make dev-frontend
 # Starts Vite dev server at http://localhost:5173
 ```
 
+### Docker Dev Stack (air + NSQ + persistent DB)
+
+For a fully containerized dev environment with hot-reload and NSQ message broker:
+
+```bash
+make docker-dev-up    # Build images and start all services in background
+make docker-dev-logs  # Tail logs from all containers
+make docker-dev-down  # Stop all containers
+make docker-dev-reset # Stop + wipe local SQLite database (fresh state)
+```
+
+SQLite data is bind-mounted to `./data/dashboard.db` and survives container restarts.
+Run `make docker-dev-reset` to wipe the database and start fresh.
+
+**Service ports:**
+
+| Service | Port | Notes |
+|---------|------|-------|
+| Backend (Go) | 8080 | API server with air hot-reload |
+| Frontend (Vite) | 5173 | Dev server |
+| nsqlookupd TCP | 4160 | Service discovery |
+| nsqlookupd HTTP | 4161 | Admin API |
+| nsqd TCP | 4150 | Message broker |
+| nsqd HTTP | 4151 | Admin API |
+| nsqadmin | 4171 | NSQ admin UI — http://localhost:4171 |
+
 ### Testing authenticated endpoints locally
 
 Argus uses Google OAuth for login, which requires a browser flow. For local API testing (e.g. `curl`) you can mint a valid signed session cookie without going through OAuth:

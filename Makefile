@@ -51,7 +51,7 @@ docker-logs:  ## Tail logs from all containers
 	docker compose logs -f
 
 docker-dev-up:  ## Start dev stack (air + NSQ + persistent DB) in background
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
 docker-dev-down:  ## Stop dev stack
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml down

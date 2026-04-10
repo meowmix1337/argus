@@ -2,7 +2,7 @@ FROM golang:1.26-alpine
 
 RUN apk add --no-cache ca-certificates git
 
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@v1.65.0
 
 WORKDIR /src
 
