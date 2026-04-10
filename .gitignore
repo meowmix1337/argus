@@ -10,6 +10,11 @@
 backend/bin/
 backend/tmp/
 
+# Local dev data (SQLite bind-mount; wiped by make docker-dev-reset)
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
 # Frontend
 frontend/node_modules/
 frontend/dist/

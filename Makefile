@@ -1,5 +1,6 @@
 .PHONY: help dev dev-backend dev-frontend build-backend build-frontend \
-        test coverage lint install-hooks docker-build docker-up docker-down docker-dev docker-logs clean
+        test coverage lint install-hooks docker-build docker-up docker-down docker-dev docker-logs clean \
+        docker-dev-up docker-dev-down docker-dev-reset docker-dev-logs
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -48,6 +49,19 @@ docker-dev:  ## Start dev stack with hot reload
 
 docker-logs:  ## Tail logs from all containers
 	docker compose logs -f
+
+docker-dev-up:  ## Start dev stack (air + NSQ + persistent DB) in background
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+docker-dev-down:  ## Stop dev stack
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+
+docker-dev-reset:  ## Stop dev stack and wipe local SQLite database
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+	rm -f data/dashboard.db data/dashboard.db-shm data/dashboard.db-wal
+
+docker-dev-logs:  ## Tail dev stack logs
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
 
 # --- Cleanup ---
 clean:  ## Remove build artifacts

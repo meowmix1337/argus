@@ -2,15 +2,46 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: ../deploy/backend.Dockerfile
-      target: builder
-    command: ["go", "run", "./cmd/server"]
+      dockerfile: ../deploy/backend.dev.Dockerfile
+    command: air
     volumes:
       - ./backend:/src
+      - ./data:/data
     env_file:
       - .env
     environment:
       - GO_ENV=development
+      - SQLITE_PATH=/data/dashboard.db
+      - NSQ_LOOKUPD_ADDR=nsqlookupd:4160
+    ports:
+      - "8080:8080"
+    depends_on:
+      - nsqlookupd
+      - nsqd
+
+  nsqlookupd:
+    image: nsqio/nsq
+    command: /nsqlookupd
+    ports:
+      - "4160:4160"
+      - "4161:4161"
+
+  nsqd:
+    image: nsqio/nsq
+    command: /nsqd --lookupd-tcp-address=nsqlookupd:4160
+    ports:
+      - "4150:4150"
+      - "4151:4151"
+    depends_on:
+      - nsqlookupd
+
+  nsqadmin:
+    image: nsqio/nsq
+    command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
+    ports:
+      - "4171:4171"
+    depends_on:
+      - nsqlookupd
 
   frontend:
     image: node:25-alpine
