@@ -49,8 +49,9 @@ prod-logs:  ## Tail production logs
 	docker compose logs -f
 
 # --- Dev (Docker + air + NSQ + persistent DB) ---
-dev-start:  ## Build and start dev stack in background
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+dev-start:  ## Build backend image and start dev stack in background
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml build backend
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 dev-stop:  ## Stop dev stack
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml down
