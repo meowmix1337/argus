@@ -9,6 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/meowmix1337/argus/backend/internal/config"
+	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/handler"
 	"github.com/meowmix1337/argus/backend/internal/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/middleware"
@@ -84,6 +85,15 @@ func (s *Server) setupRoutes() {
 		s.cfg.GitHubClientID, s.cfg.GitHubClientSecret, s.cfg.GitHubCallbackURL, s.cfg.GitHubWebhookURL,
 	)
 
+	// Social feed
+	publisher := events.Publisher(&events.NoopPublisher{})
+	postsRepo := repository.NewSQLitePostsRepository(s.db)
+	postsSvc := service.NewPostsService(postsRepo, publisher)
+	followRepo := repository.NewSQLiteFollowRepository(s.db)
+	followSvc := service.NewFollowService(followRepo, publisher)
+	feedRepo := repository.NewSQLiteFeedRepository(s.db)
+	feedSvc := service.NewFeedService(feedRepo)
+
 	// Auth
 	authSvc := service.NewAuthService(s.db, s.cfg.GoogleClientID, s.cfg.GoogleClientSecret, s.cfg.GoogleCallbackURL)
 	authH := handler.NewAuthHandler(authSvc, s.cfg.SessionKey, s.cfg.FrontendURL, s.cfg.SecureCookies)
@@ -104,6 +114,9 @@ func (s *Server) setupRoutes() {
 	webhooksH := handler.NewWebhooksHandler(webhookSvc, v, s.cfg.AppEnv)
 	githubAuthH := handler.NewGitHubAuthHandler(githubIntegrationSvc, s.cfg.FrontendURL, s.cfg.SecureCookies)
 	integrationsH := handler.NewIntegrationsHandler(githubIntegrationSvc, v)
+	postsH := handler.NewPostsHandler(postsSvc, v)
+	followH := handler.NewFollowHandler(followSvc, v)
+	feedH := handler.NewFeedHandler(feedSvc)
 	dashboardH := handler.NewDashboardHandler(
 		weatherSvc,
 		stocksSvc,
@@ -140,5 +153,8 @@ func (s *Server) setupRoutes() {
 		notificationsH.AddRoutes(r)
 		githubAuthH.AddRoutes(r)
 		integrationsH.AddRoutes(r)
+		postsH.AddRoutes(r)
+		followH.AddRoutes(r)
+		feedH.AddRoutes(r)
 	})
 }
