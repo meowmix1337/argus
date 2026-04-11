@@ -471,15 +471,24 @@ export default function Dashboard(): React.ReactElement {
           </div>
         )}
 
-        <StocksCard stocks={data?.stocks ?? null} delay={0.1} />
-
-        {/* Card grid */}
+        {/* Two-column layout: left = stocks + cards, right = persistent social feed */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr',
-          gridAutoRows: isMobile || isTablet ? 'auto' : '420px',
-          gap: isMobile ? 12 : 20,
+          gridTemplateColumns: isMobile || isTablet ? '1fr' : '1fr 380px',
+          gap: 24,
+          alignItems: 'start',
         }}>
+          {/* Left column */}
+          <div>
+            <StocksCard stocks={data?.stocks ?? null} delay={0.1} />
+
+            {/* Card grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr',
+              gridAutoRows: isMobile || isTablet ? 'auto' : '420px',
+              gap: isMobile ? 12 : 20,
+            }}>
           {isLoading ? (
             <>
               <CardSkeleton span={1} rows={4} />
@@ -514,9 +523,19 @@ export default function Dashboard(): React.ReactElement {
               </DragOverlay>
             </DndContext>
           )}
-        </div>
+            </div>
+          </div>
 
-        <SocialSection isMobile={isMobile} />
+          {/* Right column — social feed, sticky on desktop */}
+          <div style={!(isMobile || isTablet) ? {
+            position: 'sticky',
+            top: 32,
+            maxHeight: 'calc(100vh - 64px)',
+            overflowY: 'auto',
+          } : { marginTop: 16 }}>
+            <SocialSection />
+          </div>
+        </div>
 
         {/* Footer */}
         <div style={{
