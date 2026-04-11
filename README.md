@@ -35,7 +35,7 @@ Browser → Nginx (frontend) → Go API (backend)
 ```bash
 cp .env.example .env
 # Edit .env and add your API keys
-make docker-up
+make prod-up
 # Open http://localhost:3000
 ```
 
@@ -59,14 +59,14 @@ make dev-frontend
 For a fully containerized dev environment with hot-reload and NSQ message broker:
 
 ```bash
-make docker-dev-up    # Build images and start all services in background
-make docker-dev-logs  # Tail logs from all containers
-make docker-dev-down  # Stop all containers
-make docker-dev-reset # Stop + wipe local SQLite database (fresh state)
+make dev-start  # Build images and start all services in background
+make dev-logs   # Tail logs from all containers
+make dev-stop   # Stop all containers
+make dev-reset  # Stop + wipe local SQLite database (fresh state)
 ```
 
 SQLite data is bind-mounted to `./data/dashboard.db` and survives container restarts.
-Run `make docker-dev-reset` to wipe the database and start fresh.
+Run `make dev-reset` to wipe the database and start fresh.
 
 **Service ports:**
 
