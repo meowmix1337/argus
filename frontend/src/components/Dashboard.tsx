@@ -471,21 +471,21 @@ export default function Dashboard(): React.ReactElement {
           </div>
         )}
 
-        {/* Two-column layout: left = stocks + cards, right = persistent social feed */}
+        {/* Responsive grid — social feed sits in the last column alongside the cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile || isTablet ? '1fr' : '1fr 380px',
-          gap: 24,
+          gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr',
+          gap: isMobile ? 12 : 20,
           alignItems: 'start',
         }}>
-          {/* Left column */}
-          <div>
+          {/* Cards area — spans 2 of 3 cols on desktop so social takes the third */}
+          <div style={{ gridColumn: isMobile || isTablet ? undefined : '1 / 3' }}>
             <StocksCard stocks={data?.stocks ?? null} delay={0.1} />
 
-            {/* Card grid */}
+            {/* Card grid — 2 cols on desktop, 1 col on tablet/mobile */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr',
+              gridTemplateColumns: isMobile || isTablet ? '1fr' : '1fr 1fr',
               gridAutoRows: isMobile || isTablet ? 'auto' : '420px',
               gap: isMobile ? 12 : 20,
             }}>
@@ -526,8 +526,8 @@ export default function Dashboard(): React.ReactElement {
             </div>
           </div>
 
-          {/* Right column — social feed, sticky on desktop */}
-          <div style={!(isMobile || isTablet) ? {
+          {/* Right column — social feed, sticky whenever it sits beside the cards */}
+          <div style={!isMobile ? {
             position: 'sticky',
             top: 32,
             maxHeight: 'calc(100vh - 64px)',
