@@ -40,6 +40,7 @@ import { IntegrationsPanel } from './IntegrationsPanel';
 import { NotificationBell } from './NotificationBell';
 import { NotificationPanel } from './NotificationPanel';
 import { useUnreadCount } from '../hooks/useNotifications';
+import { SocialSection } from './social/SocialSection';
 
 function getGreeting(date: Date): string {
   const h = date.getHours();
@@ -514,6 +515,8 @@ export default function Dashboard(): React.ReactElement {
             </DndContext>
           )}
         </div>
+
+        <SocialSection isMobile={isMobile} />
 
         {/* Footer */}
         <div style={{
