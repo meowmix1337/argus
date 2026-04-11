@@ -533,7 +533,19 @@ export default function Dashboard(): React.ReactElement {
             top: 32,
             maxHeight: 'calc(100vh - 64px)',
             overflowY: 'auto',
-          } : { marginTop: 16 }}>
+            background: 'var(--bg-card)',
+            border: '1px solid var(--bg-card-border)',
+            borderRadius: 16,
+            padding: 24,
+            backdropFilter: 'blur(20px)',
+          } : {
+            marginTop: 16,
+            background: 'var(--bg-card)',
+            border: '1px solid var(--bg-card-border)',
+            borderRadius: 16,
+            padding: 24,
+            backdropFilter: 'blur(20px)',
+          }}>
             <SocialSection />
           </div>
         </div>
