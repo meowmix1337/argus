@@ -222,6 +222,8 @@ The calendar card reads any standard ICS/iCal feed — no OAuth required.
 | `GITHUB_CALLBACK_URL` | GitHub OAuth redirect URL (e.g. `http://localhost:8080/api/auth/github/callback`) | No | — |
 | `GITHUB_WEBHOOK_URL` | Public URL where GitHub delivers webhook events (must be reachable by GitHub; use ngrok for local dev) | No | — (webhooks not installed) |
 | `APP_ENV` | Set to `development` to enable the `POST /api/webhooks/github/_simulate` debug endpoint | No | — (simulate disabled) |
+| `NSQD_ADDR` | `host:port` of the nsqd TCP endpoint for publishing events (e.g. `localhost:4150`). When unset, a no-op publisher is used and no events are emitted. | No | — (noop) |
+| `NSQ_LOOKUPD_ADDR` | `host:port` of the nsqlookupd HTTP endpoint for consumers (e.g. `localhost:4161`). When unset, the feed-fanout consumer is not started. | No | — (consumers disabled) |
 
 ## API Endpoints
 

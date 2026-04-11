@@ -123,6 +123,19 @@ func (r *SQLiteFollowRepository) ListFollowers(ctx context.Context, userID strin
 	return users, total, nil
 }
 
+// GetFollowerIDs returns the user IDs of all active followers of the given user.
+func (r *SQLiteFollowRepository) GetFollowerIDs(ctx context.Context, userID string) ([]string, error) {
+	var ids []string
+	err := r.db.SelectContext(ctx, &ids,
+		`SELECT follower_id FROM followers WHERE following_id = ? AND deleted_at IS NULL`,
+		userID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get follower ids: %w", err)
+	}
+	return ids, nil
+}
+
 func (r *SQLiteFollowRepository) ListFollowing(ctx context.Context, userID string, limit, offset int) ([]model.UserSummary, int, error) {
 	var total int
 	if err := r.db.GetContext(ctx, &total,
