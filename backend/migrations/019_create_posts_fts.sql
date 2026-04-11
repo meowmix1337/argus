@@ -24,11 +24,15 @@ END;
 -- +goose StatementEnd
 
 -- Keep FTS in sync when a post is edited or soft-deleted.
--- Always removes then re-inserts so content changes and soft-deletes are both handled.
+-- WHEN guard skips the trigger when only updated_at changed (from the updated_at cascade
+-- trigger), preventing double FTS writes on every post update.
 -- +goose StatementBegin
 CREATE TRIGGER posts_fts_update
     AFTER UPDATE ON posts
     FOR EACH ROW
+    WHEN OLD.content != NEW.content
+      OR (OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL)
+      OR (OLD.deleted_at IS NOT NULL AND NEW.deleted_at IS NULL)
 BEGIN
     DELETE FROM posts_fts WHERE post_id = OLD.id;
     INSERT INTO posts_fts (post_id, content)

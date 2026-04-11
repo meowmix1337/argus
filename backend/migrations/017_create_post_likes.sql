@@ -42,11 +42,13 @@ END;
 -- +goose StatementEnd
 
 -- Keep posts.like_count in sync when a like is toggled (soft-delete on/off).
+-- WHEN guard skips the trigger when deleted_at didn't actually change value.
 -- MAX(0, ...) guards against going negative if data is ever inconsistent.
 -- +goose StatementBegin
 CREATE TRIGGER post_likes_toggle
     AFTER UPDATE OF deleted_at ON post_likes
     FOR EACH ROW
+    WHEN (OLD.deleted_at IS NULL) != (NEW.deleted_at IS NULL)
 BEGIN
     UPDATE posts
        SET like_count = MAX(0, like_count + CASE
