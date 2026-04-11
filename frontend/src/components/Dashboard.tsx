@@ -40,6 +40,7 @@ import { IntegrationsPanel } from './IntegrationsPanel';
 import { NotificationBell } from './NotificationBell';
 import { NotificationPanel } from './NotificationPanel';
 import { useUnreadCount } from '../hooks/useNotifications';
+import { SocialSection } from './social/SocialSection';
 
 function getGreeting(date: Date): string {
   const h = date.getHours();
@@ -470,15 +471,25 @@ export default function Dashboard(): React.ReactElement {
           </div>
         )}
 
+        {/* Stocks ticker — always full width above the grid */}
         <StocksCard stocks={data?.stocks ?? null} delay={0.1} />
 
-        {/* Card grid */}
+        {/* Responsive grid — social feed sits in the last column alongside the cards */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr',
-          gridAutoRows: isMobile || isTablet ? 'auto' : '420px',
           gap: isMobile ? 12 : 20,
+          alignItems: 'start',
         }}>
+          {/* Cards area — spans 2 of 3 cols on desktop so social takes the third */}
+          <div style={{ gridColumn: isMobile || isTablet ? undefined : '1 / 3' }}>
+            {/* Card grid — 2 cols on desktop, 1 col on tablet/mobile */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile || isTablet ? '1fr' : '1fr 1fr',
+              gridAutoRows: isMobile || isTablet ? 'auto' : '420px',
+              gap: isMobile ? 12 : 20,
+            }}>
           {isLoading ? (
             <>
               <CardSkeleton span={1} rows={4} />
@@ -513,6 +524,30 @@ export default function Dashboard(): React.ReactElement {
               </DragOverlay>
             </DndContext>
           )}
+            </div>
+          </div>
+
+          {/* Right column — social feed, sticky whenever it sits beside the cards */}
+          <div style={!isMobile ? {
+            position: 'sticky',
+            top: 32,
+            maxHeight: 'calc(100vh - 64px)',
+            overflowY: 'auto',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--bg-card-border)',
+            borderRadius: 16,
+            padding: 24,
+            backdropFilter: 'blur(20px)',
+          } : {
+            marginTop: 16,
+            background: 'var(--bg-card)',
+            border: '1px solid var(--bg-card-border)',
+            borderRadius: 16,
+            padding: 24,
+            backdropFilter: 'blur(20px)',
+          }}>
+            <SocialSection />
+          </div>
         </div>
 
         {/* Footer */}

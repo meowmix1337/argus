@@ -1,4 +1,4 @@
-import type { Bill, BillDue, DashboardResponse, NewsCategory, Task, StockQuote, SymbolSearchResult, TaskLabel, UserSettings, NewsCategoriesResponse, NotificationsResponse, GitHubIntegrationStatus, GitHubRepo } from '../types/dashboard';
+import type { Bill, BillDue, DashboardResponse, FeedResponse, FollowListResponse, FollowStatusResponse, NewsCategory, Post, PostListResponse, Task, StockQuote, SymbolSearchResult, TaskLabel, UserSettings, NewsCategoriesResponse, NotificationsResponse, GitHubIntegrationStatus, GitHubRepo } from '../types/dashboard';
 
 export interface BillsListResponse {
   bills: Bill[];
@@ -215,4 +215,56 @@ export function fetchGitHubRepos(): Promise<GitHubRepo[]> {
 }
 export function updateWatchedRepos(repos: string[]): Promise<void> {
   return apiFetch('/integrations/github/repos', { method: 'PUT', body: JSON.stringify({ repos }) }).then(() => undefined);
+}
+
+// Social feed
+
+export function fetchFeed(cursor?: string, limit = 20): Promise<FeedResponse> {
+  let url = `/feed?limit=${limit}`;
+  if (cursor) url += `&cursor=${encodeURIComponent(cursor)}`;
+  return apiFetch<FeedResponse>(url);
+}
+
+export function createPost(content: string, parentPostId?: string | null): Promise<Post> {
+  return apiFetch<Post>('/posts', {
+    method: 'POST',
+    body: JSON.stringify({ content, parentPostId: parentPostId ?? null }),
+  });
+}
+
+export function deletePost(id: string): Promise<void> {
+  return apiFetch(`/posts/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(() => undefined);
+}
+
+export function toggleLike(postId: string): Promise<Post> {
+  return apiFetch<Post>(`/posts/${encodeURIComponent(postId)}/like`, { method: 'POST' });
+}
+
+// TODO(argus-3p2): wire up for user profile page when built
+export function fetchUserPosts(userId: string, limit = 20, offset = 0): Promise<PostListResponse> {
+  return apiFetch<PostListResponse>(`/posts/user/${encodeURIComponent(userId)}?limit=${limit}&offset=${offset}`);
+}
+
+export function searchPosts(query: string, limit = 20, offset = 0): Promise<PostListResponse> {
+  return apiFetch<PostListResponse>(`/posts/search?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`);
+}
+
+export function followUser(followingId: string): Promise<void> {
+  return apiFetch('/follow', { method: 'POST', body: JSON.stringify({ followingId }) }).then(() => undefined);
+}
+
+export function unfollowUser(followingId: string): Promise<void> {
+  return apiFetch(`/follow/${encodeURIComponent(followingId)}`, { method: 'DELETE' }).then(() => undefined);
+}
+
+export function getFollowStatus(targetId: string): Promise<FollowStatusResponse> {
+  return apiFetch<FollowStatusResponse>(`/follow/status/${encodeURIComponent(targetId)}`);
+}
+
+export function fetchFollowers(userId: string, limit = 20, offset = 0): Promise<FollowListResponse> {
+  return apiFetch<FollowListResponse>(`/follow/${encodeURIComponent(userId)}/followers?limit=${limit}&offset=${offset}`);
+}
+
+export function fetchFollowing(userId: string, limit = 20, offset = 0): Promise<FollowListResponse> {
+  return apiFetch<FollowListResponse>(`/follow/${encodeURIComponent(userId)}/following?limit=${limit}&offset=${offset}`);
 }

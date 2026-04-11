@@ -163,3 +163,47 @@ export interface TaskLabel {
   color: string;
   created_at: string;
 }
+
+// Social feed types
+
+export interface Post {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  content: string;
+  parentPostId: string | null;
+  likeCount: number;
+  mediaUrls: string[];
+  likedByMe: boolean;
+  createdAt: string;
+}
+
+export interface UserSummary {
+  id: string;
+  name: string;
+  avatarUrl: string;
+}
+
+export interface FeedResponse {
+  posts: Post[];
+  nextCursor: string | null;
+}
+
+export interface PostListResponse {
+  posts: Post[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface FollowListResponse {
+  users: UserSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface FollowStatusResponse {
+  following: boolean;
+}
