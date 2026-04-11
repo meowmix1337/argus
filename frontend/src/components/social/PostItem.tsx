@@ -47,6 +47,7 @@ export function PostItem({ post }: PostItemProps): React.ReactElement {
           <img
             src={post.userAvatar}
             alt={post.userName}
+            referrerPolicy="no-referrer"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
@@ -83,6 +84,7 @@ export function PostItem({ post }: PostItemProps): React.ReactElement {
           <button
             onClick={() => like.mutate(post.id)}
             disabled={like.isPending}
+            aria-label={post.likedByMe ? 'Unlike post' : 'Like post'}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -117,6 +119,7 @@ export function PostItem({ post }: PostItemProps): React.ReactElement {
                 transition: 'opacity 0.15s',
               }}
               title="Delete post"
+              aria-label="Delete post"
             >
               ×
             </button>

@@ -26,7 +26,6 @@ export function DiscoverPeople(): React.ReactElement | null {
       border: '1px solid var(--bg-card-border)',
       borderRadius: 12,
       padding: 16,
-      backdropFilter: 'blur(20px)',
     }}>
       <div style={{
         fontSize: 11,
@@ -60,6 +59,7 @@ export function DiscoverPeople(): React.ReactElement | null {
                 <img
                   src={person.avatarUrl}
                   alt={person.name}
+                  referrerPolicy="no-referrer"
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               ) : (

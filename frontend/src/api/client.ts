@@ -240,6 +240,7 @@ export function toggleLike(postId: string): Promise<Post> {
   return apiFetch<Post>(`/posts/${encodeURIComponent(postId)}/like`, { method: 'POST' });
 }
 
+// TODO(argus-3p2): wire up for user profile page when built
 export function fetchUserPosts(userId: string, limit = 20, offset = 0): Promise<PostListResponse> {
   return apiFetch<PostListResponse>(`/posts/user/${encodeURIComponent(userId)}?limit=${limit}&offset=${offset}`);
 }

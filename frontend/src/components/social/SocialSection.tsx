@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { searchPosts } from '../../api/client';
 import { PostComposer } from './PostComposer';
@@ -6,16 +6,24 @@ import { FeedList } from './FeedList';
 import { PostItem } from './PostItem';
 import type { Post } from '../../types/dashboard';
 
+const SEARCH_DEBOUNCE_MS = 400;
+
 export function SocialSection(): React.ReactElement {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
     setQuery(val);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setDebouncedQuery(val.trim()), 400);
+    debounceRef.current = setTimeout(() => setDebouncedQuery(val.trim()), SEARCH_DEBOUNCE_MS);
   }
 
   function clearSearch() {
@@ -49,7 +57,7 @@ export function SocialSection(): React.ReactElement {
           fontWeight: 600,
           color: 'var(--text-secondary)',
           letterSpacing: '0.04em',
-          textTransform: 'uppercase' as const,
+          textTransform: 'uppercase',
         }}>
           Social
         </span>
@@ -64,7 +72,6 @@ export function SocialSection(): React.ReactElement {
         border: '1px solid var(--bg-card-border)',
         borderRadius: 10,
         padding: '8px 12px',
-        backdropFilter: 'blur(20px)',
       }}>
         <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>⌕</span>
         <input
@@ -72,6 +79,7 @@ export function SocialSection(): React.ReactElement {
           value={query}
           onChange={handleChange}
           placeholder="Search posts…"
+          aria-label="Search posts"
           style={{
             flex: 1,
             background: 'transparent',
@@ -89,6 +97,7 @@ export function SocialSection(): React.ReactElement {
         {query && (
           <button
             onClick={clearSearch}
+            aria-label="Clear search"
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               fontSize: 14, color: 'var(--text-muted)', padding: 0, lineHeight: 1,
@@ -119,7 +128,6 @@ export function SocialSection(): React.ReactElement {
             border: '1px solid var(--bg-card-border)',
             borderRadius: 12,
             padding: '0 16px',
-            backdropFilter: 'blur(20px)',
           }}>
             <FeedList />
           </div>

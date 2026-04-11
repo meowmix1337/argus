@@ -29,13 +29,13 @@ export function PostComposer(): React.ReactElement {
       border: '1px solid var(--bg-card-border)',
       borderRadius: 12,
       padding: 16,
-      backdropFilter: 'blur(20px)',
     }}>
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="What's on your mind?"
+        aria-label="Post content"
         rows={2}
         style={{
           width: '100%',
@@ -70,6 +70,7 @@ export function PostComposer(): React.ReactElement {
         <button
           onClick={handleSubmit}
           disabled={isEmpty || isOverLimit || create.isPending}
+          aria-label="Post"
           style={{
             background: isEmpty || isOverLimit ? 'rgba(99,102,241,0.08)' : 'rgba(99,102,241,0.18)',
             border: '1px solid rgba(99,102,241,0.3)',
@@ -83,7 +84,7 @@ export function PostComposer(): React.ReactElement {
           }}
         >
           {create.isPending ? 'Posting…' : 'Post'}
-        </button>
+</button>
       </div>
     </div>
   );
