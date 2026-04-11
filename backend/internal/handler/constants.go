@@ -34,6 +34,18 @@ const (
 	maxNotificationLimit       = 100
 	maxNotificationSearchQuery = 200
 
+	// Post pagination
+	defaultPostLimit = 20
+	maxPostLimit     = 100
+
+	// Follow pagination
+	defaultFollowLimit = 20
+	maxFollowLimit     = 100
+
+	// Feed pagination
+	defaultFeedLimit = 20
+	maxFeedLimit     = 50
+
 	// GitHub integration
 	maxWatchedRepos = 20
 )

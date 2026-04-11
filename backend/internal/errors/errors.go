@@ -42,6 +42,15 @@ var ErrBillValidation = errors.New("bill validation failed")
 var ErrBillPaymentNotFound = errors.New("bill payment not found")
 var ErrBillAlreadyPaid = errors.New("bill occurrence already marked as paid")
 
+// Social feed errors.
+
+var ErrPostNotFound = errors.New("post not found")
+var ErrPostValidation = errors.New("post validation failed")
+var ErrAlreadyFollowing = errors.New("already following this user")
+var ErrNotFollowing = errors.New("not following this user")
+var ErrSelfFollow = errors.New("cannot follow yourself")
+var ErrAlreadyLiked = errors.New("already liked this post")
+
 // Auth errors.
 
 var ErrUnauthorized = errors.New("unauthorized")
