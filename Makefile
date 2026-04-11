@@ -1,5 +1,7 @@
-.PHONY: help dev dev-backend dev-frontend build-backend build-frontend \
-        test coverage lint install-hooks docker-build docker-up docker-down docker-dev docker-logs clean
+.PHONY: help dev-backend dev-frontend build-backend build-frontend \
+        test coverage lint install-hooks clean \
+        prod-build prod-up prod-down prod-logs \
+        dev-start dev-stop dev-reset dev-logs
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -33,21 +35,33 @@ lint:  ## Run linters (requires golangci-lint v2: https://golangci-lint.run/welc
 install-hooks:  ## Install pre-commit hooks (run once after cloning; requires: pip install pre-commit)
 	pre-commit install
 
-# --- Docker ---
-docker-build:  ## Build production images
+# --- Production (Docker) ---
+prod-build:  ## Build production images
 	docker compose build
 
-docker-up:  ## Start production stack
+prod-up:  ## Start production stack
 	docker compose up -d
 
-docker-down:  ## Stop production stack
+prod-down:  ## Stop production stack
 	docker compose down
 
-docker-dev:  ## Start dev stack with hot reload
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml up
-
-docker-logs:  ## Tail logs from all containers
+prod-logs:  ## Tail production logs
 	docker compose logs -f
+
+# --- Dev (Docker + air + NSQ + persistent DB) ---
+dev-start:  ## Build backend image and start dev stack in background
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml build backend
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+dev-stop:  ## Stop dev stack
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+
+dev-reset:  ## Stop dev stack and wipe local SQLite database
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+	rm -f data/dashboard.db data/dashboard.db-shm data/dashboard.db-wal
+
+dev-logs:  ## Tail dev stack logs
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
 
 # --- Cleanup ---
 clean:  ## Remove build artifacts
