@@ -471,6 +471,9 @@ export default function Dashboard(): React.ReactElement {
           </div>
         )}
 
+        {/* Stocks ticker — always full width above the grid */}
+        <StocksCard stocks={data?.stocks ?? null} delay={0.1} />
+
         {/* Responsive grid — social feed sits in the last column alongside the cards */}
         <div style={{
           display: 'grid',
@@ -480,8 +483,6 @@ export default function Dashboard(): React.ReactElement {
         }}>
           {/* Cards area — spans 2 of 3 cols on desktop so social takes the third */}
           <div style={{ gridColumn: isMobile || isTablet ? undefined : '1 / 3' }}>
-            <StocksCard stocks={data?.stocks ?? null} delay={0.1} />
-
             {/* Card grid — 2 cols on desktop, 1 col on tablet/mobile */}
             <div style={{
               display: 'grid',
