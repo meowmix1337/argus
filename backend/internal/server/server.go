@@ -76,7 +76,6 @@ func (s *Server) setupRoutes() {
 	newsSvc := service.NewNewsService(hc, s.cfg.GNewsAPIKey, cache)
 	watchlistRepo := repository.NewSQLiteStocksWatchlistRepository(s.db)
 	stocksSvc := service.NewStocksService(hc, s.cfg.FinnhubAPIKey, cache, watchlistRepo)
-	calendarSvc := service.NewCalendarService(hc, s.cfg.ICSCalendarURL, cache, s.cfg.Timezone)
 	taskRepo := repository.NewSQLiteTaskRepository(s.db)
 	tasksSvc := service.NewTasksService(taskRepo)
 	billsRepo := repository.NewSQLiteBillsRepository(s.db)
@@ -84,6 +83,7 @@ func (s *Server) setupRoutes() {
 	billsSvc := service.NewBillsService(billsRepo, billPaymentsRepo)
 	settingsRepo := repository.NewSQLiteUserSettingsRepository(s.db)
 	settingsSvc := service.NewUserSettingsService(settingsRepo, s.encSvc)
+	calendarSvc := service.NewCalendarService(hc, cache, s.cfg.Timezone, settingsSvc)
 	labelRepo := repository.NewSQLiteTaskLabelsRepository(s.db)
 	labelsSvc := service.NewTaskLabelsService(labelRepo)
 	sunriseSvc := service.NewSunriseService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
@@ -106,6 +106,8 @@ func (s *Server) setupRoutes() {
 	followSvc := service.NewFollowService(followRepo, s.publisher)
 	feedRepo := repository.NewSQLiteFeedRepository(s.db)
 	feedSvc := service.NewFeedService(feedRepo)
+	usersRepo := repository.NewSQLiteUsersRepository(s.db)
+	usersSvc := service.NewUserService(usersRepo)
 
 	// NSQ consumers — only started when NSQ_LOOKUPD_ADDR is configured.
 	if s.cfg.NSQLookupdAddr != "" {
@@ -144,6 +146,7 @@ func (s *Server) setupRoutes() {
 	postsH := handler.NewPostsHandler(postsSvc, v)
 	followH := handler.NewFollowHandler(followSvc, v)
 	feedH := handler.NewFeedHandler(feedSvc)
+	usersH := handler.NewUsersHandler(usersSvc)
 	dashboardH := handler.NewDashboardHandler(
 		weatherSvc,
 		stocksSvc,
@@ -183,6 +186,7 @@ func (s *Server) setupRoutes() {
 		postsH.AddRoutes(r)
 		followH.AddRoutes(r)
 		feedH.AddRoutes(r)
+		usersH.AddRoutes(r)
 	})
 }
 

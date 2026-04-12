@@ -13,7 +13,6 @@ type Config struct {
 	GNewsAPIKey     string
 	FinnhubAPIKey   string
 	APINinjasAPIKey string
-	ICSCalendarURL  string
 	Latitude        float64
 	Longitude       float64
 	Timezone        *time.Location
@@ -61,7 +60,6 @@ func Load() *Config {
 		GNewsAPIKey:     os.Getenv("GNEWS_API_KEY"),
 		FinnhubAPIKey:   os.Getenv("FINNHUB_API_KEY"),
 		APINinjasAPIKey: os.Getenv("API_NINJAS_API_KEY"),
-		ICSCalendarURL:  os.Getenv("CALENDAR_ICS_URL"),
 		Latitude:        lat,
 		Longitude:       lon,
 		Timezone:        tz,
