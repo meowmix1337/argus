@@ -253,3 +253,28 @@ func (r *SQLitePostsRepository) Search(ctx context.Context, query, viewerID stri
 	}
 	return posts, total, nil
 }
+
+// ListPostIDsByAuthor returns up to limit post IDs and timestamps for the given
+// author, newest first. Used by the follow backfill consumer.
+func (r *SQLitePostsRepository) ListPostIDsByAuthor(ctx context.Context, authorID string, limit int) ([]model.PostRef, error) {
+	type row struct {
+		ID        string `db:"id"`
+		CreatedAt string `db:"created_at"`
+	}
+	var rows []row
+	if err := r.db.SelectContext(ctx, &rows,
+		`SELECT id, created_at
+		 FROM posts
+		 WHERE user_id = ? AND deleted_at IS NULL
+		 ORDER BY created_at DESC
+		 LIMIT ?`,
+		authorID, limit,
+	); err != nil {
+		return nil, fmt.Errorf("list post ids by author: %w", err)
+	}
+	refs := make([]model.PostRef, len(rows))
+	for i, row := range rows {
+		refs[i] = model.PostRef{ID: row.ID, CreatedAt: row.CreatedAt}
+	}
+	return refs, nil
+}
