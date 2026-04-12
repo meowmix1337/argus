@@ -53,6 +53,10 @@ func (s *CalendarService) Fetch(ctx context.Context, userID string) ([]model.Cal
 		return nil, err
 	}
 
+	if userSettings == nil {
+		return []model.CalendarEvent{}, nil
+	}
+
 	events, err := s.fetchAndParse(ctx, userSettings.CalendarICSURL)
 	if err != nil {
 		return nil, err

@@ -268,3 +268,7 @@ export function fetchFollowers(userId: string, limit = 20, offset = 0): Promise<
 export function fetchFollowing(userId: string, limit = 20, offset = 0): Promise<FollowListResponse> {
   return apiFetch<FollowListResponse>(`/follow/${encodeURIComponent(userId)}/following?limit=${limit}&offset=${offset}`);
 }
+
+export function searchUsers(q: string, limit = 20, offset = 0): Promise<FollowListResponse> {
+  return apiFetch<FollowListResponse>(`/users/search?q=${encodeURIComponent(q)}&limit=${limit}&offset=${offset}`);
+}

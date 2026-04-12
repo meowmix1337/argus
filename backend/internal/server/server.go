@@ -93,6 +93,8 @@ func (s *Server) setupRoutes() {
 	followSvc := service.NewFollowService(followRepo, publisher)
 	feedRepo := repository.NewSQLiteFeedRepository(s.db)
 	feedSvc := service.NewFeedService(feedRepo)
+	usersRepo := repository.NewSQLiteUsersRepository(s.db)
+	usersSvc := service.NewUserService(usersRepo)
 
 	// Auth
 	authSvc := service.NewAuthService(s.db, s.cfg.GoogleClientID, s.cfg.GoogleClientSecret, s.cfg.GoogleCallbackURL)
@@ -117,6 +119,7 @@ func (s *Server) setupRoutes() {
 	postsH := handler.NewPostsHandler(postsSvc, v)
 	followH := handler.NewFollowHandler(followSvc, v)
 	feedH := handler.NewFeedHandler(feedSvc)
+	usersH := handler.NewUsersHandler(usersSvc)
 	dashboardH := handler.NewDashboardHandler(
 		weatherSvc,
 		stocksSvc,
@@ -156,5 +159,6 @@ func (s *Server) setupRoutes() {
 		postsH.AddRoutes(r)
 		followH.AddRoutes(r)
 		feedH.AddRoutes(r)
+		usersH.AddRoutes(r)
 	})
 }
