@@ -115,6 +115,7 @@ func (s *Server) setupRoutes() {
 			slog.Warn("failed to register feed fanout consumer", "error", err)
 		} else if err := cm.Start(); err != nil {
 			slog.Warn("failed to start consumer manager", "error", err)
+			cm.Stop()
 		} else {
 			s.cm = cm
 		}

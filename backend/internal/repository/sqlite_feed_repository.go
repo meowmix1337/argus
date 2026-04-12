@@ -10,6 +10,10 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
+// bulkInsertBatchSize caps the number of rows per INSERT statement to stay well
+// within SQLite's SQLITE_MAX_VARIABLE_NUMBER limit (999 by default, 5 params/row).
+const bulkInsertBatchSize = 100
+
 // SQLiteFeedRepository implements service.FeedStore backed by SQLite.
 type SQLiteFeedRepository struct {
 	db *sqlx.DB
@@ -58,23 +62,12 @@ func (r *SQLiteFeedRepository) ListFeed(ctx context.Context, viewerID string, cu
 	return posts, nil
 }
 
-// CountUserFeedForUser returns the number of rows in user_feed for the given user.
-func (r *SQLiteFeedRepository) CountUserFeedForUser(ctx context.Context, userID string) (int, error) {
-	var count int
-	if err := r.db.GetContext(ctx, &count,
-		`SELECT COUNT(*) FROM user_feed WHERE user_id = ?`, userID,
-	); err != nil {
-		return 0, fmt.Errorf("count user feed: %w", err)
-	}
-	return count, nil
-}
-
 // ListFeedMaterialized reads the feed from the pre-computed user_feed table.
 func (r *SQLiteFeedRepository) ListFeedMaterialized(ctx context.Context, viewerID string, cursor *model.FeedCursor, limit int) ([]model.Post, error) {
 	query := `SELECT p.id, p.user_id, u.name AS user_name, COALESCE(u.avatar_url, '') AS user_avatar,
 	                 p.content, p.parent_post_id, p.like_count, p.media_urls,
 	                 CASE WHEN pl.id IS NOT NULL THEN 1 ELSE 0 END AS liked_by_me,
-	                 uf.created_at
+	                 uf.created_at AS created_at
 	          FROM user_feed uf
 	          JOIN posts p ON p.id = uf.post_id
 	          JOIN users u ON u.id = p.user_id
@@ -105,24 +98,41 @@ func (r *SQLiteFeedRepository) ListFeedMaterialized(ctx context.Context, viewerI
 }
 
 // BulkInsertUserFeed inserts feed rows using INSERT OR IGNORE to skip duplicates.
+// Rows are batched in groups of bulkInsertBatchSize to respect SQLite's
+// SQLITE_MAX_VARIABLE_NUMBER limit.
 func (r *SQLiteFeedRepository) BulkInsertUserFeed(ctx context.Context, rows []model.UserFeedRow) error {
 	if len(rows) == 0 {
 		return nil
 	}
 
-	var b strings.Builder
-	b.WriteString(`INSERT OR IGNORE INTO user_feed (id, user_id, post_id, created_at, updated_at) VALUES `)
-	args := make([]any, 0, len(rows)*5)
-	for i, row := range rows {
-		if i > 0 {
-			b.WriteString(", ")
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin transaction: %w", err)
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	for start := 0; start < len(rows); start += bulkInsertBatchSize {
+		end := min(start+bulkInsertBatchSize, len(rows))
+		batch := rows[start:end]
+
+		var b strings.Builder
+		b.WriteString(`INSERT OR IGNORE INTO user_feed (id, user_id, post_id, created_at, updated_at) VALUES `)
+		args := make([]any, 0, len(batch)*5)
+		for i, row := range batch {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString("(?, ?, ?, ?, ?)")
+			args = append(args, row.ID, row.UserID, row.PostID, row.CreatedAt, row.CreatedAt)
 		}
-		b.WriteString("(?, ?, ?, ?, ?)")
-		args = append(args, row.ID, row.UserID, row.PostID, row.CreatedAt, row.CreatedAt)
+
+		if _, err := tx.ExecContext(ctx, b.String(), args...); err != nil {
+			return fmt.Errorf("bulk insert user feed batch: %w", err)
+		}
 	}
 
-	if _, err := r.db.ExecContext(ctx, b.String(), args...); err != nil {
-		return fmt.Errorf("bulk insert user feed: %w", err)
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit bulk insert user feed: %w", err)
 	}
 	return nil
 }
