@@ -180,23 +180,6 @@ Cards that require credentials show an unavailable state when their key/URL is n
 1. Go to [api-ninjas.com](https://api-ninjas.com) and create a free account
 2. Copy your API key from the dashboard and set `API_NINJAS_API_KEY` in `.env`
 
-### Calendar (ICS URL)
-
-The calendar card reads any standard ICS/iCal feed — no OAuth required.
-
-**Google Calendar:**
-1. Open [Google Calendar](https://calendar.google.com) → Settings (gear icon)
-2. Select the calendar you want to display under **Settings for my calendars**
-3. Scroll to **Integrate calendar** → copy the **Secret address in iCal format**
-4. Set `CALENDAR_ICS_URL` in `.env` to that URL
-
-**Apple iCloud Calendar:**
-1. In the Calendar app, right-click (or Ctrl-click) the calendar → **Share Calendar**
-2. Enable **Public Calendar** and copy the link
-3. Replace `webcal://` with `https://` and set `CALENDAR_ICS_URL` in `.env`
-
-> The ICS URL is private — treat it like a password. Calendar data is cached for 15 minutes.
-
 ## Environment Variables
 
 | Variable | Description | Required | Default |
@@ -205,7 +188,6 @@ The calendar card reads any standard ICS/iCal feed — no OAuth required.
 | `GNEWS_API_KEY` | GNews API key for headlines | No | — (unavailable state) |
 | `FINNHUB_API_KEY` | Finnhub API key for stocks | No | — (unavailable state) |
 | `API_NINJAS_API_KEY` | API Ninjas key for daily quote | No | — (unavailable state) |
-| `CALENDAR_ICS_URL` | Private ICS URL for calendar events (stored encrypted) | No | — (unavailable state) |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID | No | — (auth disabled) |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | No | — (auth disabled) |
 | `GOOGLE_CALLBACK_URL` | OAuth redirect URL (e.g. `http://localhost:8080/auth/google/callback`) | No | — |

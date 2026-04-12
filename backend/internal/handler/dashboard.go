@@ -56,6 +56,12 @@ func (h *DashboardHandler) AddRoutes(r chi.Router) {
 // If any individual service fails, that field is left nil/empty.
 func (h *DashboardHandler) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	userID, ok := userIDFromRequest(r)
+	if !ok {
+		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
 	// Each goroutine below writes to a distinct field of resp (Weather, Stocks,
 	// Calendar, Tasks, Meta). g.Wait() provides the happens-before guarantee
 	// needed for the final read of resp after all goroutines complete, so no
@@ -90,7 +96,7 @@ func (h *DashboardHandler) Get(w http.ResponseWriter, r *http.Request) {
 	})
 
 	g.Go(func() error {
-		data, err := h.calendar.Fetch(gctx)
+		data, err := h.calendar.Fetch(gctx, userID)
 		if err != nil {
 			slog.Warn("calendar fetch failed", "error", err)
 			return nil
