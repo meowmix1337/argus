@@ -23,7 +23,13 @@ func (h *CalendarHandler) AddRoutes(r chi.Router) {
 }
 
 func (h *CalendarHandler) Get(w http.ResponseWriter, r *http.Request) {
-	data, err := h.service.Fetch(r.Context())
+	userID, ok := userIDFromRequest(r)
+	if !ok {
+		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	data, err := h.service.Fetch(r.Context(), userID)
 	if err != nil {
 		slog.Error("calendar fetch error", "error", err)
 		response.WriteError(w, http.StatusInternalServerError, "internal server error")

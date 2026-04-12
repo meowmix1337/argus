@@ -17,44 +17,58 @@ var calendarColors = []string{
 	"#6366f1", "#f59e0b", "#10b981", "#ec4899", "#8b5cf6", "#14b8a6",
 }
 
-const calendarCacheTTL = 15 * time.Minute
-
 // CalendarService fetches and parses an ICS/iCal feed URL.
 type CalendarService struct {
-	httpClient httpclient.HTTPClient
-	icsURL     string
-	cache      *CacheService
-	loc        *time.Location
+	httpClient          httpclient.HTTPClient
+	icsURL              string
+	cache               *CacheService
+	loc                 *time.Location
+	userSettingsService *UserSettingsService
 }
 
 // NewCalendarService creates a new CalendarService.
-func NewCalendarService(httpClient httpclient.HTTPClient, icsURL string, cache *CacheService, loc *time.Location) *CalendarService {
+func NewCalendarService(httpClient httpclient.HTTPClient, icsURL string, cache *CacheService, loc *time.Location, userSettingService *UserSettingsService) *CalendarService {
 	if loc == nil {
 		loc = time.Local
 	}
-	return &CalendarService{httpClient: httpClient, icsURL: icsURL, cache: cache, loc: loc}
+	return &CalendarService{
+		httpClient:          httpClient,
+		icsURL:              icsURL,
+		cache:               cache,
+		loc:                 loc,
+		userSettingsService: userSettingService,
+	}
 }
 
 // Fetch returns today's calendar events sorted by start time.
 // Returns an error (card shows unavailable state) if no ICS URL is configured.
-func (s *CalendarService) Fetch(ctx context.Context) ([]model.CalendarEvent, error) {
-	const cacheKey = "calendar"
-	if v, ok := s.cache.Get(cacheKey); ok {
-		return v.([]model.CalendarEvent), nil
-	}
-	if s.icsURL == "" {
-		return nil, fmt.Errorf("CALENDAR_ICS_URL not configured")
-	}
-	events, err := s.fetchAndParse(ctx)
+func (s *CalendarService) Fetch(ctx context.Context, userID string) ([]model.CalendarEvent, error) {
+	// const cacheKey = "calendar"
+	// if v, ok := s.cache.Get(cacheKey); ok {
+	// 	return v.([]model.CalendarEvent), nil
+	// }
+	// if s.icsURL == "" {
+	// 	return nil, fmt.Errorf("CALENDAR_ICS_URL not configured")
+	// }
+
+	userSettings, err := s.userSettingsService.Get(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	s.cache.Set(cacheKey, events, calendarCacheTTL)
+
+	events, err := s.fetchAndParse(ctx, userSettings.CalendarICSURL)
+	if err != nil {
+		return nil, err
+	}
+	// s.cache.Set(cacheKey, events, calendarCacheTTL)
 	return events, nil
 }
 
-func (s *CalendarService) fetchAndParse(ctx context.Context) ([]model.CalendarEvent, error) {
-	body, err := s.httpClient.GetBytes(ctx, s.icsURL, httpclient.WithHeader("User-Agent", "DailyDashboard/1.0"))
+func (s *CalendarService) fetchAndParse(ctx context.Context, icsURL *string) ([]model.CalendarEvent, error) {
+	if icsURL == nil {
+		return []model.CalendarEvent{}, nil
+	}
+	body, err := s.httpClient.GetBytes(ctx, *icsURL, httpclient.WithHeader("User-Agent", "Argus/1.0"))
 	if err != nil {
 		return nil, fmt.Errorf("calendar: fetch ICS: %w", err)
 	}
