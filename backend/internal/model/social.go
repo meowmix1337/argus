@@ -51,3 +51,9 @@ type UserFeedRow struct {
 	PostID    string
 	CreatedAt string
 }
+
+// PostRef is a minimal post reference used for backfill operations.
+type PostRef struct {
+	ID        string
+	CreatedAt string
+}

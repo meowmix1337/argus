@@ -112,10 +112,15 @@ func (s *Server) setupRoutes() {
 	// NSQ consumers — only started when NSQ_LOOKUPD_ADDR is configured.
 	if s.cfg.NSQLookupdAddr != "" {
 		cm := events.NewConsumerManager(s.cfg.NSQLookupdAddr)
-		fanout := events.NewFeedFanoutConsumer(followRepo, feedRepo)
-		if err := cm.Register(fanout); err != nil {
-			slog.Warn("failed to register feed fanout consumer", "error", err)
-		} else if err := cm.Start(); err != nil {
+		for _, consumer := range []events.MessageHandler{
+			events.NewFeedFanoutConsumer(followRepo, feedRepo),
+			events.NewFollowBackfillConsumer(postsRepo, feedRepo),
+		} {
+			if err := cm.Register(consumer); err != nil {
+				slog.Warn("failed to register consumer", "topic", consumer.Topic(), "error", err)
+			}
+		}
+		if err := cm.Start(); err != nil {
 			slog.Warn("failed to start consumer manager", "error", err)
 			cm.Stop()
 		} else {
