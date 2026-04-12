@@ -85,11 +85,11 @@ func (r *SQLiteFeedRepository) ListFeedMaterialized(ctx context.Context, viewerI
 	args := []any{viewerID, viewerID}
 
 	if cursor != nil {
-		query += ` AND (uf.created_at < ? OR (uf.created_at = ? AND uf.id < ?))`
+		query += ` AND (uf.created_at < ? OR (uf.created_at = ? AND p.id < ?))`
 		args = append(args, cursor.CreatedAt, cursor.CreatedAt, cursor.ID)
 	}
 
-	query += ` ORDER BY uf.created_at DESC, uf.id DESC LIMIT ?`
+	query += ` ORDER BY uf.created_at DESC, p.id DESC LIMIT ?`
 	args = append(args, limit)
 
 	var rows []sqlitePostRow
@@ -111,14 +111,14 @@ func (r *SQLiteFeedRepository) BulkInsertUserFeed(ctx context.Context, rows []mo
 	}
 
 	var b strings.Builder
-	b.WriteString(`INSERT OR IGNORE INTO user_feed (id, user_id, post_id, created_at) VALUES `)
-	args := make([]any, 0, len(rows)*4)
+	b.WriteString(`INSERT OR IGNORE INTO user_feed (id, user_id, post_id, created_at, updated_at) VALUES `)
+	args := make([]any, 0, len(rows)*5)
 	for i, row := range rows {
 		if i > 0 {
 			b.WriteString(", ")
 		}
-		b.WriteString("(?, ?, ?, ?)")
-		args = append(args, row.ID, row.UserID, row.PostID, row.CreatedAt)
+		b.WriteString("(?, ?, ?, ?, ?)")
+		args = append(args, row.ID, row.UserID, row.PostID, row.CreatedAt, row.CreatedAt)
 	}
 
 	if _, err := r.db.ExecContext(ctx, b.String(), args...); err != nil {

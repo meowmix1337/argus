@@ -54,9 +54,11 @@ func TestFeedFanoutConsumer_Process_ValidPayload(t *testing.T) {
 		t.Fatalf("Process: %v", err)
 	}
 
-	if len(feedStore.inserted) != 2 {
-		t.Fatalf("inserted %d rows, want 2", len(feedStore.inserted))
+	// 2 followers + the author themselves = 3 rows.
+	if len(feedStore.inserted) != 3 {
+		t.Fatalf("inserted %d rows, want 3 (2 followers + author)", len(feedStore.inserted))
 	}
+	userIDs := map[string]bool{}
 	for _, row := range feedStore.inserted {
 		if row.PostID != "post-abc" {
 			t.Errorf("row.PostID = %q, want post-abc", row.PostID)
@@ -64,10 +66,12 @@ func TestFeedFanoutConsumer_Process_ValidPayload(t *testing.T) {
 		if row.ID == "" {
 			t.Error("row.ID is empty, expected a UUID")
 		}
+		userIDs[row.UserID] = true
 	}
-	userIDs := map[string]bool{feedStore.inserted[0].UserID: true, feedStore.inserted[1].UserID: true}
-	if !userIDs["follower-1"] || !userIDs["follower-2"] {
-		t.Errorf("unexpected user IDs in inserted rows: %v", feedStore.inserted)
+	for _, want := range []string{"follower-1", "follower-2", "author-1"} {
+		if !userIDs[want] {
+			t.Errorf("missing user ID %q in inserted rows", want)
+		}
 	}
 }
 
@@ -80,8 +84,12 @@ func TestFeedFanoutConsumer_Process_NoFollowers(t *testing.T) {
 	if err := consumer.Process(body); err != nil {
 		t.Fatalf("Process: %v", err)
 	}
-	if len(feedStore.inserted) != 0 {
-		t.Errorf("inserted %d rows, want 0", len(feedStore.inserted))
+	// Author always gets their own row even with no followers.
+	if len(feedStore.inserted) != 1 {
+		t.Errorf("inserted %d rows, want 1 (author only)", len(feedStore.inserted))
+	}
+	if feedStore.inserted[0].UserID != "author-2" {
+		t.Errorf("inserted row UserID = %q, want author-2", feedStore.inserted[0].UserID)
 	}
 }
 

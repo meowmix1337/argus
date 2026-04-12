@@ -65,7 +65,7 @@ func (c *FeedFanoutConsumer) Process(body []byte) error {
 }
 
 // process performs the fan-out for a single PostCreatedPayload.
-// Exported for unit testing without a real NSQ connection.
+// It is unexported but called by Process; tests in the same package invoke it directly.
 func (c *FeedFanoutConsumer) process(payload PostCreatedPayload) error {
 	ctx := context.Background()
 
@@ -74,22 +74,24 @@ func (c *FeedFanoutConsumer) process(payload PostCreatedPayload) error {
 		return fmt.Errorf("get followers of user %s: %w", payload.UserID, err)
 	}
 
-	if len(followerIDs) == 0 {
-		return nil
-	}
+	// Fan out to followers plus the author themselves so their own posts appear
+	// in their materialized feed (matching the live-join fallback behaviour).
+	recipients := make([]string, 0, len(followerIDs)+1)
+	recipients = append(recipients, followerIDs...)
+	recipients = append(recipients, payload.UserID)
 
 	now := time.Now().UTC().Format(time.RFC3339Nano)
-	rows := make([]model.UserFeedRow, 0, len(followerIDs))
-	for _, followerID := range followerIDs {
+	rows := make([]model.UserFeedRow, 0, len(recipients))
+	for _, recipientID := range recipients {
 		id, err := uuid.NewV7()
 		if err != nil {
-			slog.Error("feed fanout: failed to generate row id, skipping follower",
-				"follower_id", followerID, "error", err)
+			slog.Error("feed fanout: failed to generate row id, skipping recipient",
+				"recipient_id", recipientID, "error", err)
 			continue
 		}
 		rows = append(rows, model.UserFeedRow{
 			ID:        id.String(),
-			UserID:    followerID,
+			UserID:    recipientID,
 			PostID:    payload.PostID,
 			CreatedAt: now,
 		})
