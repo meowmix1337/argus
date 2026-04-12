@@ -273,7 +273,7 @@ func TestFetchAndParse_ParsesValidICS(t *testing.T) {
 
 // TestNewCalendarService_NilLoc verifies that a nil location falls back to time.Local.
 func TestNewCalendarService_NilLoc(t *testing.T) {
-	svc := NewCalendarService(&fakeHTTPClient{}, "https://example.com/cal.ics", NewCacheService(), nil, nil)
+	svc := NewCalendarService(&fakeHTTPClient{}, NewCacheService(), nil, nil)
 	if svc == nil {
 		t.Fatal("expected non-nil CalendarService when loc is nil")
 	}

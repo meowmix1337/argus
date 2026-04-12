@@ -13,6 +13,8 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
+const calendarCacheTTL = 15 * time.Minute
+
 var calendarColors = []string{
 	"#6366f1", "#f59e0b", "#10b981", "#ec4899", "#8b5cf6", "#14b8a6",
 }
@@ -20,20 +22,18 @@ var calendarColors = []string{
 // CalendarService fetches and parses an ICS/iCal feed URL.
 type CalendarService struct {
 	httpClient          httpclient.HTTPClient
-	icsURL              string
 	cache               *CacheService
 	loc                 *time.Location
 	userSettingsService *UserSettingsService
 }
 
 // NewCalendarService creates a new CalendarService.
-func NewCalendarService(httpClient httpclient.HTTPClient, icsURL string, cache *CacheService, loc *time.Location, userSettingService *UserSettingsService) *CalendarService {
+func NewCalendarService(httpClient httpclient.HTTPClient, cache *CacheService, loc *time.Location, userSettingService *UserSettingsService) *CalendarService {
 	if loc == nil {
 		loc = time.Local
 	}
 	return &CalendarService{
 		httpClient:          httpClient,
-		icsURL:              icsURL,
 		cache:               cache,
 		loc:                 loc,
 		userSettingsService: userSettingService,
@@ -43,13 +43,10 @@ func NewCalendarService(httpClient httpclient.HTTPClient, icsURL string, cache *
 // Fetch returns today's calendar events sorted by start time.
 // Returns an error (card shows unavailable state) if no ICS URL is configured.
 func (s *CalendarService) Fetch(ctx context.Context, userID string) ([]model.CalendarEvent, error) {
-	// const cacheKey = "calendar"
-	// if v, ok := s.cache.Get(cacheKey); ok {
-	// 	return v.([]model.CalendarEvent), nil
-	// }
-	// if s.icsURL == "" {
-	// 	return nil, fmt.Errorf("CALENDAR_ICS_URL not configured")
-	// }
+	cacheKey := fmt.Sprintf("calendar-%s", userID)
+	if v, ok := s.cache.Get(cacheKey); ok {
+		return v.([]model.CalendarEvent), nil
+	}
 
 	userSettings, err := s.userSettingsService.Get(ctx, userID)
 	if err != nil {
@@ -60,7 +57,7 @@ func (s *CalendarService) Fetch(ctx context.Context, userID string) ([]model.Cal
 	if err != nil {
 		return nil, err
 	}
-	// s.cache.Set(cacheKey, events, calendarCacheTTL)
+	s.cache.Set(cacheKey, events, calendarCacheTTL)
 	return events, nil
 }
 

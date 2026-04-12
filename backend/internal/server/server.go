@@ -70,7 +70,7 @@ func (s *Server) setupRoutes() {
 	billsSvc := service.NewBillsService(billsRepo, billPaymentsRepo)
 	settingsRepo := repository.NewSQLiteUserSettingsRepository(s.db)
 	settingsSvc := service.NewUserSettingsService(settingsRepo, s.encSvc)
-	calendarSvc := service.NewCalendarService(hc, s.cfg.ICSCalendarURL, cache, s.cfg.Timezone, settingsSvc)
+	calendarSvc := service.NewCalendarService(hc, cache, s.cfg.Timezone, settingsSvc)
 	labelRepo := repository.NewSQLiteTaskLabelsRepository(s.db)
 	labelsSvc := service.NewTaskLabelsService(labelRepo)
 	sunriseSvc := service.NewSunriseService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
