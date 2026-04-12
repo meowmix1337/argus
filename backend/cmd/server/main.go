@@ -139,5 +139,6 @@ func main() {
 		slog.Error("server forced to shutdown", "error", err)
 	}
 
+	srv.Stop()
 	slog.Info("server exited")
 }

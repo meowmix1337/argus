@@ -9,10 +9,13 @@ import (
 
 // FeedStore defines the data-access contract for the social feed.
 type FeedStore interface {
-	// ListFeed returns posts from users the viewer follows (plus their own),
-	// ordered by created_at DESC with cursor-based pagination.
-	// cursor may be nil for the first page.
+	// ListFeed returns posts via a live join (followers + own posts).
+	// Used as the fallback when user_feed has no rows for the viewer.
 	ListFeed(ctx context.Context, viewerID string, cursor *model.FeedCursor, limit int) ([]model.Post, error)
+	// ListFeedMaterialized reads from the pre-computed user_feed table.
+	ListFeedMaterialized(ctx context.Context, viewerID string, cursor *model.FeedCursor, limit int) ([]model.Post, error)
+	// BulkInsertUserFeed inserts fanout rows into user_feed (INSERT OR IGNORE).
+	BulkInsertUserFeed(ctx context.Context, rows []model.UserFeedRow) error
 }
 
 // FeedService provides the social feed timeline.
@@ -26,8 +29,20 @@ func NewFeedService(store FeedStore) *FeedService {
 }
 
 // ListFeed returns the chronological feed for the viewer.
+// It tries the materialized user_feed table first; if it returns no rows (new
+// account, or viewer followed before fanout was deployed) it falls back to the
+// live join query — one round-trip in the common steady-state case.
 func (s *FeedService) ListFeed(ctx context.Context, viewerID string, cursor *model.FeedCursor, limit int) ([]model.Post, error) {
-	posts, err := s.store.ListFeed(ctx, viewerID, cursor, limit)
+	posts, err := s.store.ListFeedMaterialized(ctx, viewerID, cursor, limit)
+	if err != nil {
+		return nil, fmt.Errorf("list feed materialized: %w", err)
+	}
+	if len(posts) > 0 {
+		return posts, nil
+	}
+
+	// Fallback: live join query for new accounts / pre-fanout followers.
+	posts, err = s.store.ListFeed(ctx, viewerID, cursor, limit)
 	if err != nil {
 		return nil, fmt.Errorf("list feed: %w", err)
 	}

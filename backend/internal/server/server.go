@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -21,10 +22,12 @@ import (
 
 // Server holds the HTTP router and all dependencies.
 type Server struct {
-	router *chi.Mux
-	cfg    *config.Config
-	db     *sqlx.DB
-	encSvc *service.EncryptionService // nil means no encryption
+	router    *chi.Mux
+	cfg       *config.Config
+	db        *sqlx.DB
+	encSvc    *service.EncryptionService // nil means no encryption
+	publisher events.Publisher
+	cm        *events.ConsumerManager // nil when NSQ is not configured
 }
 
 // New creates a new Server with all services, handlers, and routes registered.
@@ -42,6 +45,16 @@ func New(cfg *config.Config, db *sqlx.DB, encSvc *service.EncryptionService) *Se
 // ServeHTTP implements http.Handler.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
+}
+
+// Stop gracefully shuts down background workers (NSQ consumers, publisher).
+func (s *Server) Stop() {
+	if s.cm != nil {
+		s.cm.Stop()
+	}
+	if s.publisher != nil {
+		s.publisher.Stop()
+	}
 }
 
 func (s *Server) setupRoutes() {
@@ -85,16 +98,30 @@ func (s *Server) setupRoutes() {
 		s.cfg.GitHubClientID, s.cfg.GitHubClientSecret, s.cfg.GitHubCallbackURL, s.cfg.GitHubWebhookURL,
 	)
 
-	// Social feed
-	publisher := events.Publisher(&events.NoopPublisher{})
+	// Social feed — publisher uses real NSQ when NSQD_ADDR is set, otherwise noop.
+	s.publisher = buildPublisher(s.cfg.NSQDAddr)
 	postsRepo := repository.NewSQLitePostsRepository(s.db)
-	postsSvc := service.NewPostsService(postsRepo, publisher)
+	postsSvc := service.NewPostsService(postsRepo, s.publisher)
 	followRepo := repository.NewSQLiteFollowRepository(s.db)
-	followSvc := service.NewFollowService(followRepo, publisher)
+	followSvc := service.NewFollowService(followRepo, s.publisher)
 	feedRepo := repository.NewSQLiteFeedRepository(s.db)
 	feedSvc := service.NewFeedService(feedRepo)
 	usersRepo := repository.NewSQLiteUsersRepository(s.db)
 	usersSvc := service.NewUserService(usersRepo)
+
+	// NSQ consumers — only started when NSQ_LOOKUPD_ADDR is configured.
+	if s.cfg.NSQLookupdAddr != "" {
+		cm := events.NewConsumerManager(s.cfg.NSQLookupdAddr)
+		fanout := events.NewFeedFanoutConsumer(followRepo, feedRepo)
+		if err := cm.Register(fanout); err != nil {
+			slog.Warn("failed to register feed fanout consumer", "error", err)
+		} else if err := cm.Start(); err != nil {
+			slog.Warn("failed to start consumer manager", "error", err)
+			cm.Stop()
+		} else {
+			s.cm = cm
+		}
+	}
 
 	// Auth
 	authSvc := service.NewAuthService(s.db, s.cfg.GoogleClientID, s.cfg.GoogleClientSecret, s.cfg.GoogleCallbackURL)
@@ -161,4 +188,17 @@ func (s *Server) setupRoutes() {
 		feedH.AddRoutes(r)
 		usersH.AddRoutes(r)
 	})
+}
+
+// buildPublisher returns a real NSQ publisher when nsqdAddr is set, or a noop publisher otherwise.
+func buildPublisher(nsqdAddr string) events.Publisher {
+	if nsqdAddr == "" {
+		return &events.NoopPublisher{}
+	}
+	p, err := events.NewNSQPublisher(nsqdAddr)
+	if err != nil {
+		slog.Warn("failed to create NSQ publisher, falling back to noop", "error", err)
+		return &events.NoopPublisher{}
+	}
+	return p
 }

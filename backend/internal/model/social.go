@@ -43,3 +43,11 @@ type FeedCursor struct {
 	CreatedAt string `json:"createdAt"` // ISO timestamp of last item
 	ID        string `json:"id"`        // tie-breaker
 }
+
+// UserFeedRow is a single entry in the materialized user_feed table.
+type UserFeedRow struct {
+	ID        string
+	UserID    string
+	PostID    string
+	CreatedAt string
+}

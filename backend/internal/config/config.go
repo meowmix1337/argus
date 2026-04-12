@@ -33,6 +33,9 @@ type Config struct {
 	GitHubCallbackURL  string // e.g. http://localhost:8080/api/auth/github/callback
 	GitHubWebhookURL   string // public URL GitHub posts webhook deliveries to (e.g. https://argus.example.com/api/webhooks/github)
 	AppEnv             string // "development" enables debug endpoints; omit or "production" for prod
+
+	NSQDAddr       string // host:port of nsqd TCP endpoint for publishing (e.g. localhost:4150)
+	NSQLookupdAddr string // host:port of nsqlookupd HTTP endpoint for consumers (e.g. localhost:4161)
 }
 
 func Load() *Config {
@@ -76,6 +79,9 @@ func Load() *Config {
 		GitHubCallbackURL:  os.Getenv("GITHUB_CALLBACK_URL"),
 		GitHubWebhookURL:   os.Getenv("GITHUB_WEBHOOK_URL"),
 		AppEnv:             os.Getenv("APP_ENV"),
+
+		NSQDAddr:       os.Getenv("NSQD_ADDR"),
+		NSQLookupdAddr: os.Getenv("NSQ_LOOKUPD_ADDR"),
 	}
 }
 
