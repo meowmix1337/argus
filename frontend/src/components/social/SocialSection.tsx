@@ -4,6 +4,7 @@ import { searchPosts } from '../../api/client';
 import { PostComposer } from './PostComposer';
 import { FeedList } from './FeedList';
 import { PostItem } from './PostItem';
+import { DiscoverPeople } from './DiscoverPeople';
 import type { Post } from '../../types/dashboard';
 
 const SEARCH_DEBOUNCE_MS = 400;
@@ -131,6 +132,7 @@ export function SocialSection(): React.ReactElement {
           }}>
             <FeedList />
           </div>
+          <DiscoverPeople />
         </>
       )}
     </div>
