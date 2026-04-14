@@ -70,9 +70,17 @@ func (s *PostsService) Create(ctx context.Context, userID, content string, paren
 		return model.Post{}, fmt.Errorf("create post: %w", err)
 	}
 
+	// Truncate content preview to 100 runes (UTF-8 safe).
+	preview := []rune(content)
+	if len(preview) > 100 {
+		preview = preview[:100]
+	}
+
 	if pubErr := s.publisher.PublishEvent(events.TopicPostCreated, events.PostCreatedPayload{
-		PostID: post.ID,
-		UserID: post.UserID,
+		PostID:         post.ID,
+		UserID:         post.UserID,
+		AuthorName:     post.UserName,
+		ContentPreview: string(preview),
 	}); pubErr != nil {
 		slog.Error("failed to publish post.created event", "error", pubErr, "post_id", post.ID)
 	}

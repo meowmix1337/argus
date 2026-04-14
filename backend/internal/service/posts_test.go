@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
+	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
@@ -58,6 +59,7 @@ func (f *fakePostStore) Create(_ context.Context, p model.PostCreate) (model.Pos
 	post := model.Post{
 		ID:           p.ID,
 		UserID:       p.UserID,
+		UserName:     "testuser",
 		Content:      p.Content,
 		ParentPostID: p.ParentPostID,
 		CreatedAt:    "2025-01-01T00:00:00.000Z",
@@ -180,6 +182,55 @@ func TestPostsService_Create_Success(t *testing.T) {
 	}
 	if pub.events[0].topic != "post.created" {
 		t.Errorf("topic = %q, want %q", pub.events[0].topic, "post.created")
+	}
+}
+
+func TestPostsService_Create_PublishPayloadFields(t *testing.T) {
+	store := newFakePostStore()
+	pub := &fakePublisher{}
+	svc := NewPostsService(store, pub)
+
+	_, err := svc.Create(context.Background(), "user1", "Hello world", nil)
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if len(pub.events) != 1 {
+		t.Fatalf("expected 1 published event, got %d", len(pub.events))
+	}
+	payload, ok := pub.events[0].payload.(events.PostCreatedPayload)
+	if !ok {
+		t.Fatalf("payload type = %T, want events.PostCreatedPayload", pub.events[0].payload)
+	}
+	if payload.AuthorName != "testuser" {
+		t.Errorf("AuthorName = %q, want %q", payload.AuthorName, "testuser")
+	}
+	if payload.ContentPreview != "Hello world" {
+		t.Errorf("ContentPreview = %q, want %q", payload.ContentPreview, "Hello world")
+	}
+}
+
+func TestPostsService_Create_ContentPreviewTruncatedAt100Runes(t *testing.T) {
+	store := newFakePostStore()
+	pub := &fakePublisher{}
+	svc := NewPostsService(store, pub)
+
+	// Build a 110-ASCII-char string: fits within 128-byte limit but exceeds the 100-rune preview cap.
+	runes := make([]rune, 110)
+	for i := range runes {
+		runes[i] = 'a'
+	}
+	content := string(runes)
+
+	_, err := svc.Create(context.Background(), "user1", content, nil)
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	payload, ok := pub.events[0].payload.(events.PostCreatedPayload)
+	if !ok {
+		t.Fatalf("payload type = %T, want events.PostCreatedPayload", pub.events[0].payload)
+	}
+	if len([]rune(payload.ContentPreview)) != 100 {
+		t.Errorf("ContentPreview rune length = %d, want 100", len([]rune(payload.ContentPreview)))
 	}
 }
 
