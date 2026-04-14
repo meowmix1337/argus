@@ -15,7 +15,10 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
-const maxPostLength = 128
+const (
+	maxPostLength          = 128
+	contentPreviewMaxRunes = 100
+)
 
 // PostStore defines the data-access contract for posts.
 type PostStore interface {
@@ -72,8 +75,8 @@ func (s *PostsService) Create(ctx context.Context, userID, content string, paren
 
 	// Truncate content preview to 100 runes (UTF-8 safe).
 	preview := []rune(content)
-	if len(preview) > 100 {
-		preview = preview[:100]
+	if len(preview) > contentPreviewMaxRunes {
+		preview = preview[:contentPreviewMaxRunes]
 	}
 
 	if pubErr := s.publisher.PublishEvent(events.TopicPostCreated, events.PostCreatedPayload{
