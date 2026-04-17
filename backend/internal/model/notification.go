@@ -87,3 +87,12 @@ type GitHubRepo struct {
 	Private  bool   `json:"private"`
 	Watched  bool   `json:"watched"` // true if user already has a webhook on this repo
 }
+
+// SocialNotificationPrefs holds a user's social notification mute preferences.
+type SocialNotificationPrefs struct {
+	UserID      string
+	MutePosts   bool
+	MuteFollows bool
+	CreatedAt   string
+	UpdatedAt   string
+}
