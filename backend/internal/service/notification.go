@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
+	"github.com/google/uuid"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
@@ -101,4 +104,34 @@ func (s *NotificationService) Create(ctx context.Context, n model.NotificationCr
 		return model.Notification{}, fmt.Errorf("create notification: %w", err)
 	}
 	return result, nil
+}
+
+// CreateForUser creates a social notification for the given user.
+// Duplicate deliveries (same user + event type + reference_id) are silently ignored.
+func (s *NotificationService) CreateForUser(
+	ctx context.Context,
+	userID, providerID, eventTypeID, title string,
+	body, url, referenceID *string,
+) error {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return fmt.Errorf("generate notification id: %w", err)
+	}
+	_, err = s.store.Create(ctx, model.NotificationCreate{
+		ID:          id.String(),
+		UserID:      userID,
+		ProviderID:  providerID,
+		EventTypeID: eventTypeID,
+		Title:       title,
+		Body:        body,
+		URL:         url,
+		ReferenceID: referenceID,
+	})
+	if err != nil {
+		if errors.Is(err, apperrors.ErrDuplicateDelivery) {
+			return nil // idempotent — duplicate suppressed
+		}
+		return fmt.Errorf("create notification for user: %w", err)
+	}
+	return nil
 }
