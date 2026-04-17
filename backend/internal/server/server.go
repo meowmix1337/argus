@@ -90,6 +90,8 @@ func (s *Server) setupRoutes() {
 	quotesSvc := service.NewQuotesService(hc, s.cfg.APINinjasAPIKey, cache)
 	notificationRepo := repository.NewSQLiteNotificationRepository(s.db)
 	notificationSvc := service.NewNotificationService(notificationRepo)
+	socialPrefsRepo := repository.NewSQLiteSocialPrefsRepository(s.db)
+	socialPrefsSvc := service.NewSocialPrefsService(socialPrefsRepo)
 	watchedRepoRepo := repository.NewSQLiteWatchedRepoRepository(s.db)
 	integrationRepo := repository.NewSQLiteIntegrationRepository(s.db)
 	webhookSvc := service.NewWebhookService(watchedRepoRepo, notificationRepo, s.encSvc)
@@ -115,6 +117,8 @@ func (s *Server) setupRoutes() {
 		for _, consumer := range []events.MessageHandler{
 			events.NewFeedFanoutConsumer(followRepo, feedRepo),
 			events.NewFollowBackfillConsumer(postsRepo, feedRepo),
+			events.NewFollowerNotificationConsumer(followRepo, notificationSvc, socialPrefsSvc),
+			events.NewFollowNotificationConsumer(notificationSvc, socialPrefsSvc),
 		} {
 			if err := cm.Register(consumer); err != nil {
 				slog.Warn("failed to register consumer", "topic", consumer.Topic(), "error", err)
@@ -145,6 +149,7 @@ func (s *Server) setupRoutes() {
 	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
 	billsH := handler.NewBillsHandler(billsSvc, v)
 	notificationsH := handler.NewNotificationsHandler(notificationSvc, v)
+	socialPrefsH := handler.NewSocialPrefsHandler(socialPrefsSvc, v)
 	webhooksH := handler.NewWebhooksHandler(webhookSvc, v, s.cfg.AppEnv)
 	githubAuthH := handler.NewGitHubAuthHandler(githubIntegrationSvc, s.cfg.FrontendURL, s.cfg.SecureCookies)
 	integrationsH := handler.NewIntegrationsHandler(githubIntegrationSvc, v)
@@ -186,6 +191,7 @@ func (s *Server) setupRoutes() {
 		labelsH.AddRoutes(r)
 		billsH.AddRoutes(r)
 		notificationsH.AddRoutes(r)
+		socialPrefsH.AddRoutes(r)
 		githubAuthH.AddRoutes(r)
 		integrationsH.AddRoutes(r)
 		postsH.AddRoutes(r)
