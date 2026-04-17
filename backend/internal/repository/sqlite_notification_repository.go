@@ -22,6 +22,7 @@ type sqliteNotificationRow struct {
 	Title            string         `db:"title"`
 	Body             sql.NullString `db:"body"`
 	URL              sql.NullString `db:"url"`
+	ReferenceID      sql.NullString `db:"reference_id"`
 	ReadAt           sql.NullString `db:"read_at"`
 	DismissedAt      sql.NullString `db:"dismissed_at"`
 	GitHubDeliveryID sql.NullString `db:"github_delivery_id"`
@@ -46,6 +47,9 @@ func (r *sqliteNotificationRow) toModel() model.Notification {
 	if r.URL.Valid {
 		m.URL = &r.URL.String
 	}
+	if r.ReferenceID.Valid {
+		m.ReferenceID = &r.ReferenceID.String
+	}
 	if r.ReadAt.Valid {
 		m.ReadAt = &r.ReadAt.String
 	}
@@ -62,7 +66,7 @@ func (r *sqliteNotificationRow) toModel() model.Notification {
 }
 
 const notificationColumns = `id, user_id, provider_id, event_type_id, title, body, url,
-	read_at, dismissed_at, github_delivery_id, created_at, updated_at, deleted_at`
+	reference_id, read_at, dismissed_at, github_delivery_id, created_at, updated_at, deleted_at`
 
 // SQLiteNotificationRepository implements NotificationRepository backed by SQLite via sqlx.
 type SQLiteNotificationRepository struct {
@@ -93,9 +97,9 @@ func (r *SQLiteNotificationRepository) Create(ctx context.Context, n model.Notif
 	now := time.Now().UTC().Format(timeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO notifications
-		 (id, user_id, provider_id, event_type_id, title, body, url, github_delivery_id, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		n.ID, n.UserID, n.ProviderID, n.EventTypeID, n.Title, n.Body, n.URL, n.GitHubDeliveryID, now, now,
+		 (id, user_id, provider_id, event_type_id, title, body, url, reference_id, github_delivery_id, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		n.ID, n.UserID, n.ProviderID, n.EventTypeID, n.Title, n.Body, n.URL, n.ReferenceID, n.GitHubDeliveryID, now, now,
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
