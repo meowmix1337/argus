@@ -36,7 +36,7 @@ func (h *FollowHandler) AddRoutes(r chi.Router) {
 }
 
 func (h *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	sess, ok := sessionFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -53,14 +53,14 @@ func (h *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Follow(r.Context(), userID, req.FollowingID); err != nil {
+	if err := h.service.Follow(r.Context(), sess.UserID, req.FollowingID, sess.Name); err != nil {
 		switch {
 		case errors.Is(err, apperrors.ErrSelfFollow):
 			response.WriteError(w, http.StatusBadRequest, "cannot follow yourself")
 		case errors.Is(err, apperrors.ErrAlreadyFollowing):
 			response.WriteError(w, http.StatusConflict, "already following this user")
 		default:
-			slog.Error("failed to follow", "error", err, "follower_id", userID, "following_id", req.FollowingID)
+			slog.Error("failed to follow", "error", err, "follower_id", sess.UserID, "following_id", req.FollowingID)
 			response.WriteError(w, http.StatusInternalServerError, "internal server error")
 		}
 		return

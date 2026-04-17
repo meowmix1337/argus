@@ -34,7 +34,7 @@ func NewFollowService(store FollowStore, publisher events.Publisher) *FollowServ
 }
 
 // Follow creates a follow relationship. Returns error if self-follow or already following.
-func (s *FollowService) Follow(ctx context.Context, followerID, followingID string) error {
+func (s *FollowService) Follow(ctx context.Context, followerID, followingID, followerName string) error {
 	if followerID == followingID {
 		return apperrors.ErrSelfFollow
 	}
@@ -64,6 +64,14 @@ func (s *FollowService) Follow(ctx context.Context, followerID, followingID stri
 		FollowingID: followingID,
 	}); pubErr != nil {
 		slog.Error("failed to publish user.followed event", "error", pubErr)
+	}
+
+	if pubErr := s.publisher.PublishEvent(events.TopicFollowCreated, events.FollowCreatedPayload{
+		FollowerID:   followerID,
+		FollowingID:  followingID,
+		FollowerName: followerName,
+	}); pubErr != nil {
+		slog.Error("failed to publish follow.created event", "error", pubErr)
 	}
 
 	return nil

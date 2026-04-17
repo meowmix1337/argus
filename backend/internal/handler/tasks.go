@@ -16,6 +16,7 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
+	"github.com/meowmix1337/argus/backend/internal/session"
 )
 
 // TasksHandler handles CRUD for user-scoped tasks.
@@ -171,6 +172,11 @@ func userIDFromRequest(r *http.Request) (string, bool) {
 		return "", false
 	}
 	return sess.UserID, true
+}
+
+// sessionFromRequest extracts the full session data from the request context.
+func sessionFromRequest(r *http.Request) (session.Data, bool) {
+	return middleware.SessionFromContext(r.Context())
 }
 
 func taskToResponse(t model.Task) TaskResponse {

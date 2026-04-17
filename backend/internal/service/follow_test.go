@@ -88,24 +88,31 @@ func TestFollowService_Follow_Success(t *testing.T) {
 	pub := &fakePublisher{}
 	svc := NewFollowService(store, pub)
 
-	err := svc.Follow(context.Background(), "user1", "user2")
+	err := svc.Follow(context.Background(), "user1", "user2", "User One")
 	if err != nil {
 		t.Fatalf("Follow: %v", err)
 	}
 	if !store.follows["user1"]["user2"] {
 		t.Error("expected follow relationship to be stored")
 	}
-	if len(pub.events) != 1 {
-		t.Fatalf("expected 1 published event, got %d", len(pub.events))
+	if len(pub.events) != 2 {
+		t.Fatalf("expected 2 published events, got %d", len(pub.events))
 	}
-	if pub.events[0].topic != "user.followed" {
-		t.Errorf("topic = %q, want %q", pub.events[0].topic, "user.followed")
+	topics := map[string]bool{}
+	for _, e := range pub.events {
+		topics[e.topic] = true
+	}
+	if !topics["user.followed"] {
+		t.Error("expected user.followed event to be published")
+	}
+	if !topics["follow.created"] {
+		t.Error("expected follow.created event to be published")
 	}
 }
 
 func TestFollowService_Follow_SelfFollow(t *testing.T) {
 	svc := NewFollowService(newFakeFollowStore(), &fakePublisher{})
-	err := svc.Follow(context.Background(), "user1", "user1")
+	err := svc.Follow(context.Background(), "user1", "user1", "User One")
 	if !errors.Is(err, apperrors.ErrSelfFollow) {
 		t.Errorf("expected ErrSelfFollow, got %v", err)
 	}
@@ -116,7 +123,7 @@ func TestFollowService_Follow_AlreadyFollowing(t *testing.T) {
 	store.addFollow("user1", "user2")
 	svc := NewFollowService(store, &fakePublisher{})
 
-	err := svc.Follow(context.Background(), "user1", "user2")
+	err := svc.Follow(context.Background(), "user1", "user2", "User One")
 	if !errors.Is(err, apperrors.ErrAlreadyFollowing) {
 		t.Errorf("expected ErrAlreadyFollowing, got %v", err)
 	}
@@ -126,7 +133,7 @@ func TestFollowService_Follow_IsFollowingError_Propagates(t *testing.T) {
 	store := newFakeFollowStore()
 	store.isFollowErr = errors.New("db failure")
 	svc := NewFollowService(store, &fakePublisher{})
-	err := svc.Follow(context.Background(), "user1", "user2")
+	err := svc.Follow(context.Background(), "user1", "user2", "User One")
 	if err == nil {
 		t.Error("expected IsFollowing error to propagate, got nil")
 	}
@@ -136,7 +143,7 @@ func TestFollowService_Follow_StoreError_Propagates(t *testing.T) {
 	store := newFakeFollowStore()
 	store.followErr = errors.New("db failure")
 	svc := NewFollowService(store, &fakePublisher{})
-	err := svc.Follow(context.Background(), "user1", "user2")
+	err := svc.Follow(context.Background(), "user1", "user2", "User One")
 	if err == nil {
 		t.Error("expected store Follow error to propagate, got nil")
 	}
@@ -147,7 +154,7 @@ func TestFollowService_Follow_PublisherError_DoesNotFail(t *testing.T) {
 	pub := &fakePublisher{err: errors.New("nsq down")}
 	svc := NewFollowService(store, pub)
 
-	err := svc.Follow(context.Background(), "user1", "user2")
+	err := svc.Follow(context.Background(), "user1", "user2", "User One")
 	if err != nil {
 		t.Fatalf("expected publisher error to be swallowed, got %v", err)
 	}
@@ -159,7 +166,7 @@ func TestFollowService_Follow_StoreRaceAlreadyFollowing(t *testing.T) {
 	store.followErr = apperrors.ErrAlreadyFollowing
 	svc := NewFollowService(store, &fakePublisher{})
 
-	err := svc.Follow(context.Background(), "user1", "user2")
+	err := svc.Follow(context.Background(), "user1", "user2", "User One")
 	if !errors.Is(err, apperrors.ErrAlreadyFollowing) {
 		t.Errorf("expected ErrAlreadyFollowing from store race, got %v", err)
 	}
