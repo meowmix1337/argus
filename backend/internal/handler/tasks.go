@@ -33,13 +33,13 @@ func NewTasksHandler(svc *service.TasksService, v *validator.Validate) *TasksHan
 // AddRoutes registers task routes on the given router.
 func (h *TasksHandler) AddRoutes(r chi.Router) {
 	r.Get("/api/tasks", h.List)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/tasks", h.Create)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Patch("/api/tasks/{id}", h.Update)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/tasks/{id}", h.Delete)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Post("/api/tasks", h.Create)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Patch("/api/tasks/{id}", h.Update)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Delete("/api/tasks/{id}", h.Delete)
 }
 
 func (h *TasksHandler) List(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -78,7 +78,7 @@ func (h *TasksHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TasksHandler) Create(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -110,7 +110,7 @@ func (h *TasksHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TasksHandler) Update(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -145,7 +145,7 @@ func (h *TasksHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TasksHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -163,15 +163,6 @@ func (h *TasksHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// userIDFromRequest extracts the authenticated user ID from the request context.
-func userIDFromRequest(r *http.Request) (string, bool) {
-	sess, ok := middleware.SessionFromContext(r.Context())
-	if !ok {
-		return "", false
-	}
-	return sess.UserID, true
 }
 
 // sessionFromRequest extracts the full session data from the request context.

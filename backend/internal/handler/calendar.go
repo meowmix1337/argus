@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
@@ -23,7 +24,7 @@ func (h *CalendarHandler) AddRoutes(r chi.Router) {
 }
 
 func (h *CalendarHandler) Get(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

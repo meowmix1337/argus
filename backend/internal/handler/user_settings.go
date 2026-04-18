@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
@@ -30,13 +31,13 @@ func NewUserSettingsHandler(svc *service.UserSettingsService, v *validator.Valid
 // AddRoutes registers user settings routes on the given router.
 func (h *UserSettingsHandler) AddRoutes(r chi.Router) {
 	r.Get("/api/settings", h.Get)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Put("/api/settings", h.Upsert)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Put("/api/settings", h.Upsert)
 	r.Get("/api/settings/news-categories", h.GetNewsCategories)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Put("/api/settings/news-categories", h.SetNewsCategories)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Put("/api/settings/news-categories", h.SetNewsCategories)
 }
 
 func (h *UserSettingsHandler) Get(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -53,7 +54,7 @@ func (h *UserSettingsHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserSettingsHandler) Upsert(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -92,7 +93,7 @@ func (h *UserSettingsHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserSettingsHandler) GetNewsCategories(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -121,7 +122,7 @@ func (h *UserSettingsHandler) GetNewsCategories(w http.ResponseWriter, r *http.R
 }
 
 func (h *UserSettingsHandler) SetNewsCategories(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
@@ -30,7 +31,7 @@ func (h *FeedHandler) AddRoutes(r chi.Router) {
 }
 
 func (h *FeedHandler) ListFeed(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
