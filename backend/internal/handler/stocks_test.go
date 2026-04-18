@@ -13,7 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 
-	"github.com/meowmix1337/argus/backend/internal/middleware"
+	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/session"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
