@@ -60,18 +60,11 @@ func (s *FollowService) Follow(ctx context.Context, followerID, followingID, fol
 	}
 
 	if pubErr := s.publisher.PublishEvent(events.TopicUserFollowed, events.UserFollowedPayload{
-		FollowerID:  followerID,
-		FollowingID: followingID,
-	}); pubErr != nil {
-		slog.Error("failed to publish user.followed event", "error", pubErr)
-	}
-
-	if pubErr := s.publisher.PublishEvent(events.TopicFollowCreated, events.FollowCreatedPayload{
 		FollowerID:   followerID,
 		FollowingID:  followingID,
 		FollowerName: followerName,
 	}); pubErr != nil {
-		slog.Error("failed to publish follow.created event", "error", pubErr)
+		slog.Error("failed to publish user.followed event", "error", pubErr)
 	}
 
 	return nil

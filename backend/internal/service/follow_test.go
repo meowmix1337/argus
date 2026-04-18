@@ -95,18 +95,11 @@ func TestFollowService_Follow_Success(t *testing.T) {
 	if !store.follows["user1"]["user2"] {
 		t.Error("expected follow relationship to be stored")
 	}
-	if len(pub.events) != 2 {
-		t.Fatalf("expected 2 published events, got %d", len(pub.events))
+	if len(pub.events) != 1 {
+		t.Fatalf("expected 1 published event, got %d", len(pub.events))
 	}
-	topics := map[string]bool{}
-	for _, e := range pub.events {
-		topics[e.topic] = true
-	}
-	if !topics["user.followed"] {
-		t.Error("expected user.followed event to be published")
-	}
-	if !topics["follow.created"] {
-		t.Error("expected follow.created event to be published")
+	if pub.events[0].topic != "user.followed" {
+		t.Errorf("expected user.followed event, got %q", pub.events[0].topic)
 	}
 }
 

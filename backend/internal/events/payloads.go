@@ -4,10 +4,9 @@ import "time"
 
 // Event topics — stable strings, never rename in production.
 const (
-	TopicPostCreated   = "post.created"
-	TopicPostLiked     = "post.liked"
-	TopicUserFollowed  = "user.followed"
-	TopicFollowCreated = "follow.created"
+	TopicPostCreated  = "post.created"
+	TopicPostLiked    = "post.liked"
+	TopicUserFollowed = "user.followed"
 )
 
 // EventEnvelope wraps every published message with version, type, and timestamp.
@@ -45,12 +44,6 @@ type PostLikedPayload struct {
 
 // UserFollowedPayload is the payload for TopicUserFollowed events.
 type UserFollowedPayload struct {
-	FollowerID  string `json:"followerId"`
-	FollowingID string `json:"followingId"`
-}
-
-// FollowCreatedPayload is the payload for TopicFollowCreated events.
-type FollowCreatedPayload struct {
 	FollowerID   string `json:"followerId"`
 	FollowingID  string `json:"followingId"`
 	FollowerName string `json:"followerName"`

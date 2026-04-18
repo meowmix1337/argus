@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// FollowNotificationConsumer consumes follow.created events and notifies
+// FollowNotificationConsumer consumes user.followed events and notifies
 // the followed user that someone started following them.
 type FollowNotificationConsumer struct {
 	notifCreator NotificationCreator
@@ -27,7 +27,7 @@ func NewFollowNotificationConsumer(
 }
 
 // Topic implements MessageHandler.
-func (c *FollowNotificationConsumer) Topic() string { return TopicFollowCreated }
+func (c *FollowNotificationConsumer) Topic() string { return TopicUserFollowed }
 
 // Channel implements MessageHandler.
 func (c *FollowNotificationConsumer) Channel() string { return "follow-notifications" }
@@ -42,15 +42,15 @@ func (c *FollowNotificationConsumer) Process(body []byte) error {
 		slog.Warn("follow notification: unknown envelope version, skipping", "version", evt.Version)
 		return nil
 	}
-	var payload FollowCreatedPayload
+	var payload UserFollowedPayload
 	if err := json.Unmarshal(evt.Payload, &payload); err != nil {
-		return fmt.Errorf("unmarshal follow created payload: %w", err)
+		return fmt.Errorf("unmarshal user followed payload: %w", err)
 	}
 	return c.process(payload)
 }
 
 // process sends a notification to the followed user if they have not muted follow notifications.
-func (c *FollowNotificationConsumer) process(payload FollowCreatedPayload) error {
+func (c *FollowNotificationConsumer) process(payload UserFollowedPayload) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
