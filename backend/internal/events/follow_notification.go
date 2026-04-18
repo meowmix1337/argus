@@ -54,11 +54,19 @@ func (c *FollowNotificationConsumer) process(payload UserFollowedPayload) error 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	slog.Info("follow notification: processing",
+		"follower_id", payload.FollowerID,
+		"following_id", payload.FollowingID,
+		"follower_name", payload.FollowerName,
+	)
+
 	prefs, err := c.prefsReader.GetPrefs(ctx, payload.FollowingID)
 	if err != nil {
 		return fmt.Errorf("get prefs for user %s: %w", payload.FollowingID, err)
 	}
 	if prefs.MuteFollows {
+		slog.Info("follow notification: skipped (user muted follow notifications)",
+			"following_id", payload.FollowingID)
 		return nil
 	}
 
@@ -70,6 +78,9 @@ func (c *FollowNotificationConsumer) process(payload UserFollowedPayload) error 
 	); err != nil {
 		slog.Warn("follow notification: failed to create notification",
 			"following_id", payload.FollowingID, "follower_id", followerID, "error", err)
+	} else {
+		slog.Info("follow notification: created",
+			"following_id", payload.FollowingID, "follower_id", followerID)
 	}
 	return nil
 }
