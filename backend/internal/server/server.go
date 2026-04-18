@@ -11,7 +11,9 @@ import (
 
 	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/handler"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 	"github.com/meowmix1337/argus/backend/internal/platform/config"
+	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
 	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
@@ -25,13 +27,13 @@ type Server struct {
 	router    *chi.Mux
 	cfg       *config.Config
 	db        *sqlx.DB
-	encSvc    *service.EncryptionService // nil means no encryption
+	encSvc    *platformcrypto.EncryptionService // nil means no encryption
 	publisher events.Publisher
 	cm        *events.ConsumerManager // nil when NSQ is not configured
 }
 
 // New creates a new Server with all services, handlers, and routes registered.
-func New(cfg *config.Config, db *sqlx.DB, encSvc *service.EncryptionService) *Server {
+func New(cfg *config.Config, db *sqlx.DB, encSvc *platformcrypto.EncryptionService) *Server {
 	s := &Server{
 		router: chi.NewRouter(),
 		cfg:    cfg,
@@ -68,7 +70,7 @@ func (s *Server) setupRoutes() {
 	// Shared dependencies
 	rawHTTP := &http.Client{Timeout: 30 * time.Second}
 	hc := httpclient.New(rawHTTP)
-	cache := service.NewCacheService()
+	cache := platformcache.NewCacheService()
 	v := validate.New()
 
 	// Services

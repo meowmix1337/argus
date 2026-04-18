@@ -10,6 +10,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
@@ -31,12 +32,12 @@ type WatchlistStore interface {
 type StocksService struct {
 	httpClient httpclient.HTTPClient
 	apiKey     string
-	cache      *CacheService
+	cache      *platformcache.CacheService
 	store      WatchlistStore
 }
 
 // NewStocksService creates a new StocksService backed by a watchlist store.
-func NewStocksService(httpClient httpclient.HTTPClient, apiKey string, cache *CacheService, store WatchlistStore) *StocksService {
+func NewStocksService(httpClient httpclient.HTTPClient, apiKey string, cache *platformcache.CacheService, store WatchlistStore) *StocksService {
 	return &StocksService{
 		httpClient: httpClient,
 		apiKey:     apiKey,

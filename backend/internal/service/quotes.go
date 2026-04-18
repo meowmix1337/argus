@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
@@ -13,11 +14,11 @@ import (
 type QuotesService struct {
 	httpClient httpclient.HTTPClient
 	apiKey     string
-	cache      *CacheService
+	cache      *platformcache.CacheService
 }
 
 // NewQuotesService creates a new QuotesService.
-func NewQuotesService(httpClient httpclient.HTTPClient, apiKey string, cache *CacheService) *QuotesService {
+func NewQuotesService(httpClient httpclient.HTTPClient, apiKey string, cache *platformcache.CacheService) *QuotesService {
 	return &QuotesService{
 		httpClient: httpClient,
 		apiKey:     apiKey,

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
@@ -14,11 +15,11 @@ import (
 type NewsService struct {
 	httpClient httpclient.HTTPClient
 	apiKey     string
-	cache      *CacheService
+	cache      *platformcache.CacheService
 }
 
 // NewNewsService creates a new NewsService.
-func NewNewsService(httpClient httpclient.HTTPClient, apiKey string, cache *CacheService) *NewsService {
+func NewNewsService(httpClient httpclient.HTTPClient, apiKey string, cache *platformcache.CacheService) *NewsService {
 	return &NewsService{
 		httpClient: httpClient,
 		apiKey:     apiKey,

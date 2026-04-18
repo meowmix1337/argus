@@ -10,6 +10,7 @@ import (
 	ics "github.com/arran4/golang-ical"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
@@ -22,13 +23,13 @@ var calendarColors = []string{
 // CalendarService fetches and parses an ICS/iCal feed URL.
 type CalendarService struct {
 	httpClient          httpclient.HTTPClient
-	cache               *CacheService
+	cache               *platformcache.CacheService
 	loc                 *time.Location
 	userSettingsService *UserSettingsService
 }
 
 // NewCalendarService creates a new CalendarService.
-func NewCalendarService(httpClient httpclient.HTTPClient, cache *CacheService, loc *time.Location, userSettingService *UserSettingsService) *CalendarService {
+func NewCalendarService(httpClient httpclient.HTTPClient, cache *platformcache.CacheService, loc *time.Location, userSettingService *UserSettingsService) *CalendarService {
 	if loc == nil {
 		loc = time.Local
 	}

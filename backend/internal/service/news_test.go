@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 )
 
 func TestRelativeTime(t *testing.T) {
@@ -34,7 +35,7 @@ func TestRelativeTime(t *testing.T) {
 // ---- NewsService.Fetch ----
 
 func TestNewsService_Fetch_CacheHit(t *testing.T) {
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	cache.Set("news", []model.NewsCategory{{Name: "general"}}, time.Minute)
 
 	svc := NewNewsService(
@@ -51,7 +52,7 @@ func TestNewsService_Fetch_CacheHit(t *testing.T) {
 }
 
 func TestNewsService_Fetch_NoAPIKey_ReturnsError(t *testing.T) {
-	svc := NewNewsService(&fakeHTTPClient{}, "", NewCacheService())
+	svc := NewNewsService(&fakeHTTPClient{}, "", platformcache.NewCacheService())
 	if _, err := svc.Fetch(context.Background()); err == nil {
 		t.Error("expected error when API key is empty")
 	}
@@ -75,7 +76,7 @@ func TestNewsService_FetchCategory_Success(t *testing.T) {
 				}{Name: "The Verge"}},
 		},
 	}
-	svc := NewNewsService(&fakeHTTPClient{responseBody: resp}, "test-key", NewCacheService())
+	svc := NewNewsService(&fakeHTTPClient{responseBody: resp}, "test-key", platformcache.NewCacheService())
 
 	items, err := svc.fetchCategory(context.Background(), "technology")
 	if err != nil {
@@ -96,7 +97,7 @@ func TestNewsService_FetchCategory_Success(t *testing.T) {
 // stops early when the context is cancelled, without sleeping through the full 8-second loop.
 // The pre-cancelled context fires on the i=1 select immediately.
 func TestNewsService_FetchAllCategories_ContextCancellation(t *testing.T) {
-	svc := NewNewsService(&fakeHTTPClient{responseBody: gNewsResponse{}}, "test-key", NewCacheService())
+	svc := NewNewsService(&fakeHTTPClient{responseBody: gNewsResponse{}}, "test-key", platformcache.NewCacheService())
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // pre-cancel; first iteration (i=0) has no sleep so it still runs
 	_, err := svc.fetchAllCategories(ctx)
@@ -106,7 +107,7 @@ func TestNewsService_FetchAllCategories_ContextCancellation(t *testing.T) {
 }
 
 func TestNewsService_FetchCategory_HTTPError_Propagates(t *testing.T) {
-	svc := NewNewsService(&fakeHTTPClient{err: fmt.Errorf("timeout")}, "key", NewCacheService())
+	svc := NewNewsService(&fakeHTTPClient{err: fmt.Errorf("timeout")}, "key", platformcache.NewCacheService())
 	if _, err := svc.fetchCategory(context.Background(), "general"); err == nil {
 		t.Error("expected error on HTTP failure")
 	}
@@ -116,7 +117,7 @@ func TestNewsService_FetchCategory_HTTPError_Propagates(t *testing.T) {
 // slog.Warn + items=[]model.NewsItem{} path when fetchCategory fails for the first category.
 // Pre-cancelling the context avoids sleeping through the 8-category loop.
 func TestNewsService_FetchAllCategories_FetchCategoryError_ContinuesWithEmpty(t *testing.T) {
-	svc := NewNewsService(&fakeHTTPClient{err: fmt.Errorf("http error")}, "test-key", NewCacheService())
+	svc := NewNewsService(&fakeHTTPClient{err: fmt.Errorf("http error")}, "test-key", platformcache.NewCacheService())
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // pre-cancel: i=0 runs (fetchCategory fails, items=[]), i=1 fires ctx.Done()
 	_, err := svc.fetchAllCategories(ctx)
@@ -128,7 +129,7 @@ func TestNewsService_FetchAllCategories_FetchCategoryError_ContinuesWithEmpty(t 
 // TestNewsService_Fetch_FetchAllCategoriesError_Propagates verifies that when
 // fetchAllCategories returns an error (via pre-cancelled context), Fetch propagates it.
 func TestNewsService_Fetch_FetchAllCategoriesError_Propagates(t *testing.T) {
-	svc := NewNewsService(&fakeHTTPClient{responseBody: gNewsResponse{}}, "test-key", NewCacheService())
+	svc := NewNewsService(&fakeHTTPClient{responseBody: gNewsResponse{}}, "test-key", platformcache.NewCacheService())
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // pre-cancel so fetchAllCategories returns ctx.Err() at i=1
 	if _, err := svc.Fetch(ctx); err == nil {
@@ -155,7 +156,7 @@ func TestNewsService_FetchCategory_RFC3339NanoFallback(t *testing.T) {
 				}{Name: "AP"}},
 		},
 	}
-	svc := NewNewsService(&fakeHTTPClient{responseBody: resp}, "key", NewCacheService())
+	svc := NewNewsService(&fakeHTTPClient{responseBody: resp}, "key", platformcache.NewCacheService())
 	items, err := svc.fetchCategory(context.Background(), "general")
 	if err != nil {
 		t.Fatalf("fetchCategory: %v", err)
@@ -187,7 +188,7 @@ func TestNewsService_FetchCategory_InvalidDate_FallsBackToRecently(t *testing.T)
 				}{Name: "BBC"}},
 		},
 	}
-	svc := NewNewsService(&fakeHTTPClient{responseBody: resp}, "key", NewCacheService())
+	svc := NewNewsService(&fakeHTTPClient{responseBody: resp}, "key", platformcache.NewCacheService())
 	items, err := svc.fetchCategory(context.Background(), "general")
 	if err != nil {
 		t.Fatalf("fetchCategory: %v", err)

@@ -8,6 +8,8 @@ import (
 	"time"
 
 	ics "github.com/arran4/golang-ical"
+
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 )
 
 func TestFormatDuration(t *testing.T) {
@@ -273,7 +275,7 @@ func TestFetchAndParse_ParsesValidICS(t *testing.T) {
 
 // TestNewCalendarService_NilLoc verifies that a nil location falls back to time.Local.
 func TestNewCalendarService_NilLoc(t *testing.T) {
-	svc := NewCalendarService(&fakeHTTPClient{}, NewCacheService(), nil, nil)
+	svc := NewCalendarService(&fakeHTTPClient{}, platformcache.NewCacheService(), nil, nil)
 	if svc == nil {
 		t.Fatal("expected non-nil CalendarService when loc is nil")
 	}

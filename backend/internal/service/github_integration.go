@@ -16,6 +16,7 @@ import (
 	githubendpoint "golang.org/x/oauth2/github"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
@@ -47,7 +48,7 @@ type WatchedRepoStore interface {
 type GitHubIntegrationService struct {
 	integrations IntegrationStore
 	watchedRepos WatchedRepoStore
-	encSvc       *EncryptionService
+	encSvc       *platformcrypto.EncryptionService
 	httpClient   httpclient.HTTPClient
 	oauthCfg     *oauth2.Config
 	webhookURL   string // public URL GitHub posts webhook deliveries to
@@ -57,7 +58,7 @@ type GitHubIntegrationService struct {
 func NewGitHubIntegrationService(
 	integrations IntegrationStore,
 	watchedRepos WatchedRepoStore,
-	encSvc *EncryptionService,
+	encSvc *platformcrypto.EncryptionService,
 	httpClient httpclient.HTTPClient,
 	clientID, clientSecret, callbackURL, webhookURL string,
 ) *GitHubIntegrationService {
