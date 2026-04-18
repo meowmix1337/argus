@@ -12,7 +12,7 @@ services:
     environment:
       - GO_ENV=development
       - SQLITE_PATH=/data/dashboard.db
-      - NSQ_LOOKUPD_ADDR=nsqlookupd:4160
+      - NSQ_LOOKUPD_ADDR=nsqlookupd:4161
     ports:
       - "8080:8080"
     depends_on:
