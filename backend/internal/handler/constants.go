@@ -51,17 +51,22 @@ const (
 )
 
 // allowedNotificationProviders is the set of valid provider IDs for the notification filter.
-// Must stay in sync with seeded rows in migrations/013_create_provider_types.sql.
+// Must stay in sync with seeded rows in migrations/013_create_provider_types.sql and
+// migrations/021_seed_social_provider_type.sql.
 var allowedNotificationProviders = map[string]struct{}{
 	"github": {},
+	"social": {},
 }
 
 // allowedNotificationEventTypes is the set of valid event type IDs for the notification filter.
-// Must stay in sync with seeded rows in migrations/014_create_notification_event_types.sql.
+// Must stay in sync with seeded rows in migrations/014_create_notification_event_types.sql and
+// migrations/022_seed_social_event_types.sql.
 var allowedNotificationEventTypes = map[string]struct{}{
-	"pr_opened":         {},
-	"pr_merged":         {},
-	"pr_closed":         {},
-	"pr_comment":        {},
-	"pr_review_comment": {},
+	"pr_opened":           {},
+	"pr_merged":           {},
+	"pr_closed":           {},
+	"pr_comment":          {},
+	"pr_review_comment":   {},
+	"social.post.created": {},
+	"social.new_follower": {},
 }
