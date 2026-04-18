@@ -57,13 +57,22 @@ func (c *FollowerNotificationConsumer) process(payload PostCreatedPayload) error
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	slog.Info("follower notification: processing post",
+		"post_id", payload.PostID,
+		"author_id", payload.UserID,
+		"author_name", payload.AuthorName,
+	)
+
 	followerIDs, err := c.followStore.GetFollowerIDs(ctx, payload.UserID)
 	if err != nil {
 		return fmt.Errorf("get followers for user %s: %w", payload.UserID, err)
 	}
 	if len(followerIDs) == 0 {
+		slog.Info("follower notification: no followers, skipping", "author_id", payload.UserID)
 		return nil
 	}
+
+	slog.Info("follower notification: fanning out", "author_id", payload.UserID, "follower_count", len(followerIDs))
 
 	title := payload.AuthorName + " posted something"
 	body := &payload.ContentPreview
@@ -77,6 +86,8 @@ func (c *FollowerNotificationConsumer) process(payload PostCreatedPayload) error
 			continue
 		}
 		if prefs.MutePosts {
+			slog.Info("follower notification: skipped (user muted post notifications)",
+				"follower_id", followerID)
 			continue
 		}
 		if err := c.notifCreator.CreateForUser(ctx,
@@ -84,6 +95,9 @@ func (c *FollowerNotificationConsumer) process(payload PostCreatedPayload) error
 		); err != nil {
 			slog.Warn("follower notification: failed to create notification",
 				"follower_id", followerID, "post_id", postID, "error", err)
+		} else {
+			slog.Info("follower notification: created",
+				"follower_id", followerID, "post_id", postID)
 		}
 	}
 	return nil

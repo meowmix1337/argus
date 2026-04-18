@@ -42,7 +42,7 @@ func (p *NSQPublisher) PublishEvent(topic string, payload any) error {
 	if err := p.producer.Publish(topic, data); err != nil {
 		return fmt.Errorf("nsq publish: %w", err)
 	}
-	slog.Debug("published event", "topic", topic)
+	slog.Info("published event", "topic", topic)
 	return nil
 }
 

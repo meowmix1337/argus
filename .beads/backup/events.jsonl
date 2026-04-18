@@ -289,3 +289,20 @@
 {"actor":"Dave Van","comment":null,"created_at":"2026-04-12T09:39:45Z","event_type":"closed","id":289,"issue_id":"argus-hkv","new_value":"PR merged","old_value":""}
 {"actor":"Dave Van","comment":null,"created_at":"2026-04-12T09:39:45Z","event_type":"closed","id":290,"issue_id":"argus-xtp","new_value":"PR merged","old_value":""}
 {"actor":"Dave Van","comment":null,"created_at":"2026-04-12T10:01:57Z","event_type":"created","id":291,"issue_id":"argus-59r","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T10:04:57Z","event_type":"closed","id":292,"issue_id":"argus-drg","new_value":"PR #87 merged","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T10:04:57Z","event_type":"closed","id":293,"issue_id":"argus-2np","new_value":"PR #87 merged","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T10:05:01Z","event_type":"claimed","id":294,"issue_id":"argus-59r","new_value":"{\"assignee\":\"Dave Van\",\"status\":\"in_progress\"}","old_value":"{\"id\":\"argus-59r\",\"title\":\"Add FollowBackfillConsumer for user.followed NSQ events\",\"description\":\"When a user follows someone, their historical posts are not backfilled into user_feed. A consumer on the user.followed topic should query the followed user's recent posts and bulk-insert them into the follower's user_feed. This closes the gap where accounts with existing user_feed rows never see historical posts from newly followed users.\",\"status\":\"open\",\"priority\":2,\"issue_type\":\"feature\",\"owner\":\"57775817+meowmix1337@users.noreply.github.com\",\"created_at\":\"2026-04-12T14:01:57Z\",\"created_by\":\"Dave Van\",\"updated_at\":\"2026-04-12T14:01:57Z\"}"}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T10:17:33Z","event_type":"closed","id":295,"issue_id":"argus-59r","new_value":"PR #91 merged","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T10:18:15Z","event_type":"closed","id":296,"issue_id":"argus-6co","new_value":"PR #88 merged","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:21Z","event_type":"created","id":297,"issue_id":"argus-iq0","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:29Z","event_type":"created","id":298,"issue_id":"argus-530","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:32Z","event_type":"created","id":299,"issue_id":"argus-b5w","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:34Z","event_type":"created","id":300,"issue_id":"argus-39s","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:41Z","event_type":"created","id":301,"issue_id":"argus-awd","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:43Z","event_type":"created","id":302,"issue_id":"argus-yic","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:45Z","event_type":"created","id":303,"issue_id":"argus-20k","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:46Z","event_type":"created","id":304,"issue_id":"argus-tzt","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:47Z","event_type":"created","id":305,"issue_id":"argus-ryb","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:49Z","event_type":"created","id":306,"issue_id":"argus-2qz","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:51Z","event_type":"created","id":307,"issue_id":"argus-eun","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-12T14:36:54Z","event_type":"created","id":308,"issue_id":"argus-4t0","new_value":"","old_value":""}
