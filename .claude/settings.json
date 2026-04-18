@@ -19,6 +19,10 @@
           {
             "type": "command",
             "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // \"\"'); if echo \"$cmd\" | grep -qE '^git push'; then branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$branch\" = \"main\" ] || [ \"$branch\" = \"master\" ]; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Direct push to main/master is blocked. Use a feature branch and open a PR instead.\"}}'; fi; fi"
+          },
+          {
+            "type": "command",
+            "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // \"\"'); if echo \"$cmd\" | grep -qE '^git (add|commit)'; then staged=$(git diff --cached --name-only 2>/dev/null); has_migration=$(echo \"$staged\" | grep -E 'migrations/|[.]sql$' | head -1); has_code=$(echo \"$staged\" | grep -vE 'migrations/|[.]sql$|backup/' | grep -E '[.](go|ts|tsx|js|jsx)$' | head -1); if [ -n \"$has_migration\" ] && [ -n \"$has_code\" ]; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Migration files must be isolated in their own PR. Staged files mix migrations and app code. Unstage one group and commit them separately.\"}}'; fi; fi"
           }
         ]
       }

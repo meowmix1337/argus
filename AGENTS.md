@@ -65,6 +65,7 @@ Dashboard `GET /api/dashboard` fans out concurrently via `errgroup`; failed serv
 - Inline styles exclusively (no Tailwind in JSX)
 - UI primitives: `Card.tsx`, `CardHeader.tsx`, `MiniStat.tsx`
 - When user describes UI positioning, clarify "within layout" vs "above/outside layout" before implementing
+- Before any layout change to `Dashboard.tsx` or the grid, read the full component and its direct children first
 
 ## Codebase Exploration
 
@@ -77,6 +78,8 @@ For any task spanning 3+ unknown files or requiring a survey of unfamiliar code,
 - PR base is always `main`
 
 ## Rules
+- Never reference a `make` target, npm script, or shell command without reading the source file (Makefile / package.json) first
+- Before claiming any feature that depends on Docker services or NSQ works, read `docker-compose.yml` and the relevant `.env` section
 - Update `README.md` and `.env.example` for any new env var or external API
 - Skill files: `.claude/skills/<name>/SKILL.md` (subdirectory format)
 - Concurrent external API calls: use rate limiting + sequential fallbacks
