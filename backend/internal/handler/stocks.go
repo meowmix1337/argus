@@ -13,7 +13,7 @@ import (
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/middleware"
-	"github.com/meowmix1337/argus/backend/internal/response"
+	"github.com/meowmix1337/argus/backend/internal/platform/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
 

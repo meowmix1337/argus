@@ -12,7 +12,7 @@ import (
 
 	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/model"
-	"github.com/meowmix1337/argus/backend/internal/response"
+	"github.com/meowmix1337/argus/backend/internal/platform/response"
 )
 
 // socialPrefsService is the interface the handler requires from SocialPrefsService.
