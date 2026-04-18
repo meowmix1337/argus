@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
 
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
@@ -28,11 +29,11 @@ func NewUsersHandler(svc *service.UserService) *UsersHandler {
 
 // AddRoutes registers user routes on the given router.
 func (h *UsersHandler) AddRoutes(r chi.Router) {
-	r.With(httprate.LimitByIP(searchRateLimit, rateLimitWindow)).Get("/api/users/search", h.Search)
+	r.With(httprate.LimitByIP(middleware.SearchRateLimit, middleware.RateLimitWindow)).Get("/api/users/search", h.Search)
 }
 
 func (h *UsersHandler) Search(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

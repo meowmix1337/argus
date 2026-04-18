@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/go-playground/validator/v10"
 
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	"github.com/meowmix1337/argus/backend/internal/response"
 )
@@ -34,11 +35,11 @@ func NewSocialPrefsHandler(svc socialPrefsService, v *validator.Validate) *Socia
 // AddRoutes registers social notification preference routes on the given router.
 func (h *SocialPrefsHandler) AddRoutes(r chi.Router) {
 	r.Get("/api/settings/social-notifications", h.GetPrefs)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Put("/api/settings/social-notifications", h.UpdatePrefs)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Put("/api/settings/social-notifications", h.UpdatePrefs)
 }
 
 func (h *SocialPrefsHandler) GetPrefs(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -58,7 +59,7 @@ func (h *SocialPrefsHandler) GetPrefs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SocialPrefsHandler) UpdatePrefs(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

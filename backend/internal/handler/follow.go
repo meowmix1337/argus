@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
@@ -28,8 +29,8 @@ func NewFollowHandler(svc *service.FollowService, v *validator.Validate) *Follow
 
 // AddRoutes registers follow routes on the given router.
 func (h *FollowHandler) AddRoutes(r chi.Router) {
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/follow", h.Follow)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/follow/{id}", h.Unfollow)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Post("/api/follow", h.Follow)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Delete("/api/follow/{id}", h.Unfollow)
 	r.Get("/api/follow/status/{id}", h.IsFollowing)
 	r.Get("/api/follow/{id}/followers", h.ListFollowers)
 	r.Get("/api/follow/{id}/following", h.ListFollowing)
@@ -70,7 +71,7 @@ func (h *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *FollowHandler) Unfollow(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -91,7 +92,7 @@ func (h *FollowHandler) Unfollow(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *FollowHandler) IsFollowing(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -109,7 +110,7 @@ func (h *FollowHandler) IsFollowing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *FollowHandler) ListFollowers(w http.ResponseWriter, r *http.Request) {
-	_, ok := userIDFromRequest(r)
+	_, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -134,7 +135,7 @@ func (h *FollowHandler) ListFollowers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *FollowHandler) ListFollowing(w http.ResponseWriter, r *http.Request) {
-	_, ok := userIDFromRequest(r)
+	_, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

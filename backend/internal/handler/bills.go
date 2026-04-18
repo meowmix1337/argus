@@ -13,6 +13,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
@@ -33,15 +34,15 @@ func (h *BillsHandler) AddRoutes(r chi.Router) {
 	r.Get("/api/bills", h.List)
 	r.Get("/api/bills/due", h.ListDue)
 	r.Get("/api/bills/due/year", h.ListDueYear)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/bills", h.Create)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/bills/{id}/pay", h.MarkPaid)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/bills/payments/{paymentId}", h.UnmarkPaid)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Patch("/api/bills/{id}", h.Update)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/bills/{id}", h.Delete)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Post("/api/bills", h.Create)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Post("/api/bills/{id}/pay", h.MarkPaid)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Delete("/api/bills/payments/{paymentId}", h.UnmarkPaid)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Patch("/api/bills/{id}", h.Update)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Delete("/api/bills/{id}", h.Delete)
 }
 
 func (h *BillsHandler) ListDue(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -77,7 +78,7 @@ func (h *BillsHandler) ListDue(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BillsHandler) ListDueYear(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -105,7 +106,7 @@ func (h *BillsHandler) ListDueYear(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BillsHandler) MarkPaid(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -149,7 +150,7 @@ func (h *BillsHandler) MarkPaid(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BillsHandler) UnmarkPaid(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -170,7 +171,7 @@ func (h *BillsHandler) UnmarkPaid(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BillsHandler) List(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -209,7 +210,7 @@ func (h *BillsHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BillsHandler) Create(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -241,7 +242,7 @@ func (h *BillsHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BillsHandler) Update(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -276,7 +277,7 @@ func (h *BillsHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BillsHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

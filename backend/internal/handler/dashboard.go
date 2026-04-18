@@ -57,7 +57,7 @@ func (h *DashboardHandler) AddRoutes(r chi.Router) {
 func (h *DashboardHandler) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

@@ -12,6 +12,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
@@ -28,14 +29,14 @@ func NewStocksHandler(svc *service.StocksService, v *validator.Validate) *Stocks
 func (h *StocksHandler) AddRoutes(r chi.Router) {
 	r.Get("/api/stocks", h.Get)
 	r.Get("/api/stocks/watchlist", h.GetWatchlist)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/stocks/watchlist", h.AddSymbol)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/stocks/watchlist/{symbol}", h.RemoveSymbol)
-	r.With(httprate.LimitByIP(searchRateLimit, rateLimitWindow)).Get("/api/stocks/search", h.SearchSymbols)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Post("/api/stocks/watchlist", h.AddSymbol)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Delete("/api/stocks/watchlist/{symbol}", h.RemoveSymbol)
+	r.With(httprate.LimitByIP(middleware.SearchRateLimit, middleware.RateLimitWindow)).Get("/api/stocks/search", h.SearchSymbols)
 }
 
 // Get returns quotes for the current watchlist.
 func (h *StocksHandler) Get(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -51,7 +52,7 @@ func (h *StocksHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 // GetWatchlist returns a paginated list of watchlist symbols.
 func (h *StocksHandler) GetWatchlist(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -87,7 +88,7 @@ func (h *StocksHandler) GetWatchlist(w http.ResponseWriter, r *http.Request) {
 // Body: {"symbol":"TSLA"}
 // Returns 201 with updated list. Idempotent — re-adding an existing symbol succeeds silently.
 func (h *StocksHandler) AddSymbol(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -122,7 +123,7 @@ func (h *StocksHandler) AddSymbol(w http.ResponseWriter, r *http.Request) {
 // RemoveSymbol removes a symbol from the watchlist.
 // Returns 200 with updated list, or 404 if not found.
 func (h *StocksHandler) RemoveSymbol(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

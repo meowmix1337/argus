@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
@@ -30,17 +31,17 @@ func NewTaskLabelsHandler(svc *service.TaskLabelsService, v *validator.Validate)
 // AddRoutes registers task label routes on the given router.
 func (h *TaskLabelsHandler) AddRoutes(r chi.Router) {
 	r.Get("/api/labels", h.List)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/labels", h.Create)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Patch("/api/labels/{id}", h.Update)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/labels/{id}", h.Delete)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Post("/api/labels", h.Create)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Patch("/api/labels/{id}", h.Update)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Delete("/api/labels/{id}", h.Delete)
 
 	r.Get("/api/tasks/{taskID}/labels", h.ListForTask)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/tasks/{taskID}/labels", h.AssignLabel)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/tasks/{taskID}/labels/{labelID}", h.RemoveLabel)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Post("/api/tasks/{taskID}/labels", h.AssignLabel)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Delete("/api/tasks/{taskID}/labels/{labelID}", h.RemoveLabel)
 }
 
 func (h *TaskLabelsHandler) List(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -57,7 +58,7 @@ func (h *TaskLabelsHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskLabelsHandler) Create(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -89,7 +90,7 @@ func (h *TaskLabelsHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskLabelsHandler) Update(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -124,7 +125,7 @@ func (h *TaskLabelsHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskLabelsHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -145,7 +146,7 @@ func (h *TaskLabelsHandler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskLabelsHandler) ListForTask(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -163,7 +164,7 @@ func (h *TaskLabelsHandler) ListForTask(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *TaskLabelsHandler) AssignLabel(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -197,7 +198,7 @@ func (h *TaskLabelsHandler) AssignLabel(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *TaskLabelsHandler) RemoveLabel(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

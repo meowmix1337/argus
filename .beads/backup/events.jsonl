@@ -312,3 +312,4 @@
 {"actor":"Dave Van","comment":null,"created_at":"2026-04-18T09:37:34Z","event_type":"closed","id":312,"issue_id":"argus-fi5","new_value":"All phases complete and merged — social feed fully shipped","old_value":""}
 {"actor":"Dave Van","comment":null,"created_at":"2026-04-18T09:37:34Z","event_type":"closed","id":313,"issue_id":"argus-2es","new_value":"All phases complete and merged — notification center fully shipped","old_value":""}
 {"actor":"Dave Van","comment":null,"created_at":"2026-04-18T09:37:52Z","event_type":"closed","id":314,"issue_id":"argus-54l","new_value":"PR #95 merged — social source filtering wired up","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-18T11:38:36Z","event_type":"created","id":315,"issue_id":"argus-38t","new_value":"","old_value":""}

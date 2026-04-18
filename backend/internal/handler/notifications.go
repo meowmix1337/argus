@@ -13,6 +13,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
@@ -30,13 +31,13 @@ func NewNotificationsHandler(svc *service.NotificationService, v *validator.Vali
 
 // AddRoutes registers notification routes on the given router.
 func (h *NotificationsHandler) AddRoutes(r chi.Router) {
-	r.With(httprate.LimitByIP(searchRateLimit, rateLimitWindow)).Get("/api/notifications", h.List)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Patch("/api/notifications/{id}", h.Patch)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/notifications/mark-all-read", h.MarkAllRead)
+	r.With(httprate.LimitByIP(middleware.SearchRateLimit, middleware.RateLimitWindow)).Get("/api/notifications", h.List)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Patch("/api/notifications/{id}", h.Patch)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Post("/api/notifications/mark-all-read", h.MarkAllRead)
 }
 
 func (h *NotificationsHandler) List(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -108,7 +109,7 @@ func (h *NotificationsHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *NotificationsHandler) Patch(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -148,7 +149,7 @@ func (h *NotificationsHandler) Patch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *NotificationsHandler) MarkAllRead(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

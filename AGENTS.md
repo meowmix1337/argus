@@ -76,6 +76,7 @@ For any task spanning 3+ unknown files or requiring a survey of unfamiliar code,
 - Branch naming: `feat/<description>-<bd-ticket-id>`
 - Verify branch with `git branch --show-current` before any work
 - PR base is always `main`
+- Keep commits small: 2–3 files, ~200–300 lines of changes per commit
 
 ## Rules
 - Never reference a `make` target, npm script, or shell command without reading the source file (Makefile / package.json) first

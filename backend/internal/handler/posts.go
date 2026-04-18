@@ -12,6 +12,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
@@ -29,16 +30,16 @@ func NewPostsHandler(svc *service.PostsService, v *validator.Validate) *PostsHan
 
 // AddRoutes registers post routes on the given router.
 func (h *PostsHandler) AddRoutes(r chi.Router) {
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/posts", h.Create)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Post("/api/posts", h.Create)
 	r.Get("/api/posts/{id}", h.GetByID)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/posts/{id}", h.Delete)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Post("/api/posts/{id}/like", h.ToggleLike)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Delete("/api/posts/{id}", h.Delete)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Post("/api/posts/{id}/like", h.ToggleLike)
 	r.Get("/api/posts/user/{id}", h.ListByUser)
-	r.With(httprate.LimitByIP(searchRateLimit, rateLimitWindow)).Get("/api/posts/search", h.Search)
+	r.With(httprate.LimitByIP(middleware.SearchRateLimit, middleware.RateLimitWindow)).Get("/api/posts/search", h.Search)
 }
 
 func (h *PostsHandler) Create(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -70,7 +71,7 @@ func (h *PostsHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PostsHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -92,7 +93,7 @@ func (h *PostsHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PostsHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -113,7 +114,7 @@ func (h *PostsHandler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PostsHandler) ToggleLike(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -135,7 +136,7 @@ func (h *PostsHandler) ToggleLike(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PostsHandler) ListByUser(w http.ResponseWriter, r *http.Request) {
-	viewerID, ok := userIDFromRequest(r)
+	viewerID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -160,7 +161,7 @@ func (h *PostsHandler) ListByUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PostsHandler) Search(w http.ResponseWriter, r *http.Request) {
-	viewerID, ok := userIDFromRequest(r)
+	viewerID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

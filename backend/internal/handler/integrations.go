@@ -13,6 +13,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
+	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
@@ -34,15 +35,15 @@ func NewIntegrationsHandler(githubSvc *service.GitHubIntegrationService, validat
 // AddRoutes registers the integration management routes (all require an active session).
 func (h *IntegrationsHandler) AddRoutes(r chi.Router) {
 	r.Get("/api/integrations/github", h.GetStatus)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Delete("/api/integrations/github", h.Disconnect)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Delete("/api/integrations/github", h.Disconnect)
 	r.Get("/api/integrations/github/repos", h.ListRepos)
-	r.With(httprate.LimitByIP(mutationRateLimit, rateLimitWindow)).Put("/api/integrations/github/repos", h.UpdateWatchedRepos)
+	r.With(httprate.LimitByIP(middleware.MutationRateLimit, middleware.RateLimitWindow)).Put("/api/integrations/github/repos", h.UpdateWatchedRepos)
 }
 
 // GetStatus handles GET /api/integrations/github.
 // Returns {connected: false} when no integration exists; {connected: true, ...} otherwise.
 func (h *IntegrationsHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -66,7 +67,7 @@ func (h *IntegrationsHandler) GetStatus(w http.ResponseWriter, r *http.Request) 
 
 // Disconnect handles DELETE /api/integrations/github.
 func (h *IntegrationsHandler) Disconnect(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -86,7 +87,7 @@ func (h *IntegrationsHandler) Disconnect(w http.ResponseWriter, r *http.Request)
 
 // ListRepos handles GET /api/integrations/github/repos.
 func (h *IntegrationsHandler) ListRepos(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -107,7 +108,7 @@ func (h *IntegrationsHandler) ListRepos(w http.ResponseWriter, r *http.Request) 
 
 // UpdateWatchedRepos handles PUT /api/integrations/github/repos.
 func (h *IntegrationsHandler) UpdateWatchedRepos(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromRequest(r)
+	userID, ok := middleware.UserIDFromRequest(r)
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

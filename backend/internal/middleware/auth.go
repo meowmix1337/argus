@@ -42,3 +42,12 @@ func SessionFromContext(ctx context.Context) (session.Data, bool) {
 	d, ok := ctx.Value(SessionKey).(session.Data)
 	return d, ok
 }
+
+// UserIDFromRequest extracts the authenticated user ID from the request context.
+func UserIDFromRequest(r *http.Request) (string, bool) {
+	sess, ok := SessionFromContext(r.Context())
+	if !ok {
+		return "", false
+	}
+	return sess.UserID, true
+}
