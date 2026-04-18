@@ -229,3 +229,51 @@ func TestNotificationService_Create_Success(t *testing.T) {
 		t.Errorf("Title = %q, want %q", n.Title, "PR #1 opened")
 	}
 }
+
+// ---- CreateForUser ----
+
+func TestNotificationService_CreateForUser_Success(t *testing.T) {
+	store := &fakeNotificationStore{}
+	svc := NewNotificationService(store)
+
+	body := "first 100 chars"
+	err := svc.CreateForUser(context.Background(),
+		"user-1", "social", "social.post.created", "Alice posted something",
+		&body, nil, strPtr("post-abc"),
+	)
+	if err != nil {
+		t.Fatalf("CreateForUser: %v", err)
+	}
+	if len(store.notifications) != 1 {
+		t.Fatalf("expected 1 notification stored, got %d", len(store.notifications))
+	}
+	if store.notifications[0].Title != "Alice posted something" {
+		t.Errorf("title = %q, want %q", store.notifications[0].Title, "Alice posted something")
+	}
+}
+
+func TestNotificationService_CreateForUser_DuplicateSwallowed(t *testing.T) {
+	store := &fakeNotificationStore{createErr: apperrors.ErrDuplicateDelivery}
+	svc := NewNotificationService(store)
+
+	err := svc.CreateForUser(context.Background(),
+		"user-1", "social", "social.post.created", "Alice posted something",
+		nil, nil, strPtr("post-abc"),
+	)
+	if err != nil {
+		t.Errorf("expected duplicate to be swallowed, got error: %v", err)
+	}
+}
+
+func TestNotificationService_CreateForUser_StoreError_Propagates(t *testing.T) {
+	store := &fakeNotificationStore{createErr: errors.New("db error")}
+	svc := NewNotificationService(store)
+
+	err := svc.CreateForUser(context.Background(),
+		"user-1", "social", "social.post.created", "title",
+		nil, nil, nil,
+	)
+	if err == nil {
+		t.Error("expected store error to propagate, got nil")
+	}
+}

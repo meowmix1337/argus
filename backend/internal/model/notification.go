@@ -37,6 +37,7 @@ type Notification struct {
 	Title            string  `db:"title"`
 	Body             *string `db:"body"`
 	URL              *string `db:"url"`
+	ReferenceID      *string `db:"reference_id"` // deduplication key for social events
 	ReadAt           *string `db:"read_at"`
 	DismissedAt      *string `db:"dismissed_at"`
 	GitHubDeliveryID *string `db:"github_delivery_id"`
@@ -54,6 +55,7 @@ type NotificationCreate struct {
 	Title            string
 	Body             *string
 	URL              *string
+	ReferenceID      *string // set for social events; nil for GitHub webhook events
 	GitHubDeliveryID *string
 }
 
@@ -84,4 +86,13 @@ type GitHubRepo struct {
 	FullName string `json:"fullName"` // "owner/repo"
 	Private  bool   `json:"private"`
 	Watched  bool   `json:"watched"` // true if user already has a webhook on this repo
+}
+
+// SocialNotificationPrefs holds a user's social notification mute preferences.
+type SocialNotificationPrefs struct {
+	UserID      string
+	MutePosts   bool
+	MuteFollows bool
+	CreatedAt   string
+	UpdatedAt   string
 }

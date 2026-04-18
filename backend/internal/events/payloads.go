@@ -29,8 +29,10 @@ func NewEnvelope(eventType string, payload any) EventEnvelope {
 
 // PostCreatedPayload is the payload for TopicPostCreated events.
 type PostCreatedPayload struct {
-	PostID string `json:"postId"`
-	UserID string `json:"userId"`
+	PostID         string `json:"postId"`
+	UserID         string `json:"userId"`
+	AuthorName     string `json:"authorName"`
+	ContentPreview string `json:"contentPreview"` // first 100 runes of content
 }
 
 // PostLikedPayload is the payload for TopicPostLiked events.
@@ -42,6 +44,7 @@ type PostLikedPayload struct {
 
 // UserFollowedPayload is the payload for TopicUserFollowed events.
 type UserFollowedPayload struct {
-	FollowerID  string `json:"followerId"`
-	FollowingID string `json:"followingId"`
+	FollowerID   string `json:"followerId"`
+	FollowingID  string `json:"followingId"`
+	FollowerName string `json:"followerName"`
 }
