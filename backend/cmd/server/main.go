@@ -12,8 +12,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/meowmix1337/argus/backend/internal/config"
 	"github.com/meowmix1337/argus/backend/internal/database"
+	"github.com/meowmix1337/argus/backend/internal/platform/config"
 	"github.com/meowmix1337/argus/backend/internal/server"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )

@@ -14,9 +14,9 @@ import (
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	"github.com/meowmix1337/argus/backend/internal/platform/session"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
-	"github.com/meowmix1337/argus/backend/internal/session"
 )
 
 // TasksHandler handles CRUD for user-scoped tasks.

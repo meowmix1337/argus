@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/meowmix1337/argus/backend/internal/config"
-	"github.com/meowmix1337/argus/backend/internal/session"
+	"github.com/meowmix1337/argus/backend/internal/platform/config"
+	"github.com/meowmix1337/argus/backend/internal/platform/session"
 )
 
 func main() {

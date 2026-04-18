@@ -9,11 +9,11 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/meowmix1337/argus/backend/internal/config"
 	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/handler"
 	"github.com/meowmix1337/argus/backend/internal/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/middleware"
+	"github.com/meowmix1337/argus/backend/internal/platform/config"
 	"github.com/meowmix1337/argus/backend/internal/repository"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
