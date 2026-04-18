@@ -54,7 +54,26 @@ func (f *fakePrefsReader) GetPrefs(_ context.Context, userID string) (model.Soci
 	return model.SocialNotificationPrefs{UserID: userID}, nil
 }
 
-// Note: buildEnvelope is defined in feed_fanout_test.go (same package) and is reused here.
+// fakeFollowStore implements FanoutFollowStore for tests.
+type fakeFollowStore struct {
+	ids []string
+	err error
+}
+
+func (f *fakeFollowStore) GetFollowerIDs(_ context.Context, _ string) ([]string, error) {
+	return f.ids, f.err
+}
+
+// buildEnvelope marshals a PostCreatedPayload into a raw EventEnvelope JSON message.
+func buildEnvelope(t *testing.T, payload platformevents.PostCreatedPayload) []byte {
+	t.Helper()
+	env := platformevents.NewEnvelope(platformevents.TopicPostCreated, payload)
+	b, err := json.Marshal(env)
+	if err != nil {
+		t.Fatalf("marshal envelope: %v", err)
+	}
+	return b
+}
 
 func TestFollowerNotificationConsumer_Process_ValidPayload(t *testing.T) {
 	followStore := &fakeFollowStore{ids: []string{"follower-1", "follower-2"}}

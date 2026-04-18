@@ -9,6 +9,7 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
 
+	socialconsumer "github.com/meowmix1337/argus/backend/internal/domain/social/consumer"
 	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/handler"
 	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
@@ -118,8 +119,8 @@ func (s *Server) setupRoutes() {
 	if s.cfg.NSQLookupdAddr != "" {
 		cm := platformevents.NewConsumerManager(s.cfg.NSQLookupdAddr)
 		for _, consumer := range []platformevents.MessageHandler{
-			events.NewFeedFanoutConsumer(followRepo, feedRepo),
-			events.NewFollowBackfillConsumer(postsRepo, feedRepo),
+			socialconsumer.NewFeedFanoutConsumer(followRepo, feedRepo),
+			socialconsumer.NewFollowBackfillConsumer(postsRepo, feedRepo),
 			events.NewFollowerNotificationConsumer(followRepo, notificationSvc, socialPrefsSvc),
 			events.NewFollowNotificationConsumer(notificationSvc, socialPrefsSvc),
 		} {
