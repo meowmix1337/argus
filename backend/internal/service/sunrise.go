@@ -5,19 +5,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/meowmix1337/argus/backend/internal/httpclient"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
+	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
 // SunriseService fetches sunrise/sunset data from sunrise-sunset.org.
 type SunriseService struct {
 	httpClient httpclient.HTTPClient
-	cache      *CacheService
+	cache      *platformcache.CacheService
 	lat        float64
 	lon        float64
 }
 
 // NewSunriseService creates a new SunriseService.
-func NewSunriseService(httpClient httpclient.HTTPClient, cache *CacheService, lat, lon float64) *SunriseService {
+func NewSunriseService(httpClient httpclient.HTTPClient, cache *platformcache.CacheService, lat, lon float64) *SunriseService {
 	return &SunriseService{
 		httpClient: httpClient,
 		cache:      cache,

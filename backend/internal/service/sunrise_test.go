@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 )
 
 func TestSunriseService_Fetch_CacheHit(t *testing.T) {
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	// Pre-populate cache; if the HTTP client is called the test fails.
 	cache.Set("sunrise", sunriseResult{"6:00 AM", "7:30 PM", "13h 30m"}, time.Minute)
 
@@ -29,7 +31,7 @@ func TestSunriseService_Fetch_CacheHit(t *testing.T) {
 func TestSunriseService_Fetch_HTTPError(t *testing.T) {
 	svc := NewSunriseService(
 		&fakeHTTPClient{err: fmt.Errorf("network failure")},
-		NewCacheService(), 37.77, -122.41,
+		platformcache.NewCacheService(), 37.77, -122.41,
 	)
 
 	_, _, _, err := svc.Fetch(context.Background())
@@ -43,7 +45,7 @@ func TestSunriseService_Fetch_StatusNotOK(t *testing.T) {
 	resp := sunriseSunsetResponse{Status: "INVALID_REQUEST"}
 	svc := NewSunriseService(
 		&fakeHTTPClient{responseBody: resp},
-		NewCacheService(), 37.77, -122.41,
+		platformcache.NewCacheService(), 37.77, -122.41,
 	)
 
 	_, _, _, err := svc.Fetch(context.Background())
@@ -64,7 +66,7 @@ func TestSunriseService_Fetch_ComputesDaylightDuration(t *testing.T) {
 		},
 		Status: "OK",
 	}
-	svc := NewSunriseService(&fakeHTTPClient{responseBody: resp}, NewCacheService(), 37.77, -122.41)
+	svc := NewSunriseService(&fakeHTTPClient{responseBody: resp}, platformcache.NewCacheService(), 37.77, -122.41)
 
 	_, _, daylight, err := svc.Fetch(context.Background())
 	if err != nil {
@@ -87,7 +89,7 @@ func TestSunriseService_Fetch_BadSunriseTime(t *testing.T) {
 		},
 		Status: "OK",
 	}
-	svc := NewSunriseService(&fakeHTTPClient{responseBody: resp}, NewCacheService(), 37.77, -122.41)
+	svc := NewSunriseService(&fakeHTTPClient{responseBody: resp}, platformcache.NewCacheService(), 37.77, -122.41)
 	if _, _, _, err := svc.Fetch(context.Background()); err == nil {
 		t.Error("expected error for unparseable sunrise time, got nil")
 	}
@@ -105,7 +107,7 @@ func TestSunriseService_Fetch_BadSunsetTime(t *testing.T) {
 		},
 		Status: "OK",
 	}
-	svc := NewSunriseService(&fakeHTTPClient{responseBody: resp}, NewCacheService(), 37.77, -122.41)
+	svc := NewSunriseService(&fakeHTTPClient{responseBody: resp}, platformcache.NewCacheService(), 37.77, -122.41)
 	if _, _, _, err := svc.Fetch(context.Background()); err == nil {
 		t.Error("expected error for unparseable sunset time, got nil")
 	}
@@ -122,7 +124,7 @@ func TestSunriseService_Fetch_PopulatesCache(t *testing.T) {
 		},
 		Status: "OK",
 	}
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	svc := NewSunriseService(&fakeHTTPClient{responseBody: resp}, cache, 37.77, -122.41)
 
 	if _, _, _, err := svc.Fetch(context.Background()); err != nil {

@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 )
 
 func TestStocksService_Fetch_CacheHit(t *testing.T) {
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	cached := []model.StockQuote{{Symbol: "AAPL", Price: 100.0}}
 	cache.Set("stocks:user1", cached, time.Minute)
 
@@ -29,7 +30,7 @@ func TestStocksService_Fetch_CacheHit(t *testing.T) {
 }
 
 func TestStocksService_Fetch_NoAPIKey(t *testing.T) {
-	svc := NewStocksService(&fakeHTTPClient{}, "", NewCacheService(), newFakeWatchlistStore("AAPL"))
+	svc := NewStocksService(&fakeHTTPClient{}, "", platformcache.NewCacheService(), newFakeWatchlistStore("AAPL"))
 	_, err := svc.Fetch(context.Background(), "user1")
 	if err == nil {
 		t.Error("expected error when API key is empty")
@@ -40,7 +41,7 @@ func TestStocksService_Fetch_SingleEquity_Success(t *testing.T) {
 	// Watchlist has one equity; the fakeHTTPClient returns a Finnhub quote.
 	store := newFakeWatchlistStore("AAPL")
 	quote := finnhubQuote{C: 185.5, D: 2.3, DP: 1.25}
-	svc := NewStocksService(&fakeHTTPClient{responseBody: quote}, "test-key", NewCacheService(), store)
+	svc := NewStocksService(&fakeHTTPClient{responseBody: quote}, "test-key", platformcache.NewCacheService(), store)
 
 	quotes, err := svc.Fetch(context.Background(), "user1")
 	if err != nil {
@@ -63,7 +64,7 @@ func TestStocksService_Fetch_BTC_Success(t *testing.T) {
 	btcResp := map[string]map[string]float64{
 		"bitcoin": {"usd": 62000.0, "usd_24h_change": 3.5},
 	}
-	svc := NewStocksService(&fakeHTTPClient{responseBody: btcResp}, "test-key", NewCacheService(), store)
+	svc := NewStocksService(&fakeHTTPClient{responseBody: btcResp}, "test-key", platformcache.NewCacheService(), store)
 
 	quotes, err := svc.Fetch(context.Background(), "user1")
 	if err != nil {
@@ -78,7 +79,7 @@ func TestStocksService_Fetch_BTC_Success(t *testing.T) {
 }
 
 func TestStocksService_Fetch_EmptyWatchlist_ReturnsEmptySlice(t *testing.T) {
-	svc := NewStocksService(&fakeHTTPClient{}, "test-key", NewCacheService(), newFakeWatchlistStore())
+	svc := NewStocksService(&fakeHTTPClient{}, "test-key", platformcache.NewCacheService(), newFakeWatchlistStore())
 	quotes, err := svc.Fetch(context.Background(), "user1")
 	if err != nil {
 		t.Fatalf("Fetch: %v", err)
@@ -91,7 +92,7 @@ func TestStocksService_Fetch_EmptyWatchlist_ReturnsEmptySlice(t *testing.T) {
 func TestStocksService_Fetch_PopulatesCache(t *testing.T) {
 	store := newFakeWatchlistStore("AAPL")
 	quote := finnhubQuote{C: 150.0}
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	svc := NewStocksService(&fakeHTTPClient{responseBody: quote}, "test-key", cache, store)
 
 	if _, err := svc.Fetch(context.Background(), "user1"); err != nil {
@@ -104,7 +105,7 @@ func TestStocksService_Fetch_PopulatesCache(t *testing.T) {
 
 func TestStocksService_GetSymbols_ReturnsAll(t *testing.T) {
 	store := newFakeWatchlistStore("AAPL", "MSFT", "GOOG")
-	svc := NewStocksService(&fakeHTTPClient{}, "key", NewCacheService(), store)
+	svc := NewStocksService(&fakeHTTPClient{}, "key", platformcache.NewCacheService(), store)
 
 	syms, err := svc.GetSymbols(context.Background(), "user1")
 	if err != nil {
@@ -117,7 +118,7 @@ func TestStocksService_GetSymbols_ReturnsAll(t *testing.T) {
 
 func TestStocksService_GetSymbolsPaginated_RespectsLimit(t *testing.T) {
 	store := newFakeWatchlistStore("A", "B", "C", "D", "E")
-	svc := NewStocksService(&fakeHTTPClient{}, "key", NewCacheService(), store)
+	svc := NewStocksService(&fakeHTTPClient{}, "key", platformcache.NewCacheService(), store)
 
 	syms, total, err := svc.GetSymbolsPaginated(context.Background(), "user1", 2, 0)
 	if err != nil {

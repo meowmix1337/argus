@@ -13,8 +13,9 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // GitHub notification event type IDs — must match rows in notification_event_types table.
@@ -31,14 +32,14 @@ const (
 type WebhookService struct {
 	watchedRepos  WatchedRepoStore
 	notifications NotificationStore // reuses the interface defined in notification.go
-	encSvc        *EncryptionService
+	encSvc        *platformcrypto.EncryptionService
 }
 
 // NewWebhookService creates a new WebhookService.
 func NewWebhookService(
 	watchedRepos WatchedRepoStore,
 	notifications NotificationStore,
-	encSvc *EncryptionService,
+	encSvc *platformcrypto.EncryptionService,
 ) *WebhookService {
 	return &WebhookService{
 		watchedRepos:  watchedRepos,

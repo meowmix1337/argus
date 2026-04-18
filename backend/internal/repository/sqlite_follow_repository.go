@@ -7,8 +7,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // sqliteUserSummaryRow mirrors the columns needed for a lightweight user profile.
@@ -37,7 +38,7 @@ func NewSQLiteFollowRepository(db *sqlx.DB) *SQLiteFollowRepository {
 }
 
 func (r *SQLiteFollowRepository) Follow(ctx context.Context, id, followerID, followingID string) error {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 
 	// Try to re-activate a soft-deleted follow first.
 	result, err := r.db.ExecContext(ctx,
@@ -67,7 +68,7 @@ func (r *SQLiteFollowRepository) Follow(ctx context.Context, id, followerID, fol
 }
 
 func (r *SQLiteFollowRepository) Unfollow(ctx context.Context, followerID, followingID string) (int64, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	result, err := r.db.ExecContext(ctx,
 		`UPDATE followers SET deleted_at = ?, updated_at = ?
 		 WHERE follower_id = ? AND following_id = ? AND deleted_at IS NULL`,

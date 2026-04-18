@@ -10,8 +10,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 type sqliteNotificationRow struct {
@@ -94,7 +95,7 @@ func notificationStateFilter(state string) string {
 }
 
 func (r *SQLiteNotificationRepository) Create(ctx context.Context, n model.NotificationCreate) (model.Notification, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO notifications
 		 (id, user_id, provider_id, event_type_id, title, body, url, reference_id, github_delivery_id, created_at, updated_at)
@@ -176,7 +177,7 @@ func (r *SQLiteNotificationRepository) GetByID(ctx context.Context, id, userID s
 }
 
 func (r *SQLiteNotificationRepository) MarkRead(ctx context.Context, id, userID string) (int64, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	res, err := r.db.ExecContext(ctx,
 		`UPDATE notifications SET read_at = ?, updated_at = ?
 		 WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND read_at IS NULL`,
@@ -193,7 +194,7 @@ func (r *SQLiteNotificationRepository) MarkRead(ctx context.Context, id, userID 
 }
 
 func (r *SQLiteNotificationRepository) MarkDismissed(ctx context.Context, id, userID string) (int64, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	res, err := r.db.ExecContext(ctx,
 		`UPDATE notifications SET dismissed_at = ?, updated_at = ?
 		 WHERE id = ? AND user_id = ? AND deleted_at IS NULL AND dismissed_at IS NULL`,
@@ -210,7 +211,7 @@ func (r *SQLiteNotificationRepository) MarkDismissed(ctx context.Context, id, us
 }
 
 func (r *SQLiteNotificationRepository) MarkAllRead(ctx context.Context, userID string) (int64, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	res, err := r.db.ExecContext(ctx,
 		`UPDATE notifications SET read_at = ?, updated_at = ?
 		 WHERE user_id = ? AND deleted_at IS NULL AND read_at IS NULL`,

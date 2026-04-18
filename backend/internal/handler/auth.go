@@ -12,8 +12,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/meowmix1337/argus/backend/internal/platform/session"
 	"github.com/meowmix1337/argus/backend/internal/service"
-	"github.com/meowmix1337/argus/backend/internal/session"
 )
 
 // AuthHandler serves the Google OAuth login / callback / logout endpoints.

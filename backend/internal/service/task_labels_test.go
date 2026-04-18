@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // fakeTaskLabelStore is an in-memory TaskLabelStore for service tests.

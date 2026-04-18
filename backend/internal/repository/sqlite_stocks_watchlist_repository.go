@@ -7,6 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+
+	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
 )
 
 // SQLiteStocksWatchlistRepository implements StocksWatchlistRepository backed by SQLite.
@@ -61,7 +63,7 @@ func (r *SQLiteStocksWatchlistRepository) Add(ctx context.Context, userID string
 	if err != nil {
 		return fmt.Errorf("generate uuid: %w", err)
 	}
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 
 	_, err = r.db.ExecContext(ctx,
 		`INSERT INTO stocks_watchlist (id, user_id, symbol, created_at, updated_at)
@@ -78,7 +80,7 @@ func (r *SQLiteStocksWatchlistRepository) Add(ctx context.Context, userID string
 }
 
 func (r *SQLiteStocksWatchlistRepository) Remove(ctx context.Context, userID string, symbol string) error {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`UPDATE stocks_watchlist
 		 SET deleted_at = ?, updated_at = ?

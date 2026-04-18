@@ -10,8 +10,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // sqliteTaskLabelRow mirrors the task_labels table with string timestamps for SQLite scanning.
@@ -25,7 +26,7 @@ type sqliteTaskLabelRow struct {
 }
 
 func (r *sqliteTaskLabelRow) toModel() (model.TaskLabel, error) {
-	createdAt, err := time.Parse(timeFormat, r.CreatedAt)
+	createdAt, err := time.Parse(platformdb.TimeFormat, r.CreatedAt)
 	if err != nil {
 		return model.TaskLabel{}, fmt.Errorf("parse created_at: %w", err)
 	}
@@ -89,7 +90,7 @@ func (r *SQLiteTaskLabelsRepository) Get(ctx context.Context, id string, userID 
 }
 
 func (r *SQLiteTaskLabelsRepository) Create(ctx context.Context, l model.TaskLabelCreate) (model.TaskLabel, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO task_labels (id, user_id, name, color, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, ?, ?)`,
@@ -102,7 +103,7 @@ func (r *SQLiteTaskLabelsRepository) Create(ctx context.Context, l model.TaskLab
 }
 
 func (r *SQLiteTaskLabelsRepository) Update(ctx context.Context, id string, userID string, u model.TaskLabelUpdate) error {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 
 	setClauses := []string{"updated_at = ?"}
 	args := []interface{}{now}
@@ -127,7 +128,7 @@ func (r *SQLiteTaskLabelsRepository) Update(ctx context.Context, id string, user
 }
 
 func (r *SQLiteTaskLabelsRepository) Delete(ctx context.Context, id string, userID string) error {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`UPDATE task_labels SET deleted_at = ?, updated_at = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
 		now, now, id, userID,
@@ -164,7 +165,7 @@ func (r *SQLiteTaskLabelsRepository) ListForTask(ctx context.Context, taskID str
 }
 
 func (r *SQLiteTaskLabelsRepository) AssignLabel(ctx context.Context, a model.TaskLabelAssignmentCreate) error {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO task_label_assignments (id, task_id, label_id, created_at, updated_at)
@@ -181,7 +182,7 @@ func (r *SQLiteTaskLabelsRepository) AssignLabel(ctx context.Context, a model.Ta
 }
 
 func (r *SQLiteTaskLabelsRepository) RemoveLabel(ctx context.Context, taskID string, labelID string, userID string) error {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`UPDATE task_label_assignments
 		 SET deleted_at = ?, updated_at = ?

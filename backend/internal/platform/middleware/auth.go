@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/meowmix1337/argus/backend/internal/session"
+	"github.com/meowmix1337/argus/backend/internal/platform/session"
 )
 
 type contextKey string

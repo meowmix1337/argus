@@ -9,8 +9,9 @@ import (
 	"errors"
 	"testing"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // computeTestHMAC produces a GitHub-style HMAC-SHA256 header value for tests.
@@ -312,7 +313,7 @@ func newWebhookTestSvc(t *testing.T, repos []model.WatchedRepo) (*WebhookService
 }
 
 // newWebhookTestSvcWithEnc returns the encryption service as well for HMAC setup.
-func newWebhookTestSvcWithEnc(t *testing.T, repos []model.WatchedRepo) (*WebhookService, *fakeNotificationStore, *EncryptionService) {
+func newWebhookTestSvcWithEnc(t *testing.T, repos []model.WatchedRepo) (*WebhookService, *fakeNotificationStore, *platformcrypto.EncryptionService) {
 	t.Helper()
 	enc := mustNewEncryptionService(t)
 	notifStore := &fakeNotificationStore{}
@@ -320,7 +321,7 @@ func newWebhookTestSvcWithEnc(t *testing.T, repos []model.WatchedRepo) (*Webhook
 }
 
 // encryptedRepo creates a WatchedRepo whose WebhookSecret is the encrypted form of plainSecret.
-func encryptedRepo(t *testing.T, enc *EncryptionService, userID, plainSecret string) model.WatchedRepo {
+func encryptedRepo(t *testing.T, enc *platformcrypto.EncryptionService, userID, plainSecret string) model.WatchedRepo {
 	t.Helper()
 	encSecret, err := enc.Encrypt(plainSecret)
 	if err != nil {

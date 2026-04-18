@@ -12,10 +12,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/meowmix1337/argus/backend/internal/config"
-	"github.com/meowmix1337/argus/backend/internal/database"
+	"github.com/meowmix1337/argus/backend/internal/platform/config"
+	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
+	"github.com/meowmix1337/argus/backend/internal/platform/database"
 	"github.com/meowmix1337/argus/backend/internal/server"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 func main() {
@@ -88,7 +88,7 @@ func main() {
 	}
 
 	// Build EncryptionService from hex key (required — validates + constructs in one step).
-	encSvc, encErr := service.ProvideEncryptionService(cfg.EncryptionKey)
+	encSvc, encErr := platformcrypto.ProvideEncryptionService(cfg.EncryptionKey)
 	if encErr != nil {
 		slog.Error("ENCRYPTION_KEY configuration failed", "error", encErr)
 		os.Exit(1)

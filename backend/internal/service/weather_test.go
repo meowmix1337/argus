@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 )
 
 func TestWmoToCondition_KnownCodes(t *testing.T) {
@@ -53,7 +54,7 @@ func TestWmoToCondition_UnknownCode(t *testing.T) {
 // ---- WeatherService.Fetch ----
 
 func TestWeatherService_Fetch_CacheHit(t *testing.T) {
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	cached := model.WeatherData{Temp: 72.0, Condition: "Clear Sky"}
 	cache.Set("weather", cached, time.Minute)
 
@@ -79,7 +80,7 @@ func TestWeatherService_Fetch_Success(t *testing.T) {
 	forecast.Daily.Temperature2mMax = []float64{75.0}
 	forecast.Daily.Temperature2mMin = []float64{55.0}
 
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	svc := NewWeatherService(&fakeHTTPClient{responseBody: forecast}, cache, 37.77, -122.41)
 
 	data, err := svc.Fetch(context.Background())
@@ -101,7 +102,7 @@ func TestWeatherService_Fetch_PopulatesCache(t *testing.T) {
 	forecast := openMeteoForecast{}
 	forecast.Current.Temperature2m = 65.0
 
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	svc := NewWeatherService(&fakeHTTPClient{responseBody: forecast}, cache, 37.77, -122.41)
 
 	if _, err := svc.Fetch(context.Background()); err != nil {
@@ -113,7 +114,7 @@ func TestWeatherService_Fetch_PopulatesCache(t *testing.T) {
 }
 
 func TestWeatherService_Fetch_HTTPError_Propagates(t *testing.T) {
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	svc := NewWeatherService(&fakeHTTPClient{err: fmt.Errorf("network failure")}, cache, 37.77, -122.41)
 	if _, err := svc.Fetch(context.Background()); err == nil {
 		t.Error("expected error on HTTP failure")

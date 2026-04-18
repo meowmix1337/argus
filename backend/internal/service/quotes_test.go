@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 )
 
 func TestQuotesService_Fetch_CacheHit(t *testing.T) {
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	cached := model.Quote{Text: "Be the change.", Author: "Gandhi"}
 	cache.Set("quote", cached, time.Minute)
 
@@ -32,7 +33,7 @@ func TestQuotesService_Fetch_CacheHit(t *testing.T) {
 func TestQuotesService_Fetch_NoAPIKey(t *testing.T) {
 	// Without an API key the service must fail fast rather than making a
 	// request that will be rejected by the provider with a 401.
-	svc := NewQuotesService(&fakeHTTPClient{}, "", NewCacheService())
+	svc := NewQuotesService(&fakeHTTPClient{}, "", platformcache.NewCacheService())
 	_, err := svc.Fetch(context.Background())
 	if err == nil {
 		t.Fatal("expected error when API key is empty")
@@ -44,7 +45,7 @@ func TestQuotesService_Fetch_EmptyAPIResponse(t *testing.T) {
 	svc := NewQuotesService(
 		&fakeHTTPClient{responseBody: []apiNinjasQuote{}},
 		"test-key",
-		NewCacheService(),
+		platformcache.NewCacheService(),
 	)
 	_, err := svc.Fetch(context.Background())
 	if err == nil {
@@ -61,7 +62,7 @@ func TestQuotesService_Fetch_ReturnsFirstQuote(t *testing.T) {
 	svc := NewQuotesService(
 		&fakeHTTPClient{responseBody: quotes},
 		"test-key",
-		NewCacheService(),
+		platformcache.NewCacheService(),
 	)
 
 	q, err := svc.Fetch(context.Background())
@@ -78,7 +79,7 @@ func TestQuotesService_Fetch_ReturnsFirstQuote(t *testing.T) {
 
 func TestQuotesService_Fetch_PopulatesCache(t *testing.T) {
 	quotes := []apiNinjasQuote{{Quote: "Test quote.", Author: "Author"}}
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	svc := NewQuotesService(&fakeHTTPClient{responseBody: quotes}, "test-key", cache)
 
 	if _, err := svc.Fetch(context.Background()); err != nil {

@@ -8,7 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/meowmix1337/argus/backend/internal/httpclient"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
+	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
 // fakeWatchlistStore is an in-memory WatchlistStore for service tests.
@@ -110,7 +111,7 @@ func (f *fakeHTTPClient) GetBytes(_ context.Context, _ string, _ ...httpclient.R
 }
 
 func newTestStocksService(store *fakeWatchlistStore) *StocksService {
-	return NewStocksService(&fakeHTTPClient{}, "test-key", NewCacheService(), store)
+	return NewStocksService(&fakeHTTPClient{}, "test-key", platformcache.NewCacheService(), store)
 }
 
 func TestAddSymbol_NormalizesToUppercase(t *testing.T) {
@@ -148,7 +149,7 @@ func TestAddSymbol_EmptySymbol_ReturnsError(t *testing.T) {
 
 func TestAddSymbol_InvalidatesCacheOnSuccess(t *testing.T) {
 	store := newFakeWatchlistStore()
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	svc := NewStocksService(&fakeHTTPClient{}, "test-key", cache, store)
 
 	// Pre-populate cache
@@ -187,7 +188,7 @@ func TestRemoveSymbol_Found_RemovesFromStore(t *testing.T) {
 
 func TestRemoveSymbol_InvalidatesCacheOnSuccess(t *testing.T) {
 	store := newFakeWatchlistStore("TSLA")
-	cache := NewCacheService()
+	cache := platformcache.NewCacheService()
 	svc := NewStocksService(&fakeHTTPClient{}, "test-key", cache, store)
 
 	cache.Set("stocks:user1", []any{}, time.Minute)
@@ -216,7 +217,7 @@ func TestSearchSymbols_CapsResultsAtTen(t *testing.T) {
 	svc := NewStocksService(
 		&fakeHTTPClient{responseBody: fakeResp},
 		"test-key",
-		NewCacheService(),
+		platformcache.NewCacheService(),
 		newFakeWatchlistStore(),
 	)
 
@@ -241,7 +242,7 @@ func TestSearchSymbols_FewerThanTen(t *testing.T) {
 	svc := NewStocksService(
 		&fakeHTTPClient{responseBody: fakeResp},
 		"test-key",
-		NewCacheService(),
+		platformcache.NewCacheService(),
 		newFakeWatchlistStore(),
 	)
 
@@ -258,7 +259,7 @@ func TestSearchSymbols_FewerThanTen(t *testing.T) {
 }
 
 func TestSearchSymbols_NoAPIKey_ReturnsError(t *testing.T) {
-	svc := NewStocksService(&fakeHTTPClient{}, "", NewCacheService(), newFakeWatchlistStore())
+	svc := NewStocksService(&fakeHTTPClient{}, "", platformcache.NewCacheService(), newFakeWatchlistStore())
 
 	_, err := svc.SearchSymbols(context.Background(), "TSLA")
 	if err == nil {

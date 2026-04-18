@@ -9,15 +9,17 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/meowmix1337/argus/backend/internal/config"
 	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/handler"
-	"github.com/meowmix1337/argus/backend/internal/httpclient"
-	"github.com/meowmix1337/argus/backend/internal/middleware"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
+	"github.com/meowmix1337/argus/backend/internal/platform/config"
+	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
+	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
+	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
+	"github.com/meowmix1337/argus/backend/internal/platform/response"
+	"github.com/meowmix1337/argus/backend/internal/platform/validate"
 	"github.com/meowmix1337/argus/backend/internal/repository"
-	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
-	"github.com/meowmix1337/argus/backend/internal/validate"
 )
 
 // Server holds the HTTP router and all dependencies.
@@ -25,13 +27,13 @@ type Server struct {
 	router    *chi.Mux
 	cfg       *config.Config
 	db        *sqlx.DB
-	encSvc    *service.EncryptionService // nil means no encryption
+	encSvc    *platformcrypto.EncryptionService // nil means no encryption
 	publisher events.Publisher
 	cm        *events.ConsumerManager // nil when NSQ is not configured
 }
 
 // New creates a new Server with all services, handlers, and routes registered.
-func New(cfg *config.Config, db *sqlx.DB, encSvc *service.EncryptionService) *Server {
+func New(cfg *config.Config, db *sqlx.DB, encSvc *platformcrypto.EncryptionService) *Server {
 	s := &Server{
 		router: chi.NewRouter(),
 		cfg:    cfg,
@@ -68,7 +70,7 @@ func (s *Server) setupRoutes() {
 	// Shared dependencies
 	rawHTTP := &http.Client{Timeout: 30 * time.Second}
 	hc := httpclient.New(rawHTTP)
-	cache := service.NewCacheService()
+	cache := platformcache.NewCacheService()
 	v := validate.New()
 
 	// Services

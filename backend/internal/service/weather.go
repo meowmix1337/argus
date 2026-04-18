@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/meowmix1337/argus/backend/internal/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
+	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
 // WMO weather code → (condition, emoji icon)
@@ -47,13 +48,13 @@ func wmoToCondition(code int) (string, string) {
 // WeatherService fetches weather data from Open-Meteo.
 type WeatherService struct {
 	httpClient httpclient.HTTPClient
-	cache      *CacheService
+	cache      *platformcache.CacheService
 	lat        float64
 	lon        float64
 }
 
 // NewWeatherService creates a new WeatherService.
-func NewWeatherService(httpClient httpclient.HTTPClient, cache *CacheService, lat, lon float64) *WeatherService {
+func NewWeatherService(httpClient httpclient.HTTPClient, cache *platformcache.CacheService, lat, lon float64) *WeatherService {
 	return &WeatherService{
 		httpClient: httpClient,
 		cache:      cache,

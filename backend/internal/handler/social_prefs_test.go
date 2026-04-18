@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
-	"github.com/meowmix1337/argus/backend/internal/validate"
+	"github.com/meowmix1337/argus/backend/internal/platform/validate"
 )
 
 type fakeSocialPrefsService struct {

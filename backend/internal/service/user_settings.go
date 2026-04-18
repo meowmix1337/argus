@@ -7,8 +7,9 @@ import (
 	"net/url"
 	"strings"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // ErrSettingsNotFound is returned when user settings do not exist.
@@ -32,11 +33,11 @@ type UserSettingsStore interface {
 // UserSettingsService manages user settings via a store.
 type UserSettingsService struct {
 	store UserSettingsStore
-	enc   *EncryptionService
+	enc   *platformcrypto.EncryptionService
 }
 
 // NewUserSettingsService creates a new UserSettingsService backed by the given store.
-func NewUserSettingsService(store UserSettingsStore, enc *EncryptionService) *UserSettingsService {
+func NewUserSettingsService(store UserSettingsStore, enc *platformcrypto.EncryptionService) *UserSettingsService {
 	return &UserSettingsService{store: store, enc: enc}
 }
 
