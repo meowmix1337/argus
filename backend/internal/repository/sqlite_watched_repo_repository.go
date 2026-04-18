@@ -11,6 +11,7 @@ import (
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
 )
 
 type sqliteWatchedRepoRow struct {
@@ -57,7 +58,7 @@ func NewSQLiteWatchedRepoRepository(db *sqlx.DB) *SQLiteWatchedRepoRepository {
 }
 
 func (r *SQLiteWatchedRepoRepository) Create(ctx context.Context, w model.WatchedRepoCreate) (model.WatchedRepo, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO user_watched_repos
 		 (id, user_id, integration_id, owner, repo, webhook_id, webhook_secret, created_at, updated_at)
@@ -130,7 +131,7 @@ func (r *SQLiteWatchedRepoRepository) GetByOwnerRepo(ctx context.Context, owner,
 }
 
 func (r *SQLiteWatchedRepoRepository) Delete(ctx context.Context, id, userID string) (int64, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	res, err := r.db.ExecContext(ctx,
 		`UPDATE user_watched_repos SET deleted_at = ?, updated_at = ?
 		 WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,

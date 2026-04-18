@@ -10,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
 )
 
 // sqliteBillRow mirrors the bills table with nullable fields for SQLite scanning.
@@ -122,7 +123,7 @@ func (r *SQLiteBillsRepository) Get(ctx context.Context, id string, userID strin
 }
 
 func (r *SQLiteBillsRepository) Create(ctx context.Context, b model.BillCreate) (model.Bill, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO bills
 		 (id, user_id, name, amount, category_id, recurrence_type,
@@ -138,7 +139,7 @@ func (r *SQLiteBillsRepository) Create(ctx context.Context, b model.BillCreate) 
 }
 
 func (r *SQLiteBillsRepository) Update(ctx context.Context, id string, userID string, u model.BillUpdate) (int64, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	res, err := r.db.ExecContext(ctx,
 		`UPDATE bills
 		 SET name = ?, amount = ?, category_id = ?, recurrence_type = ?,
@@ -160,7 +161,7 @@ func (r *SQLiteBillsRepository) Update(ctx context.Context, id string, userID st
 }
 
 func (r *SQLiteBillsRepository) Delete(ctx context.Context, id string, userID string) (int64, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	res, err := r.db.ExecContext(ctx,
 		`UPDATE bills SET deleted_at = ?, updated_at = ?
 		 WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,

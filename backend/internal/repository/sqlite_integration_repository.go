@@ -11,6 +11,7 @@ import (
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
 )
 
 type sqliteIntegrationRow struct {
@@ -60,7 +61,7 @@ func NewSQLiteIntegrationRepository(db *sqlx.DB) *SQLiteIntegrationRepository {
 }
 
 func (r *SQLiteIntegrationRepository) Create(ctx context.Context, i model.IntegrationCreate) (model.UserIntegration, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO user_integrations
 		 (id, user_id, provider_id, access_token, refresh_token, provider_user_id, provider_username, created_at, updated_at)
@@ -108,7 +109,7 @@ func (r *SQLiteIntegrationRepository) GetByID(ctx context.Context, id, userID st
 }
 
 func (r *SQLiteIntegrationRepository) Delete(ctx context.Context, id, userID string) (int64, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	res, err := r.db.ExecContext(ctx,
 		`UPDATE user_integrations SET deleted_at = ?, updated_at = ?
 		 WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,

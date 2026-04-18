@@ -12,6 +12,7 @@ import (
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
 )
 
 // sqliteUserSettingsRow mirrors the user_settings table with string timestamps and nullable SQL types.
@@ -92,7 +93,7 @@ func (r *SQLiteUserSettingsRepository) Get(ctx context.Context, userID string) (
 }
 
 func (r *SQLiteUserSettingsRepository) Upsert(ctx context.Context, userID string, u model.UserSettingsUpsert) (model.UserSettings, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 
 	existing, err := r.Get(ctx, userID)
 	if err != nil && !errors.Is(err, apperrors.ErrSettingsNotFound) {
@@ -163,7 +164,7 @@ func (r *SQLiteUserSettingsRepository) ListSelectedCategories(ctx context.Contex
 }
 
 func (r *SQLiteUserSettingsRepository) SetSelectedCategories(ctx context.Context, userID string, categoryIDs []string) error {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 
 	_, err := r.db.ExecContext(ctx,
 		`UPDATE user_news_categories SET deleted_at = ?, updated_at = ? WHERE user_id = ? AND deleted_at IS NULL`,

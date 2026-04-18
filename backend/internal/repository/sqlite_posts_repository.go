@@ -11,6 +11,7 @@ import (
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
 )
 
 // sqlitePostRow mirrors the posts table joined with user info and like status.
@@ -54,7 +55,7 @@ func NewSQLitePostsRepository(db *sqlx.DB) *SQLitePostsRepository {
 }
 
 func (r *SQLitePostsRepository) Create(ctx context.Context, p model.PostCreate) (model.Post, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO posts (id, user_id, content, parent_post_id, media_urls, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -109,7 +110,7 @@ func (r *SQLitePostsRepository) GetByIDWithLike(ctx context.Context, postID, vie
 }
 
 func (r *SQLitePostsRepository) Delete(ctx context.Context, postID, userID string) (int64, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	result, err := r.db.ExecContext(ctx,
 		`UPDATE posts SET deleted_at = ?, updated_at = ?
 		 WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
@@ -122,7 +123,7 @@ func (r *SQLitePostsRepository) Delete(ctx context.Context, postID, userID strin
 }
 
 func (r *SQLitePostsRepository) Like(ctx context.Context, id, postID, userID string) error {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 
 	// Try to re-activate a soft-deleted like first.
 	result, err := r.db.ExecContext(ctx,
@@ -151,7 +152,7 @@ func (r *SQLitePostsRepository) Like(ctx context.Context, id, postID, userID str
 }
 
 func (r *SQLitePostsRepository) Unlike(ctx context.Context, postID, userID string) (int64, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	result, err := r.db.ExecContext(ctx,
 		`UPDATE post_likes SET deleted_at = ?, updated_at = ?
 		 WHERE post_id = ? AND user_id = ? AND deleted_at IS NULL`,

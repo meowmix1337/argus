@@ -12,6 +12,7 @@ import (
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
 )
 
 // sqliteTaskRow mirrors the tasks table with string timestamps for SQLite scanning.
@@ -97,7 +98,7 @@ func (r *SQLiteTaskRepository) Get(ctx context.Context, id string, userID string
 }
 
 func (r *SQLiteTaskRepository) Create(ctx context.Context, t model.TaskCreate) (model.Task, error) {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	doneInt := 0
 	if t.Done {
 		doneInt = 1
@@ -114,7 +115,7 @@ func (r *SQLiteTaskRepository) Create(ctx context.Context, t model.TaskCreate) (
 }
 
 func (r *SQLiteTaskRepository) Update(ctx context.Context, id string, userID string, u model.TaskUpdate) error {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 
 	setClauses := []string{"updated_at = ?"}
 	args := []interface{}{now}
@@ -147,7 +148,7 @@ func (r *SQLiteTaskRepository) Update(ctx context.Context, id string, userID str
 }
 
 func (r *SQLiteTaskRepository) Delete(ctx context.Context, id string, userID string) error {
-	now := time.Now().UTC().Format(timeFormat)
+	now := time.Now().UTC().Format(platformdb.TimeFormat)
 	_, err := r.db.ExecContext(ctx,
 		`UPDATE tasks SET deleted_at = ?, updated_at = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
 		now, now, id, userID,

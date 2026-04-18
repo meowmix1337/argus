@@ -14,10 +14,10 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/config"
+	"github.com/meowmix1337/argus/backend/internal/platform/validate"
 	"github.com/meowmix1337/argus/backend/internal/repository"
 	"github.com/meowmix1337/argus/backend/internal/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
-	"github.com/meowmix1337/argus/backend/internal/validate"
 )
 
 // Server holds the HTTP router and all dependencies.
