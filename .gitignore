@@ -9,6 +9,7 @@
 # Go
 backend/bin/
 backend/tmp/
+backend/coverage.out
 
 # Local dev data (SQLite bind-mount; wiped by make docker-dev-reset)
 data/*.db
