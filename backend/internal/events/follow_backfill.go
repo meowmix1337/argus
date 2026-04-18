@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
 )
 
 // backfillLimit is the maximum number of historical posts to backfill per follow event.
@@ -33,7 +34,7 @@ func NewFollowBackfillConsumer(postStore BackfillPostStore, feedStore FanoutFeed
 }
 
 // Topic implements MessageHandler.
-func (c *FollowBackfillConsumer) Topic() string { return TopicUserFollowed }
+func (c *FollowBackfillConsumer) Topic() string { return platformevents.TopicUserFollowed }
 
 // Channel implements MessageHandler.
 func (c *FollowBackfillConsumer) Channel() string { return "feed-backfill" }
@@ -48,7 +49,7 @@ func (c *FollowBackfillConsumer) Process(body []byte) error {
 		slog.Warn("follow backfill: unknown envelope version, skipping", "version", evt.Version)
 		return nil
 	}
-	var payload UserFollowedPayload
+	var payload platformevents.UserFollowedPayload
 	if err := json.Unmarshal(evt.Payload, &payload); err != nil {
 		return fmt.Errorf("unmarshal user followed payload: %w", err)
 	}
@@ -56,7 +57,7 @@ func (c *FollowBackfillConsumer) Process(body []byte) error {
 }
 
 // process performs the backfill for a single UserFollowedPayload.
-func (c *FollowBackfillConsumer) process(payload UserFollowedPayload) error {
+func (c *FollowBackfillConsumer) process(payload platformevents.UserFollowedPayload) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

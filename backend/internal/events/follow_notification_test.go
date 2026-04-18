@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
 )
 
 // buildUserFollowedEnvelope marshals a UserFollowedPayload into a raw EventEnvelope JSON message.
-func buildUserFollowedEnvelope(t *testing.T, payload UserFollowedPayload) []byte {
+func buildUserFollowedEnvelope(t *testing.T, payload platformevents.UserFollowedPayload) []byte {
 	t.Helper()
-	env := NewEnvelope(TopicUserFollowed, payload)
+	env := platformevents.NewEnvelope(platformevents.TopicUserFollowed, payload)
 	b, err := json.Marshal(env)
 	if err != nil {
 		t.Fatalf("marshal envelope: %v", err)
@@ -24,7 +25,7 @@ func TestFollowNotificationConsumer_Process_ValidPayload(t *testing.T) {
 	prefs := &fakePrefsReader{prefs: map[string]model.SocialNotificationPrefs{}}
 	consumer := NewFollowNotificationConsumer(notifier, prefs)
 
-	body := buildUserFollowedEnvelope(t, UserFollowedPayload{
+	body := buildUserFollowedEnvelope(t, platformevents.UserFollowedPayload{
 		FollowerID:   "follower-1",
 		FollowingID:  "target-1",
 		FollowerName: "Alice",
@@ -57,7 +58,7 @@ func TestFollowNotificationConsumer_Process_MutedUserSkipped(t *testing.T) {
 	}}
 	consumer := NewFollowNotificationConsumer(notifier, prefs)
 
-	body := buildUserFollowedEnvelope(t, UserFollowedPayload{
+	body := buildUserFollowedEnvelope(t, platformevents.UserFollowedPayload{
 		FollowerID:   "follower-1",
 		FollowingID:  "target-1",
 		FollowerName: "Bob",
@@ -79,7 +80,7 @@ func TestFollowNotificationConsumer_Process_MalformedJSON(t *testing.T) {
 }
 
 func TestFollowNotificationConsumer_Process_UnknownVersion(t *testing.T) {
-	env := EventEnvelope{Version: 99, Type: TopicUserFollowed, Payload: map[string]string{}}
+	env := platformevents.EventEnvelope{Version: 99, Type: platformevents.TopicUserFollowed, Payload: map[string]string{}}
 	body, _ := json.Marshal(env)
 	consumer := NewFollowNotificationConsumer(&fakeNotifCreator{}, &fakePrefsReader{})
 	if err := consumer.Process(body); err != nil {
@@ -92,7 +93,7 @@ func TestFollowNotificationConsumer_Process_PrefsError_ReturnsError(t *testing.T
 	prefs.err = context.DeadlineExceeded
 	consumer := NewFollowNotificationConsumer(&fakeNotifCreator{}, prefs)
 
-	body := buildUserFollowedEnvelope(t, UserFollowedPayload{
+	body := buildUserFollowedEnvelope(t, platformevents.UserFollowedPayload{
 		FollowerID:   "f1",
 		FollowingID:  "t1",
 		FollowerName: "Alice",

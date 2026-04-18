@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 
-	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
+	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
 )
 
 const (
@@ -35,12 +35,12 @@ type PostStore interface {
 // PostsService manages social feed posts.
 type PostsService struct {
 	store     PostStore
-	publisher events.Publisher
+	publisher platformevents.Publisher
 	sanitizer *bluemonday.Policy
 }
 
 // NewPostsService creates a new PostsService.
-func NewPostsService(store PostStore, publisher events.Publisher) *PostsService {
+func NewPostsService(store PostStore, publisher platformevents.Publisher) *PostsService {
 	return &PostsService{
 		store:     store,
 		publisher: publisher,
@@ -79,7 +79,7 @@ func (s *PostsService) Create(ctx context.Context, userID, content string, paren
 		preview = preview[:contentPreviewMaxRunes]
 	}
 
-	if pubErr := s.publisher.PublishEvent(events.TopicPostCreated, events.PostCreatedPayload{
+	if pubErr := s.publisher.PublishEvent(platformevents.TopicPostCreated, platformevents.PostCreatedPayload{
 		PostID:         post.ID,
 		UserID:         post.UserID,
 		AuthorName:     post.UserName,

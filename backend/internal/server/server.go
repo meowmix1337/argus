@@ -14,6 +14,7 @@ import (
 	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 	"github.com/meowmix1337/argus/backend/internal/platform/config"
 	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
+	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
 	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
@@ -28,8 +29,8 @@ type Server struct {
 	cfg       *config.Config
 	db        *sqlx.DB
 	encSvc    *platformcrypto.EncryptionService // nil means no encryption
-	publisher events.Publisher
-	cm        *events.ConsumerManager // nil when NSQ is not configured
+	publisher platformevents.Publisher
+	cm        *platformevents.ConsumerManager // nil when NSQ is not configured
 }
 
 // New creates a new Server with all services, handlers, and routes registered.
@@ -115,8 +116,8 @@ func (s *Server) setupRoutes() {
 
 	// NSQ consumers — only started when NSQ_LOOKUPD_ADDR is configured.
 	if s.cfg.NSQLookupdAddr != "" {
-		cm := events.NewConsumerManager(s.cfg.NSQLookupdAddr)
-		for _, consumer := range []events.MessageHandler{
+		cm := platformevents.NewConsumerManager(s.cfg.NSQLookupdAddr)
+		for _, consumer := range []platformevents.MessageHandler{
 			events.NewFeedFanoutConsumer(followRepo, feedRepo),
 			events.NewFollowBackfillConsumer(postsRepo, feedRepo),
 			events.NewFollowerNotificationConsumer(followRepo, notificationSvc, socialPrefsSvc),
@@ -204,14 +205,14 @@ func (s *Server) setupRoutes() {
 }
 
 // buildPublisher returns a real NSQ publisher when nsqdAddr is set, or a noop publisher otherwise.
-func buildPublisher(nsqdAddr string) events.Publisher {
+func buildPublisher(nsqdAddr string) platformevents.Publisher {
 	if nsqdAddr == "" {
-		return &events.NoopPublisher{}
+		return &platformevents.NoopPublisher{}
 	}
-	p, err := events.NewNSQPublisher(nsqdAddr)
+	p, err := platformevents.NewNSQPublisher(nsqdAddr)
 	if err != nil {
 		slog.Warn("failed to create NSQ publisher, falling back to noop", "error", err)
-		return &events.NoopPublisher{}
+		return &platformevents.NoopPublisher{}
 	}
 	return p
 }

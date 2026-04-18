@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
+	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
 )
 
 // FollowStore defines the data-access contract for follow relationships.
@@ -25,11 +25,11 @@ type FollowStore interface {
 // FollowService manages follow relationships.
 type FollowService struct {
 	store     FollowStore
-	publisher events.Publisher
+	publisher platformevents.Publisher
 }
 
 // NewFollowService creates a new FollowService.
-func NewFollowService(store FollowStore, publisher events.Publisher) *FollowService {
+func NewFollowService(store FollowStore, publisher platformevents.Publisher) *FollowService {
 	return &FollowService{store: store, publisher: publisher}
 }
 
@@ -59,7 +59,7 @@ func (s *FollowService) Follow(ctx context.Context, followerID, followingID, fol
 		return fmt.Errorf("follow: %w", err)
 	}
 
-	if pubErr := s.publisher.PublishEvent(events.TopicUserFollowed, events.UserFollowedPayload{
+	if pubErr := s.publisher.PublishEvent(platformevents.TopicUserFollowed, platformevents.UserFollowedPayload{
 		FollowerID:   followerID,
 		FollowingID:  followingID,
 		FollowerName: followerName,

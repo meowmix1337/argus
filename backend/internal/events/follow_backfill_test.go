@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
 )
 
 // fakeBackfillPostStore implements BackfillPostStore for tests.
@@ -20,9 +21,9 @@ func (f *fakeBackfillPostStore) ListPostIDsByAuthor(_ context.Context, _ string,
 }
 
 // buildFollowEnvelope marshals a UserFollowedPayload into a raw EventEnvelope JSON message.
-func buildFollowEnvelope(t *testing.T, payload UserFollowedPayload) []byte {
+func buildFollowEnvelope(t *testing.T, payload platformevents.UserFollowedPayload) []byte {
 	t.Helper()
-	env := NewEnvelope(TopicUserFollowed, payload)
+	env := platformevents.NewEnvelope(platformevents.TopicUserFollowed, payload)
 	b, err := json.Marshal(env)
 	if err != nil {
 		t.Fatalf("marshal follow envelope: %v", err)
@@ -35,7 +36,7 @@ func TestFollowBackfill_NoPosts_NoRowsInserted(t *testing.T) {
 	feedStore := &fakeFanoutFeedStore{}
 	consumer := NewFollowBackfillConsumer(postStore, feedStore)
 
-	body := buildFollowEnvelope(t, UserFollowedPayload{FollowerID: "u1", FollowingID: "u2"})
+	body := buildFollowEnvelope(t, platformevents.UserFollowedPayload{FollowerID: "u1", FollowingID: "u2"})
 	if err := consumer.Process(body); err != nil {
 		t.Fatalf("Process: %v", err)
 	}
@@ -54,7 +55,7 @@ func TestFollowBackfill_BackfillsRecentPosts(t *testing.T) {
 	feedStore := &fakeFanoutFeedStore{}
 	consumer := NewFollowBackfillConsumer(postStore, feedStore)
 
-	body := buildFollowEnvelope(t, UserFollowedPayload{FollowerID: "follower-1", FollowingID: "author-1"})
+	body := buildFollowEnvelope(t, platformevents.UserFollowedPayload{FollowerID: "follower-1", FollowingID: "author-1"})
 	if err := consumer.Process(body); err != nil {
 		t.Fatalf("Process: %v", err)
 	}
@@ -87,7 +88,7 @@ func TestFollowBackfill_PostCreatedAtPreserved(t *testing.T) {
 	feedStore := &fakeFanoutFeedStore{}
 	consumer := NewFollowBackfillConsumer(postStore, feedStore)
 
-	body := buildFollowEnvelope(t, UserFollowedPayload{FollowerID: "f1", FollowingID: "a1"})
+	body := buildFollowEnvelope(t, platformevents.UserFollowedPayload{FollowerID: "f1", FollowingID: "a1"})
 	if err := consumer.Process(body); err != nil {
 		t.Fatalf("Process: %v", err)
 	}
@@ -100,7 +101,7 @@ func TestFollowBackfill_PostStoreError_Propagates(t *testing.T) {
 	postStore := &fakeBackfillPostStore{err: errors.New("db failure")}
 	consumer := NewFollowBackfillConsumer(postStore, &fakeFanoutFeedStore{})
 
-	body := buildFollowEnvelope(t, UserFollowedPayload{FollowerID: "f1", FollowingID: "a1"})
+	body := buildFollowEnvelope(t, platformevents.UserFollowedPayload{FollowerID: "f1", FollowingID: "a1"})
 	if err := consumer.Process(body); err == nil {
 		t.Error("expected error from post store, got nil")
 	}
@@ -111,7 +112,7 @@ func TestFollowBackfill_FeedStoreError_Propagates(t *testing.T) {
 	feedStore := &fakeFanoutFeedStore{err: errors.New("insert failed")}
 	consumer := NewFollowBackfillConsumer(postStore, feedStore)
 
-	body := buildFollowEnvelope(t, UserFollowedPayload{FollowerID: "f1", FollowingID: "a1"})
+	body := buildFollowEnvelope(t, platformevents.UserFollowedPayload{FollowerID: "f1", FollowingID: "a1"})
 	if err := consumer.Process(body); err == nil {
 		t.Error("expected error from feed store, got nil")
 	}
@@ -125,7 +126,7 @@ func TestFollowBackfill_MalformedJSON(t *testing.T) {
 }
 
 func TestFollowBackfill_UnknownVersion(t *testing.T) {
-	env := EventEnvelope{Version: 99, Type: TopicUserFollowed, Payload: map[string]string{}}
+	env := platformevents.EventEnvelope{Version: 99, Type: platformevents.TopicUserFollowed, Payload: map[string]string{}}
 	body, _ := json.Marshal(env)
 	consumer := NewFollowBackfillConsumer(&fakeBackfillPostStore{}, &fakeFanoutFeedStore{})
 	if err := consumer.Process(body); err != nil {

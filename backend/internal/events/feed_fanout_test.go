@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
+	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
 )
 
 // fakeFollowStore implements FanoutFollowStore for tests.
@@ -34,9 +35,9 @@ func (f *fakeFanoutFeedStore) BulkInsertUserFeed(_ context.Context, rows []model
 }
 
 // buildEnvelope marshals a PostCreatedPayload into a raw EventEnvelope JSON message.
-func buildEnvelope(t *testing.T, payload PostCreatedPayload) []byte {
+func buildEnvelope(t *testing.T, payload platformevents.PostCreatedPayload) []byte {
 	t.Helper()
-	env := NewEnvelope(TopicPostCreated, payload)
+	env := platformevents.NewEnvelope(platformevents.TopicPostCreated, payload)
 	b, err := json.Marshal(env)
 	if err != nil {
 		t.Fatalf("marshal envelope: %v", err)
@@ -49,7 +50,7 @@ func TestFeedFanoutConsumer_Process_ValidPayload(t *testing.T) {
 	feedStore := &fakeFanoutFeedStore{}
 	consumer := NewFeedFanoutConsumer(followers, feedStore)
 
-	body := buildEnvelope(t, PostCreatedPayload{PostID: "post-abc", UserID: "author-1"})
+	body := buildEnvelope(t, platformevents.PostCreatedPayload{PostID: "post-abc", UserID: "author-1"})
 	if err := consumer.Process(body); err != nil {
 		t.Fatalf("Process: %v", err)
 	}
@@ -80,7 +81,7 @@ func TestFeedFanoutConsumer_Process_NoFollowers(t *testing.T) {
 	feedStore := &fakeFanoutFeedStore{}
 	consumer := NewFeedFanoutConsumer(followers, feedStore)
 
-	body := buildEnvelope(t, PostCreatedPayload{PostID: "post-xyz", UserID: "author-2"})
+	body := buildEnvelope(t, platformevents.PostCreatedPayload{PostID: "post-xyz", UserID: "author-2"})
 	if err := consumer.Process(body); err != nil {
 		t.Fatalf("Process: %v", err)
 	}
@@ -103,7 +104,7 @@ func TestFeedFanoutConsumer_Process_MalformedJSON(t *testing.T) {
 }
 
 func TestFeedFanoutConsumer_Process_UnknownVersion(t *testing.T) {
-	env := EventEnvelope{Version: 99, Type: TopicPostCreated, Payload: map[string]string{}}
+	env := platformevents.EventEnvelope{Version: 99, Type: platformevents.TopicPostCreated, Payload: map[string]string{}}
 	body, _ := json.Marshal(env)
 
 	consumer := NewFeedFanoutConsumer(&fakeFollowStore{}, &fakeFanoutFeedStore{})
@@ -116,7 +117,7 @@ func TestFeedFanoutConsumer_Process_FollowStoreError(t *testing.T) {
 	followers := &fakeFollowStore{err: errors.New("db error")}
 	consumer := NewFeedFanoutConsumer(followers, &fakeFanoutFeedStore{})
 
-	body := buildEnvelope(t, PostCreatedPayload{PostID: "post-1", UserID: "author-1"})
+	body := buildEnvelope(t, platformevents.PostCreatedPayload{PostID: "post-1", UserID: "author-1"})
 	if err := consumer.Process(body); err == nil {
 		t.Error("expected error from follow store, got nil")
 	}
@@ -127,7 +128,7 @@ func TestFeedFanoutConsumer_Process_FeedStoreError(t *testing.T) {
 	feedStore := &fakeFanoutFeedStore{err: errors.New("insert failed")}
 	consumer := NewFeedFanoutConsumer(followers, feedStore)
 
-	body := buildEnvelope(t, PostCreatedPayload{PostID: "post-1", UserID: "author-1"})
+	body := buildEnvelope(t, platformevents.PostCreatedPayload{PostID: "post-1", UserID: "author-1"})
 	if err := consumer.Process(body); err == nil {
 		t.Error("expected error from feed store, got nil")
 	}
