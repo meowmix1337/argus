@@ -222,6 +222,7 @@ When user describes UI positioning (e.g., 'at the top'), ask a clarifying questi
 - Always use feature branches — never commit directly to `main`. Create a branch with a descriptive name before making changes.
 - Verify the current branch with `git branch` before making changes. Never apply backend changes on a frontend branch or vice versa.
 - Before opening a PR, verify the base branch with `git log --oneline --graph` to avoid branch ancestry issues.
+- **Commit small and often**: each commit should represent one logical change (add a model, add a test, wire a handler, etc.). Never batch unrelated changes into a single commit. Frequent small commits make reviews easier, bisects faster, and cherry-picks cleaner.
 
 ## Claude Skills
 
