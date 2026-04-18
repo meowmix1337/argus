@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // NotificationStore defines the data-access contract for notifications.

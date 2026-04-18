@@ -7,9 +7,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // sqliteUserSummaryRow mirrors the columns needed for a lightweight user profile.

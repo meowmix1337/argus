@@ -11,8 +11,8 @@ import (
 
 	"golang.org/x/oauth2"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // ---- fake stores ----

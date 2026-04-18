@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // sqliteUserSettingsRow mirrors the user_settings table with string timestamps and nullable SQL types.

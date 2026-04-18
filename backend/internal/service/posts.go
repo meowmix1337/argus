@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 const (

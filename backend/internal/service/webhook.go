@@ -13,8 +13,8 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
 // GitHub notification event type IDs — must match rows in notification_event_types table.
