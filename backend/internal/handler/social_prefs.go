@@ -70,6 +70,10 @@ func (h *SocialPrefsHandler) UpdatePrefs(w http.ResponseWriter, r *http.Request)
 		response.WriteError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
+	if err := h.validate.Struct(&req); err != nil {
+		response.WriteError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
 
 	if err := h.service.UpsertPrefs(r.Context(), userID, req.MutePosts, req.MuteFollows); err != nil {
 		slog.Error("failed to update social prefs", "error", err, "user_id", userID)
