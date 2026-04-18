@@ -66,6 +66,10 @@ Dashboard `GET /api/dashboard` fans out concurrently via `errgroup`; failed serv
 - UI primitives: `Card.tsx`, `CardHeader.tsx`, `MiniStat.tsx`
 - When user describes UI positioning, clarify "within layout" vs "above/outside layout" before implementing
 
+## Codebase Exploration
+
+For any task spanning 3+ unknown files or requiring a survey of unfamiliar code, spawn `oh-my-claudecode:explore` first — do NOT read files inline in the main context. This keeps the main context window clean.
+
 ## Git Workflow
 - Feature branches only — never commit to `main`
 - Branch naming: `feat/<description>-<bd-ticket-id>`
