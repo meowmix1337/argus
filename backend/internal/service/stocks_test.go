@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/meowmix1337/argus/backend/internal/httpclient"
+	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
 // fakeWatchlistStore is an in-memory WatchlistStore for service tests.

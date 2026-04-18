@@ -9,8 +9,8 @@ import (
 
 	ics "github.com/arran4/golang-ical"
 
-	"github.com/meowmix1337/argus/backend/internal/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
 const calendarCacheTTL = 15 * time.Minute

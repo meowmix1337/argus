@@ -11,9 +11,9 @@ import (
 
 	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/handler"
-	"github.com/meowmix1337/argus/backend/internal/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/config"
+	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/platform/validate"
 	"github.com/meowmix1337/argus/backend/internal/repository"
 	"github.com/meowmix1337/argus/backend/internal/response"

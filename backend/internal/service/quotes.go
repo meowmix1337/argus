@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/meowmix1337/argus/backend/internal/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
 // QuotesService fetches a daily quote from API Ninjas.

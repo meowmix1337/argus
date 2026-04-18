@@ -16,8 +16,8 @@ import (
 	githubendpoint "golang.org/x/oauth2/github"
 
 	apperrors "github.com/meowmix1337/argus/backend/internal/errors"
-	"github.com/meowmix1337/argus/backend/internal/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
 // providerGitHub is the provider_types.id value for GitHub integrations.

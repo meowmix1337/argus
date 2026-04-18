@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/meowmix1337/argus/backend/internal/httpclient"
 	"github.com/meowmix1337/argus/backend/internal/model"
+	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
 // WMO weather code → (condition, emoji icon)
