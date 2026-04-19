@@ -10,6 +10,9 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	socialconsumer "github.com/meowmix1337/argus/backend/internal/domain/social/consumer"
+	socialhandler "github.com/meowmix1337/argus/backend/internal/domain/social/handler"
+	socialrepo "github.com/meowmix1337/argus/backend/internal/domain/social/repository"
+	socialsvc "github.com/meowmix1337/argus/backend/internal/domain/social/service"
 	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/handler"
 	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
@@ -95,8 +98,8 @@ func (s *Server) setupRoutes() {
 	quotesSvc := service.NewQuotesService(hc, s.cfg.APINinjasAPIKey, cache)
 	notificationRepo := repository.NewSQLiteNotificationRepository(s.db)
 	notificationSvc := service.NewNotificationService(notificationRepo)
-	socialPrefsRepo := repository.NewSQLiteSocialPrefsRepository(s.db)
-	socialPrefsSvc := service.NewSocialPrefsService(socialPrefsRepo)
+	socialPrefsRepo := socialrepo.NewSQLiteSocialPrefsRepository(s.db)
+	socialPrefsSvc := socialsvc.NewSocialPrefsService(socialPrefsRepo)
 	watchedRepoRepo := repository.NewSQLiteWatchedRepoRepository(s.db)
 	integrationRepo := repository.NewSQLiteIntegrationRepository(s.db)
 	webhookSvc := service.NewWebhookService(watchedRepoRepo, notificationRepo, s.encSvc)
@@ -107,12 +110,12 @@ func (s *Server) setupRoutes() {
 
 	// Social feed — publisher uses real NSQ when NSQD_ADDR is set, otherwise noop.
 	s.publisher = buildPublisher(s.cfg.NSQDAddr)
-	postsRepo := repository.NewSQLitePostsRepository(s.db)
-	postsSvc := service.NewPostsService(postsRepo, s.publisher)
-	followRepo := repository.NewSQLiteFollowRepository(s.db)
-	followSvc := service.NewFollowService(followRepo, s.publisher)
-	feedRepo := repository.NewSQLiteFeedRepository(s.db)
-	feedSvc := service.NewFeedService(feedRepo)
+	postsRepo := socialrepo.NewSQLitePostsRepository(s.db)
+	postsSvc := socialsvc.NewPostsService(postsRepo, s.publisher)
+	followRepo := socialrepo.NewSQLiteFollowRepository(s.db)
+	followSvc := socialsvc.NewFollowService(followRepo, s.publisher)
+	feedRepo := socialrepo.NewSQLiteFeedRepository(s.db)
+	feedSvc := socialsvc.NewFeedService(feedRepo)
 	usersRepo := repository.NewSQLiteUsersRepository(s.db)
 	usersSvc := service.NewUserService(usersRepo)
 
@@ -154,13 +157,13 @@ func (s *Server) setupRoutes() {
 	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
 	billsH := handler.NewBillsHandler(billsSvc, v)
 	notificationsH := handler.NewNotificationsHandler(notificationSvc, v)
-	socialPrefsH := handler.NewSocialPrefsHandler(socialPrefsSvc, v)
+	socialPrefsH := socialhandler.NewSocialPrefsHandler(socialPrefsSvc, v)
 	webhooksH := handler.NewWebhooksHandler(webhookSvc, v, s.cfg.AppEnv)
 	githubAuthH := handler.NewGitHubAuthHandler(githubIntegrationSvc, s.cfg.FrontendURL, s.cfg.SecureCookies)
 	integrationsH := handler.NewIntegrationsHandler(githubIntegrationSvc, v)
-	postsH := handler.NewPostsHandler(postsSvc, v)
-	followH := handler.NewFollowHandler(followSvc, v)
-	feedH := handler.NewFeedHandler(feedSvc)
+	postsH := socialhandler.NewPostsHandler(postsSvc, v)
+	followH := socialhandler.NewFollowHandler(followSvc, v)
+	feedH := socialhandler.NewFeedHandler(feedSvc)
 	usersH := handler.NewUsersHandler(usersSvc)
 	dashboardH := handler.NewDashboardHandler(
 		weatherSvc,

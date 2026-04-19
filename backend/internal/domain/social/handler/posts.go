@@ -11,20 +11,20 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/go-playground/validator/v10"
 
+	socialsvc "github.com/meowmix1337/argus/backend/internal/domain/social/service"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // PostsHandler handles social feed post endpoints.
 type PostsHandler struct {
-	service  *service.PostsService
+	service  *socialsvc.PostsService
 	validate *validator.Validate
 }
 
 // NewPostsHandler creates a new PostsHandler.
-func NewPostsHandler(svc *service.PostsService, v *validator.Validate) *PostsHandler {
+func NewPostsHandler(svc *socialsvc.PostsService, v *validator.Validate) *PostsHandler {
 	return &PostsHandler{service: svc, validate: v}
 }
 

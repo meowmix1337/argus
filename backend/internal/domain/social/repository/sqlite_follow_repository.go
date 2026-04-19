@@ -27,7 +27,7 @@ func (r *sqliteUserSummaryRow) toModel() model.UserSummary {
 	}
 }
 
-// SQLiteFollowRepository implements service.FollowStore backed by SQLite.
+// SQLiteFollowRepository implements FollowStore backed by SQLite.
 type SQLiteFollowRepository struct {
 	db *sqlx.DB
 }

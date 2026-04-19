@@ -44,7 +44,7 @@ func (r *sqlitePostRow) toModel() model.Post {
 	}
 }
 
-// SQLitePostsRepository implements service.PostStore backed by SQLite.
+// SQLitePostsRepository implements PostStore backed by SQLite.
 type SQLitePostsRepository struct {
 	db *sqlx.DB
 }

@@ -10,20 +10,20 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/go-playground/validator/v10"
 
+	socialsvc "github.com/meowmix1337/argus/backend/internal/domain/social/service"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // FollowHandler handles follow/unfollow endpoints.
 type FollowHandler struct {
-	service  *service.FollowService
+	service  *socialsvc.FollowService
 	validate *validator.Validate
 }
 
 // NewFollowHandler creates a new FollowHandler.
-func NewFollowHandler(svc *service.FollowService, v *validator.Validate) *FollowHandler {
+func NewFollowHandler(svc *socialsvc.FollowService, v *validator.Validate) *FollowHandler {
 	return &FollowHandler{service: svc, validate: v}
 }
 
@@ -37,7 +37,7 @@ func (h *FollowHandler) AddRoutes(r chi.Router) {
 }
 
 func (h *FollowHandler) Follow(w http.ResponseWriter, r *http.Request) {
-	sess, ok := sessionFromRequest(r)
+	sess, ok := middleware.SessionFromContext(r.Context())
 	if !ok {
 		response.WriteError(w, http.StatusUnauthorized, "unauthorized")
 		return

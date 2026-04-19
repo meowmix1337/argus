@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 
+	"github.com/meowmix1337/argus/backend/internal/domain/social/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/publisher"
@@ -20,27 +21,15 @@ const (
 	contentPreviewMaxRunes = 100
 )
 
-// PostStore defines the data-access contract for posts.
-type PostStore interface {
-	Create(ctx context.Context, p model.PostCreate) (model.Post, error)
-	GetByID(ctx context.Context, postID string) (model.Post, error)
-	GetByIDWithLike(ctx context.Context, postID, viewerID string) (model.Post, error)
-	Delete(ctx context.Context, postID, userID string) (int64, error)
-	Like(ctx context.Context, id, postID, userID string) error
-	Unlike(ctx context.Context, postID, userID string) (int64, error)
-	ListByUser(ctx context.Context, authorID, viewerID string, limit, offset int) ([]model.Post, int, error)
-	Search(ctx context.Context, query, viewerID string, limit, offset int) ([]model.Post, int, error)
-}
-
 // PostsService manages social feed posts.
 type PostsService struct {
-	store     PostStore
+	store     repository.PostStore
 	pub       publisher.Publisher
 	sanitizer *bluemonday.Policy
 }
 
 // NewPostsService creates a new PostsService.
-func NewPostsService(store PostStore, pub publisher.Publisher) *PostsService {
+func NewPostsService(store repository.PostStore, pub publisher.Publisher) *PostsService {
 	return &PostsService{
 		store:     store,
 		pub:       pub,

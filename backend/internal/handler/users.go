@@ -15,6 +15,9 @@ import (
 const (
 	minUserSearchQuery = 2
 	maxUserSearchQuery = 100
+
+	defaultUserSearchLimit = 20
+	maxUserSearchLimit     = 100
 )
 
 // UsersHandler handles user-search endpoints.
@@ -49,9 +52,9 @@ func (h *UsersHandler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit := defaultFollowLimit
+	limit := defaultUserSearchLimit
 	if l := r.URL.Query().Get("limit"); l != "" {
-		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= maxFollowLimit {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= maxUserSearchLimit {
 			limit = parsed
 		}
 	}
