@@ -4,21 +4,17 @@ import (
 	"context"
 	"fmt"
 
+	usersrepo "github.com/meowmix1337/argus/backend/internal/domain/users/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
-// UserSearchStore defines the data-access contract for user search.
-type UserSearchStore interface {
-	SearchUsers(ctx context.Context, viewerID, q string, limit, offset int) ([]model.UserSummary, int, error)
-}
-
 // UserService provides user discovery operations.
 type UserService struct {
-	store UserSearchStore
+	store usersrepo.UserSearchStore
 }
 
 // NewUserService creates a new UserService.
-func NewUserService(store UserSearchStore) *UserService {
+func NewUserService(store usersrepo.UserSearchStore) *UserService {
 	return &UserService{store: store}
 }
 

@@ -65,7 +65,7 @@ func (r *newsCategoryTypeRow) toModel() model.NewsCategoryType {
 	}
 }
 
-// SQLiteUserSettingsRepository implements UserSettingsRepository backed by SQLite via sqlx.
+// SQLiteUserSettingsRepository implements UserSettingsStore backed by SQLite via sqlx.
 type SQLiteUserSettingsRepository struct {
 	db *sqlx.DB
 }

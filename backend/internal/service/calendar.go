@@ -20,16 +20,21 @@ var calendarColors = []string{
 	"#6366f1", "#f59e0b", "#10b981", "#ec4899", "#8b5cf6", "#14b8a6",
 }
 
+// userSettingsGetter is the subset of UserSettingsService used by CalendarService.
+type userSettingsGetter interface {
+	Get(ctx context.Context, userID string) (*model.UserSettings, error)
+}
+
 // CalendarService fetches and parses an ICS/iCal feed URL.
 type CalendarService struct {
 	httpClient          httpclient.HTTPClient
 	cache               *platformcache.CacheService
 	loc                 *time.Location
-	userSettingsService *UserSettingsService
+	userSettingsService userSettingsGetter
 }
 
 // NewCalendarService creates a new CalendarService.
-func NewCalendarService(httpClient httpclient.HTTPClient, cache *platformcache.CacheService, loc *time.Location, userSettingService *UserSettingsService) *CalendarService {
+func NewCalendarService(httpClient httpclient.HTTPClient, cache *platformcache.CacheService, loc *time.Location, userSettingService userSettingsGetter) *CalendarService {
 	if loc == nil {
 		loc = time.Local
 	}

@@ -12,19 +12,19 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	userssvc "github.com/meowmix1337/argus/backend/internal/domain/users/service"
 	"github.com/meowmix1337/argus/backend/internal/platform/session"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // AuthHandler serves the Google OAuth login / callback / logout endpoints.
 type AuthHandler struct {
-	authSvc       *service.AuthService
+	authSvc       *userssvc.AuthService
 	sessionKey    []byte
 	successURL    string // where to redirect after a successful login
 	secureCookies bool
 }
 
-func NewAuthHandler(authSvc *service.AuthService, sessionKey []byte, successURL string, secureCookies bool) *AuthHandler {
+func NewAuthHandler(authSvc *userssvc.AuthService, sessionKey []byte, successURL string, secureCookies bool) *AuthHandler {
 	return &AuthHandler{
 		authSvc:       authSvc,
 		sessionKey:    sessionKey,

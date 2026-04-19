@@ -10,21 +10,21 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/go-playground/validator/v10"
 
+	userssvc "github.com/meowmix1337/argus/backend/internal/domain/users/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // UserSettingsHandler handles reading and updating user-scoped settings.
 type UserSettingsHandler struct {
-	service  *service.UserSettingsService
+	service  *userssvc.UserSettingsService
 	validate *validator.Validate
 }
 
 // NewUserSettingsHandler creates a new UserSettingsHandler.
-func NewUserSettingsHandler(svc *service.UserSettingsService, v *validator.Validate) *UserSettingsHandler {
+func NewUserSettingsHandler(svc *userssvc.UserSettingsService, v *validator.Validate) *UserSettingsHandler {
 	return &UserSettingsHandler{service: svc, validate: v}
 }
 

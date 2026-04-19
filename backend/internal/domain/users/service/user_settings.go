@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 
+	usersrepo "github.com/meowmix1337/argus/backend/internal/domain/users/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
@@ -21,23 +22,14 @@ var ErrSettingsValidation = apperrors.ErrSettingsValidation
 // ErrCategoryNotFound is returned when an invalid news category ID is provided.
 var ErrCategoryNotFound = apperrors.ErrCategoryNotFound
 
-// UserSettingsStore defines the data-access contract for user settings.
-type UserSettingsStore interface {
-	Get(ctx context.Context, userID string) (model.UserSettings, error)
-	Upsert(ctx context.Context, userID string, u model.UserSettingsUpsert) (model.UserSettings, error)
-	ListAllCategories(ctx context.Context) ([]model.NewsCategoryType, error)
-	ListSelectedCategories(ctx context.Context, userID string) ([]model.NewsCategoryType, error)
-	SetSelectedCategories(ctx context.Context, userID string, categoryIDs []string) error
-}
-
 // UserSettingsService manages user settings via a store.
 type UserSettingsService struct {
-	store UserSettingsStore
+	store usersrepo.UserSettingsStore
 	enc   *platformcrypto.EncryptionService
 }
 
 // NewUserSettingsService creates a new UserSettingsService backed by the given store.
-func NewUserSettingsService(store UserSettingsStore, enc *platformcrypto.EncryptionService) *UserSettingsService {
+func NewUserSettingsService(store usersrepo.UserSettingsStore, enc *platformcrypto.EncryptionService) *UserSettingsService {
 	return &UserSettingsService{store: store, enc: enc}
 }
 
