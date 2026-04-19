@@ -13,6 +13,8 @@ import (
 	socialhandler "github.com/meowmix1337/argus/backend/internal/domain/social/handler"
 	socialrepo "github.com/meowmix1337/argus/backend/internal/domain/social/repository"
 	socialsvc "github.com/meowmix1337/argus/backend/internal/domain/social/service"
+	usersrepo "github.com/meowmix1337/argus/backend/internal/domain/users/repository"
+	userssvc "github.com/meowmix1337/argus/backend/internal/domain/users/service"
 	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/handler"
 	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
@@ -89,8 +91,8 @@ func (s *Server) setupRoutes() {
 	billsRepo := repository.NewSQLiteBillsRepository(s.db)
 	billPaymentsRepo := repository.NewSQLiteBillPaymentsRepository(s.db)
 	billsSvc := service.NewBillsService(billsRepo, billPaymentsRepo)
-	settingsRepo := repository.NewSQLiteUserSettingsRepository(s.db)
-	settingsSvc := service.NewUserSettingsService(settingsRepo, s.encSvc)
+	settingsRepo := usersrepo.NewSQLiteUserSettingsRepository(s.db)
+	settingsSvc := userssvc.NewUserSettingsService(settingsRepo, s.encSvc)
 	calendarSvc := service.NewCalendarService(hc, cache, s.cfg.Timezone, settingsSvc)
 	labelRepo := repository.NewSQLiteTaskLabelsRepository(s.db)
 	labelsSvc := service.NewTaskLabelsService(labelRepo)
@@ -116,8 +118,8 @@ func (s *Server) setupRoutes() {
 	followSvc := socialsvc.NewFollowService(followRepo, s.publisher)
 	feedRepo := socialrepo.NewSQLiteFeedRepository(s.db)
 	feedSvc := socialsvc.NewFeedService(feedRepo)
-	usersRepo := repository.NewSQLiteUsersRepository(s.db)
-	usersSvc := service.NewUserService(usersRepo)
+	usersRepo := usersrepo.NewSQLiteUsersRepository(s.db)
+	usersSvc := userssvc.NewUserService(usersRepo)
 
 	// NSQ consumers — only started when NSQ_LOOKUPD_ADDR is configured.
 	if s.cfg.NSQLookupdAddr != "" {
@@ -141,7 +143,7 @@ func (s *Server) setupRoutes() {
 	}
 
 	// Auth
-	authSvc := service.NewAuthService(s.db, s.cfg.GoogleClientID, s.cfg.GoogleClientSecret, s.cfg.GoogleCallbackURL)
+	authSvc := userssvc.NewAuthService(s.db, s.cfg.GoogleClientID, s.cfg.GoogleClientSecret, s.cfg.GoogleCallbackURL)
 	authH := handler.NewAuthHandler(authSvc, s.cfg.SessionKey, s.cfg.FrontendURL, s.cfg.SecureCookies)
 	requireAuth := middleware.RequireAuth(s.cfg.SessionKey)
 	meH := handler.NewMeHandler()

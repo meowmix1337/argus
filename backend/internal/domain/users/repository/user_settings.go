@@ -6,8 +6,9 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
-// UserSettingsRepository defines the data-access contract for user settings.
-type UserSettingsRepository interface {
+// UserSettingsStore defines the data-access contract for user settings.
+// This is the merged superset of the former UserSettingsRepository and UserSettingsStore interfaces.
+type UserSettingsStore interface {
 	// Get returns the settings for the given user.
 	Get(ctx context.Context, userID string) (model.UserSettings, error)
 	// Upsert creates or updates settings for the given user, returning the final state.

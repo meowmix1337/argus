@@ -313,3 +313,7 @@
 {"actor":"Dave Van","comment":null,"created_at":"2026-04-18T09:37:34Z","event_type":"closed","id":313,"issue_id":"argus-2es","new_value":"All phases complete and merged — notification center fully shipped","old_value":""}
 {"actor":"Dave Van","comment":null,"created_at":"2026-04-18T09:37:52Z","event_type":"closed","id":314,"issue_id":"argus-54l","new_value":"PR #95 merged — social source filtering wired up","old_value":""}
 {"actor":"Dave Van","comment":null,"created_at":"2026-04-18T11:38:36Z","event_type":"created","id":315,"issue_id":"argus-38t","new_value":"","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-18T20:49:58Z","event_type":"closed","id":316,"issue_id":"argus-530","new_value":"Closed","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-18T20:50:00Z","event_type":"closed","id":317,"issue_id":"argus-b5w","new_value":"Closed","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-18T20:50:02Z","event_type":"closed","id":318,"issue_id":"argus-39s","new_value":"Closed","old_value":""}
+{"actor":"Dave Van","comment":null,"created_at":"2026-04-18T21:27:24Z","event_type":"closed","id":319,"issue_id":"argus-awd","new_value":"Closed","old_value":""}
