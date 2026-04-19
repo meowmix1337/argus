@@ -11,9 +11,10 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	usersrepo "github.com/meowmix1337/argus/backend/internal/domain/users/repository"
+	userssvc "github.com/meowmix1337/argus/backend/internal/domain/users/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // fakeUserSettingsStore is an in-memory UserSettingsStore for handler tests.
@@ -68,8 +69,8 @@ func (f *fakeUserSettingsStore) SetSelectedCategories(_ context.Context, _ strin
 	return nil
 }
 
-func newTestUserSettingsHandler(store service.UserSettingsStore) *UserSettingsHandler {
-	svc := service.NewUserSettingsService(store, nil)
+func newTestUserSettingsHandler(store usersrepo.UserSettingsStore) *UserSettingsHandler {
+	svc := userssvc.NewUserSettingsService(store, nil)
 	return NewUserSettingsHandler(svc, validator.New())
 }
 
