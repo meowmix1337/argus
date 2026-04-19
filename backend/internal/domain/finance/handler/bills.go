@@ -12,20 +12,20 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/go-playground/validator/v10"
 
+	financesvc "github.com/meowmix1337/argus/backend/internal/domain/finance/service"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // BillsHandler handles CRUD for user-scoped bills.
 type BillsHandler struct {
-	service  *service.BillsService
+	service  *financesvc.BillsService
 	validate *validator.Validate
 }
 
 // NewBillsHandler creates a new BillsHandler.
-func NewBillsHandler(svc *service.BillsService, v *validator.Validate) *BillsHandler {
+func NewBillsHandler(svc *financesvc.BillsService, v *validator.Validate) *BillsHandler {
 	return &BillsHandler{service: svc, validate: v}
 }
 

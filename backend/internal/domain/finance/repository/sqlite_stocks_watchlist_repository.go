@@ -11,7 +11,7 @@ import (
 	platformdb "github.com/meowmix1337/argus/backend/internal/platform/database"
 )
 
-// SQLiteStocksWatchlistRepository implements StocksWatchlistRepository backed by SQLite.
+// SQLiteStocksWatchlistRepository implements WatchlistStore backed by SQLite.
 type SQLiteStocksWatchlistRepository struct {
 	db *sqlx.DB
 }

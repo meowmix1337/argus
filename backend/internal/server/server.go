@@ -9,6 +9,9 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
 
+	financehandler "github.com/meowmix1337/argus/backend/internal/domain/finance/handler"
+	financerepo "github.com/meowmix1337/argus/backend/internal/domain/finance/repository"
+	financesvc "github.com/meowmix1337/argus/backend/internal/domain/finance/service"
 	socialconsumer "github.com/meowmix1337/argus/backend/internal/domain/social/consumer"
 	socialhandler "github.com/meowmix1337/argus/backend/internal/domain/social/handler"
 	socialrepo "github.com/meowmix1337/argus/backend/internal/domain/social/repository"
@@ -88,13 +91,13 @@ func (s *Server) setupRoutes() {
 	// Services
 	weatherSvc := service.NewWeatherService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
 	newsSvc := service.NewNewsService(hc, s.cfg.GNewsAPIKey, cache)
-	watchlistRepo := repository.NewSQLiteStocksWatchlistRepository(s.db)
-	stocksSvc := service.NewStocksService(hc, s.cfg.FinnhubAPIKey, cache, watchlistRepo)
+	watchlistRepo := financerepo.NewSQLiteStocksWatchlistRepository(s.db)
+	stocksSvc := financesvc.NewStocksService(hc, s.cfg.FinnhubAPIKey, cache, watchlistRepo)
 	taskRepo := tasksrepo.NewSQLiteTaskRepository(s.db)
 	tasksSvc := taskssvc.NewTasksService(taskRepo)
-	billsRepo := repository.NewSQLiteBillsRepository(s.db)
-	billPaymentsRepo := repository.NewSQLiteBillPaymentsRepository(s.db)
-	billsSvc := service.NewBillsService(billsRepo, billPaymentsRepo)
+	billsRepo := financerepo.NewSQLiteBillsRepository(s.db)
+	billPaymentsRepo := financerepo.NewSQLiteBillPaymentsRepository(s.db)
+	billsSvc := financesvc.NewBillsService(billsRepo, billPaymentsRepo)
 	settingsRepo := usersrepo.NewSQLiteUserSettingsRepository(s.db)
 	settingsSvc := userssvc.NewUserSettingsService(settingsRepo, s.encSvc)
 	calendarSvc := service.NewCalendarService(hc, cache, s.cfg.Timezone, settingsSvc)
@@ -155,13 +158,13 @@ func (s *Server) setupRoutes() {
 	// Handlers
 	weatherH := handler.NewWeatherHandler(weatherSvc)
 	newsH := handler.NewNewsHandler(newsSvc)
-	stocksH := handler.NewStocksHandler(stocksSvc, v)
+	stocksH := financehandler.NewStocksHandler(stocksSvc, v)
 	calendarH := handler.NewCalendarHandler(calendarSvc)
 	tasksH := taskshandler.NewTasksHandler(tasksSvc, v)
 	settingsH := usershandler.NewUserSettingsHandler(settingsSvc, v)
 	labelsH := taskshandler.NewTaskLabelsHandler(labelsSvc, v)
 	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
-	billsH := handler.NewBillsHandler(billsSvc, v)
+	billsH := financehandler.NewBillsHandler(billsSvc, v)
 	notificationsH := handler.NewNotificationsHandler(notificationSvc, v)
 	socialPrefsH := socialhandler.NewSocialPrefsHandler(socialPrefsSvc, v)
 	webhooksH := handler.NewWebhooksHandler(webhookSvc, v, s.cfg.AppEnv)

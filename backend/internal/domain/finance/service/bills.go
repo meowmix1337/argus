@@ -12,36 +12,19 @@ import (
 
 	"github.com/google/uuid"
 
+	financerepo "github.com/meowmix1337/argus/backend/internal/domain/finance/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
-// BillStore defines the data-access contract for bills.
-type BillStore interface {
-	List(ctx context.Context, userID string, limit, offset int) ([]model.Bill, int, error)
-	Get(ctx context.Context, id string, userID string) (model.Bill, error)
-	Create(ctx context.Context, b model.BillCreate) (model.Bill, error)
-	Update(ctx context.Context, id string, userID string, u model.BillUpdate) (int64, error)
-	Delete(ctx context.Context, id string, userID string) (int64, error)
-	ListActive(ctx context.Context, userID string) ([]model.Bill, error)
-}
-
-// BillPaymentStore defines the data-access contract for bill payments.
-type BillPaymentStore interface {
-	Create(ctx context.Context, p model.BillPaymentCreate) (model.BillPayment, error)
-	Delete(ctx context.Context, id string, userID string) (int64, error)
-	ListForYear(ctx context.Context, userID string, year int) ([]model.BillPayment, error)
-	ListForMonth(ctx context.Context, userID string, year, month int) ([]model.BillPayment, error)
-}
-
 // BillsService manages bills via a store.
 type BillsService struct {
-	store        BillStore
-	paymentStore BillPaymentStore
+	store        financerepo.BillStore
+	paymentStore financerepo.BillPaymentStore
 }
 
 // NewBillsService creates a new BillsService backed by the given stores.
-func NewBillsService(store BillStore, paymentStore BillPaymentStore) *BillsService {
+func NewBillsService(store financerepo.BillStore, paymentStore financerepo.BillPaymentStore) *BillsService {
 	return &BillsService{store: store, paymentStore: paymentStore}
 }
 

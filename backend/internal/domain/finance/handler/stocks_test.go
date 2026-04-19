@@ -13,9 +13,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 
+	financerepo "github.com/meowmix1337/argus/backend/internal/domain/finance/repository"
+	financesvc "github.com/meowmix1337/argus/backend/internal/domain/finance/service"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/session"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // fakeWatchlistStore is an in-memory WatchlistStore for handler tests.
@@ -64,8 +65,8 @@ func (f *fakeWatchlistStore) Remove(_ context.Context, _, _ string) error {
 
 // newTestStocksHandler builds a StocksHandler wired to the given store.
 // httpClient and cache are nil — only store-backed methods are exercised in these tests.
-func newTestStocksHandler(store service.WatchlistStore) *StocksHandler {
-	svc := service.NewStocksService(nil, "", nil, store)
+func newTestStocksHandler(store financerepo.WatchlistStore) *StocksHandler {
+	svc := financesvc.NewStocksService(nil, "", nil, store)
 	return NewStocksHandler(svc, validator.New())
 }
 
