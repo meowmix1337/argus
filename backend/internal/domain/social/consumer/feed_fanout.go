@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
-	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
+	"github.com/meowmix1337/argus/backend/internal/platform/publisher"
 )
 
 // rawEventEnvelope is used for decoding only — Payload is kept as raw JSON to avoid
@@ -44,7 +44,7 @@ func NewFeedFanoutConsumer(followStore FanoutFollowStore, feedStore FanoutFeedSt
 }
 
 // Topic implements MessageHandler.
-func (c *FeedFanoutConsumer) Topic() string { return platformevents.TopicPostCreated }
+func (c *FeedFanoutConsumer) Topic() string { return publisher.TopicPostCreated }
 
 // Channel implements MessageHandler.
 func (c *FeedFanoutConsumer) Channel() string { return "feed-fanout" }
@@ -61,7 +61,7 @@ func (c *FeedFanoutConsumer) Process(body []byte) error {
 		return nil
 	}
 
-	var payload platformevents.PostCreatedPayload
+	var payload publisher.PostCreatedPayload
 	if err := json.Unmarshal(evt.Payload, &payload); err != nil {
 		return fmt.Errorf("unmarshal post created payload: %w", err)
 	}
@@ -70,7 +70,7 @@ func (c *FeedFanoutConsumer) Process(body []byte) error {
 }
 
 // process performs the fan-out for a single PostCreatedPayload.
-func (c *FeedFanoutConsumer) process(payload platformevents.PostCreatedPayload) error {
+func (c *FeedFanoutConsumer) process(payload publisher.PostCreatedPayload) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

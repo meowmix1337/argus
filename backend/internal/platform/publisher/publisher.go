@@ -1,4 +1,4 @@
-package events
+package publisher
 
 import (
 	"encoding/json"
@@ -50,3 +50,15 @@ func (p *NSQPublisher) PublishEvent(topic string, payload any) error {
 func (p *NSQPublisher) Stop() {
 	p.producer.Stop()
 }
+
+// NoopPublisher discards all events. Used when NSQ is not configured.
+type NoopPublisher struct{}
+
+// PublishEvent implements Publisher by logging and discarding.
+func (n *NoopPublisher) PublishEvent(topic string, _ any) error {
+	slog.Debug("noop publisher: discarding event", "topic", topic)
+	return nil
+}
+
+// Stop implements Publisher (no-op).
+func (n *NoopPublisher) Stop() {}

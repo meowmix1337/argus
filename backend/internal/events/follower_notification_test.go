@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/meowmix1337/argus/backend/internal/model"
-	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
+	"github.com/meowmix1337/argus/backend/internal/platform/publisher"
 )
 
 // fakeNotifCreator records CreateForUser calls for test assertions.
@@ -65,9 +65,9 @@ func (f *fakeFollowStore) GetFollowerIDs(_ context.Context, _ string) ([]string,
 }
 
 // buildEnvelope marshals a PostCreatedPayload into a raw EventEnvelope JSON message.
-func buildEnvelope(t *testing.T, payload platformevents.PostCreatedPayload) []byte {
+func buildEnvelope(t *testing.T, payload publisher.PostCreatedPayload) []byte {
 	t.Helper()
-	env := platformevents.NewEnvelope(platformevents.TopicPostCreated, payload)
+	env := publisher.NewEnvelope(publisher.TopicPostCreated, payload)
 	b, err := json.Marshal(env)
 	if err != nil {
 		t.Fatalf("marshal envelope: %v", err)
@@ -81,7 +81,7 @@ func TestFollowerNotificationConsumer_Process_ValidPayload(t *testing.T) {
 	prefs := &fakePrefsReader{prefs: map[string]model.SocialNotificationPrefs{}}
 	consumer := NewFollowerNotificationConsumer(followStore, notifier, prefs)
 
-	body := buildEnvelope(t, platformevents.PostCreatedPayload{
+	body := buildEnvelope(t, publisher.PostCreatedPayload{
 		PostID:         "post-1",
 		UserID:         "author-1",
 		AuthorName:     "Alice",
@@ -114,7 +114,7 @@ func TestFollowerNotificationConsumer_Process_MutedFollowerSkipped(t *testing.T)
 	}}
 	consumer := NewFollowerNotificationConsumer(followStore, notifier, prefs)
 
-	body := buildEnvelope(t, platformevents.PostCreatedPayload{
+	body := buildEnvelope(t, publisher.PostCreatedPayload{
 		PostID:         "post-2",
 		UserID:         "author-1",
 		AuthorName:     "Bob",
@@ -136,7 +136,7 @@ func TestFollowerNotificationConsumer_Process_NoFollowers(t *testing.T) {
 	notifier := &fakeNotifCreator{}
 	consumer := NewFollowerNotificationConsumer(followStore, notifier, &fakePrefsReader{})
 
-	body := buildEnvelope(t, platformevents.PostCreatedPayload{PostID: "post-3", UserID: "author-1"})
+	body := buildEnvelope(t, publisher.PostCreatedPayload{PostID: "post-3", UserID: "author-1"})
 	if err := consumer.Process(body); err != nil {
 		t.Fatalf("Process: %v", err)
 	}
@@ -154,7 +154,7 @@ func TestFollowerNotificationConsumer_Process_MalformedJSON(t *testing.T) {
 }
 
 func TestFollowerNotificationConsumer_Process_UnknownVersion(t *testing.T) {
-	env := platformevents.EventEnvelope{Version: 99, Type: platformevents.TopicPostCreated, Payload: map[string]string{}}
+	env := publisher.EventEnvelope{Version: 99, Type: publisher.TopicPostCreated, Payload: map[string]string{}}
 	body, _ := json.Marshal(env)
 	consumer := NewFollowerNotificationConsumer(&fakeFollowStore{}, &fakeNotifCreator{}, &fakePrefsReader{})
 	if err := consumer.Process(body); err != nil {

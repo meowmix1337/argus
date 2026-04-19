@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
+	"github.com/meowmix1337/argus/backend/internal/platform/publisher"
 )
 
 // FollowNotificationConsumer consumes user.followed events and notifies
@@ -29,7 +29,7 @@ func NewFollowNotificationConsumer(
 }
 
 // Topic implements MessageHandler.
-func (c *FollowNotificationConsumer) Topic() string { return platformevents.TopicUserFollowed }
+func (c *FollowNotificationConsumer) Topic() string { return publisher.TopicUserFollowed }
 
 // Channel implements MessageHandler.
 func (c *FollowNotificationConsumer) Channel() string { return "follow-notifications" }
@@ -44,7 +44,7 @@ func (c *FollowNotificationConsumer) Process(body []byte) error {
 		slog.Warn("follow notification: unknown envelope version, skipping", "version", evt.Version)
 		return nil
 	}
-	var payload platformevents.UserFollowedPayload
+	var payload publisher.UserFollowedPayload
 	if err := json.Unmarshal(evt.Payload, &payload); err != nil {
 		return fmt.Errorf("unmarshal user followed payload: %w", err)
 	}
@@ -52,7 +52,7 @@ func (c *FollowNotificationConsumer) Process(body []byte) error {
 }
 
 // process sends a notification to the followed user if they have not muted follow notifications.
-func (c *FollowNotificationConsumer) process(payload platformevents.UserFollowedPayload) error {
+func (c *FollowNotificationConsumer) process(payload publisher.UserFollowedPayload) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

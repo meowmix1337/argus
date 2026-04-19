@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	platformevents "github.com/meowmix1337/argus/backend/internal/platform/events"
+	"github.com/meowmix1337/argus/backend/internal/platform/publisher"
 )
 
 // FollowerNotificationConsumer consumes post.created events and creates
@@ -32,7 +32,7 @@ func NewFollowerNotificationConsumer(
 }
 
 // Topic implements MessageHandler.
-func (c *FollowerNotificationConsumer) Topic() string { return platformevents.TopicPostCreated }
+func (c *FollowerNotificationConsumer) Topic() string { return publisher.TopicPostCreated }
 
 // Channel implements MessageHandler.
 func (c *FollowerNotificationConsumer) Channel() string { return "follower-notifications" }
@@ -47,7 +47,7 @@ func (c *FollowerNotificationConsumer) Process(body []byte) error {
 		slog.Warn("follower notification: unknown envelope version, skipping", "version", evt.Version)
 		return nil
 	}
-	var payload platformevents.PostCreatedPayload
+	var payload publisher.PostCreatedPayload
 	if err := json.Unmarshal(evt.Payload, &payload); err != nil {
 		return fmt.Errorf("unmarshal post created payload: %w", err)
 	}
@@ -55,7 +55,7 @@ func (c *FollowerNotificationConsumer) Process(body []byte) error {
 }
 
 // process fans out notifications to each follower of the post author.
-func (c *FollowerNotificationConsumer) process(payload platformevents.PostCreatedPayload) error {
+func (c *FollowerNotificationConsumer) process(payload publisher.PostCreatedPayload) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
