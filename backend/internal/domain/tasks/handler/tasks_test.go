@@ -12,9 +12,10 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	tasksrepo "github.com/meowmix1337/argus/backend/internal/domain/tasks/repository"
+	taskssvc "github.com/meowmix1337/argus/backend/internal/domain/tasks/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // fakeTaskStore is an in-memory TaskStore for handler tests.
@@ -99,8 +100,8 @@ func (f *fakeTaskStore) Delete(_ context.Context, id, _ string) error {
 	return nil
 }
 
-func newTestTasksHandler(store service.TaskStore) *TasksHandler {
-	svc := service.NewTasksService(store)
+func newTestTasksHandler(store tasksrepo.TaskStore) *TasksHandler {
+	svc := taskssvc.NewTasksService(store)
 	return NewTasksHandler(svc, validator.New())
 }
 

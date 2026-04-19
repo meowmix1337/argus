@@ -13,7 +13,9 @@ import (
 	socialhandler "github.com/meowmix1337/argus/backend/internal/domain/social/handler"
 	socialrepo "github.com/meowmix1337/argus/backend/internal/domain/social/repository"
 	socialsvc "github.com/meowmix1337/argus/backend/internal/domain/social/service"
+	taskshandler "github.com/meowmix1337/argus/backend/internal/domain/tasks/handler"
 	tasksrepo "github.com/meowmix1337/argus/backend/internal/domain/tasks/repository"
+	taskssvc "github.com/meowmix1337/argus/backend/internal/domain/tasks/service"
 	usershandler "github.com/meowmix1337/argus/backend/internal/domain/users/handler"
 	usersrepo "github.com/meowmix1337/argus/backend/internal/domain/users/repository"
 	userssvc "github.com/meowmix1337/argus/backend/internal/domain/users/service"
@@ -89,7 +91,7 @@ func (s *Server) setupRoutes() {
 	watchlistRepo := repository.NewSQLiteStocksWatchlistRepository(s.db)
 	stocksSvc := service.NewStocksService(hc, s.cfg.FinnhubAPIKey, cache, watchlistRepo)
 	taskRepo := tasksrepo.NewSQLiteTaskRepository(s.db)
-	tasksSvc := service.NewTasksService(taskRepo)
+	tasksSvc := taskssvc.NewTasksService(taskRepo)
 	billsRepo := repository.NewSQLiteBillsRepository(s.db)
 	billPaymentsRepo := repository.NewSQLiteBillPaymentsRepository(s.db)
 	billsSvc := service.NewBillsService(billsRepo, billPaymentsRepo)
@@ -97,7 +99,7 @@ func (s *Server) setupRoutes() {
 	settingsSvc := userssvc.NewUserSettingsService(settingsRepo, s.encSvc)
 	calendarSvc := service.NewCalendarService(hc, cache, s.cfg.Timezone, settingsSvc)
 	labelRepo := tasksrepo.NewSQLiteTaskLabelsRepository(s.db)
-	labelsSvc := service.NewTaskLabelsService(labelRepo)
+	labelsSvc := taskssvc.NewTaskLabelsService(labelRepo)
 	sunriseSvc := service.NewSunriseService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
 	quotesSvc := service.NewQuotesService(hc, s.cfg.APINinjasAPIKey, cache)
 	notificationRepo := repository.NewSQLiteNotificationRepository(s.db)
@@ -155,9 +157,9 @@ func (s *Server) setupRoutes() {
 	newsH := handler.NewNewsHandler(newsSvc)
 	stocksH := handler.NewStocksHandler(stocksSvc, v)
 	calendarH := handler.NewCalendarHandler(calendarSvc)
-	tasksH := handler.NewTasksHandler(tasksSvc, v)
+	tasksH := taskshandler.NewTasksHandler(tasksSvc, v)
 	settingsH := usershandler.NewUserSettingsHandler(settingsSvc, v)
-	labelsH := handler.NewTaskLabelsHandler(labelsSvc, v)
+	labelsH := taskshandler.NewTaskLabelsHandler(labelsSvc, v)
 	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
 	billsH := handler.NewBillsHandler(billsSvc, v)
 	notificationsH := handler.NewNotificationsHandler(notificationSvc, v)
