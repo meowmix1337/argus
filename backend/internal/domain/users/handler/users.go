@@ -7,9 +7,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/httprate"
 
+	userssvc "github.com/meowmix1337/argus/backend/internal/domain/users/service"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 const (
@@ -22,11 +22,11 @@ const (
 
 // UsersHandler handles user-search endpoints.
 type UsersHandler struct {
-	service *service.UserService
+	service *userssvc.UserService
 }
 
 // NewUsersHandler creates a new UsersHandler.
-func NewUsersHandler(svc *service.UserService) *UsersHandler {
+func NewUsersHandler(svc *userssvc.UserService) *UsersHandler {
 	return &UsersHandler{service: svc}
 }
 

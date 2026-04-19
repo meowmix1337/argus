@@ -13,6 +13,7 @@ import (
 	socialhandler "github.com/meowmix1337/argus/backend/internal/domain/social/handler"
 	socialrepo "github.com/meowmix1337/argus/backend/internal/domain/social/repository"
 	socialsvc "github.com/meowmix1337/argus/backend/internal/domain/social/service"
+	usershandler "github.com/meowmix1337/argus/backend/internal/domain/users/handler"
 	usersrepo "github.com/meowmix1337/argus/backend/internal/domain/users/repository"
 	userssvc "github.com/meowmix1337/argus/backend/internal/domain/users/service"
 	"github.com/meowmix1337/argus/backend/internal/events"
@@ -144,9 +145,9 @@ func (s *Server) setupRoutes() {
 
 	// Auth
 	authSvc := userssvc.NewAuthService(s.db, s.cfg.GoogleClientID, s.cfg.GoogleClientSecret, s.cfg.GoogleCallbackURL)
-	authH := handler.NewAuthHandler(authSvc, s.cfg.SessionKey, s.cfg.FrontendURL, s.cfg.SecureCookies)
+	authH := usershandler.NewAuthHandler(authSvc, s.cfg.SessionKey, s.cfg.FrontendURL, s.cfg.SecureCookies)
 	requireAuth := middleware.RequireAuth(s.cfg.SessionKey)
-	meH := handler.NewMeHandler()
+	meH := usershandler.NewMeHandler()
 
 	// Handlers
 	weatherH := handler.NewWeatherHandler(weatherSvc)
@@ -154,7 +155,7 @@ func (s *Server) setupRoutes() {
 	stocksH := handler.NewStocksHandler(stocksSvc, v)
 	calendarH := handler.NewCalendarHandler(calendarSvc)
 	tasksH := handler.NewTasksHandler(tasksSvc, v)
-	settingsH := handler.NewUserSettingsHandler(settingsSvc, v)
+	settingsH := usershandler.NewUserSettingsHandler(settingsSvc, v)
 	labelsH := handler.NewTaskLabelsHandler(labelsSvc, v)
 	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
 	billsH := handler.NewBillsHandler(billsSvc, v)
@@ -166,7 +167,7 @@ func (s *Server) setupRoutes() {
 	postsH := socialhandler.NewPostsHandler(postsSvc, v)
 	followH := socialhandler.NewFollowHandler(followSvc, v)
 	feedH := socialhandler.NewFeedHandler(feedSvc)
-	usersH := handler.NewUsersHandler(usersSvc)
+	usersH := usershandler.NewUsersHandler(usersSvc)
 	dashboardH := handler.NewDashboardHandler(
 		weatherSvc,
 		stocksSvc,

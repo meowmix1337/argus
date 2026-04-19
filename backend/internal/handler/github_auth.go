@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"crypto/rand"
 	"crypto/subtle"
+	"encoding/hex"
 	"log/slog"
 	"net/http"
 
@@ -96,4 +98,12 @@ func (h *GitHubAuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 func (h *GitHubAuthHandler) AddRoutes(r chi.Router) {
 	r.Get("/api/auth/github", h.Link)
 	r.Get("/api/auth/github/callback", h.Callback)
+}
+
+func randomHex(n int) (string, error) {
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
 }
