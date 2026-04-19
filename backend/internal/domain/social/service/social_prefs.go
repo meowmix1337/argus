@@ -5,22 +5,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/meowmix1337/argus/backend/internal/domain/social/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
-// SocialNotificationPrefsStore defines the data-access contract for social notification prefs.
-type SocialNotificationPrefsStore interface {
-	GetPrefs(ctx context.Context, userID string) (model.SocialNotificationPrefs, error)
-	UpsertPrefs(ctx context.Context, prefs model.SocialNotificationPrefs) error
-}
-
 // SocialPrefsService manages social notification mute preferences.
 type SocialPrefsService struct {
-	store SocialNotificationPrefsStore
+	store repository.SocialNotificationPrefsStore
 }
 
 // NewSocialPrefsService creates a new SocialPrefsService.
-func NewSocialPrefsService(store SocialNotificationPrefsStore) *SocialPrefsService {
+func NewSocialPrefsService(store repository.SocialNotificationPrefsStore) *SocialPrefsService {
 	return &SocialPrefsService{store: store}
 }
 

@@ -8,28 +8,20 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/meowmix1337/argus/backend/internal/domain/social/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/publisher"
 )
 
-// FollowStore defines the data-access contract for follow relationships.
-type FollowStore interface {
-	Follow(ctx context.Context, id, followerID, followingID string) error
-	Unfollow(ctx context.Context, followerID, followingID string) (int64, error)
-	IsFollowing(ctx context.Context, followerID, followingID string) (bool, error)
-	ListFollowers(ctx context.Context, userID string, limit, offset int) ([]model.UserSummary, int, error)
-	ListFollowing(ctx context.Context, userID string, limit, offset int) ([]model.UserSummary, int, error)
-}
-
 // FollowService manages follow relationships.
 type FollowService struct {
-	store FollowStore
+	store repository.FollowStore
 	pub   publisher.Publisher
 }
 
 // NewFollowService creates a new FollowService.
-func NewFollowService(store FollowStore, pub publisher.Publisher) *FollowService {
+func NewFollowService(store repository.FollowStore, pub publisher.Publisher) *FollowService {
 	return &FollowService{store: store, pub: pub}
 }
 

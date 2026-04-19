@@ -9,19 +9,19 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	socialsvc "github.com/meowmix1337/argus/backend/internal/domain/social/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // FeedHandler handles the social feed timeline endpoint.
 type FeedHandler struct {
-	service *service.FeedService
+	service *socialsvc.FeedService
 }
 
 // NewFeedHandler creates a new FeedHandler.
-func NewFeedHandler(svc *service.FeedService) *FeedHandler {
+func NewFeedHandler(svc *socialsvc.FeedService) *FeedHandler {
 	return &FeedHandler{service: svc}
 }
 

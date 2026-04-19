@@ -14,7 +14,7 @@ import (
 // within SQLite's SQLITE_MAX_VARIABLE_NUMBER limit (999 by default, 5 params/row).
 const bulkInsertBatchSize = 100
 
-// SQLiteFeedRepository implements service.FeedStore backed by SQLite.
+// SQLiteFeedRepository implements FeedStore backed by SQLite.
 type SQLiteFeedRepository struct {
 	db *sqlx.DB
 }

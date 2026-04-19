@@ -163,6 +163,19 @@ func (f *fakePostStore) Search(_ context.Context, _, _ string, limit, offset int
 	return out, total, nil
 }
 
+func (f *fakePostStore) ListPostIDsByAuthor(_ context.Context, authorID string, limit int) ([]model.PostRef, error) {
+	var refs []model.PostRef
+	for _, p := range f.posts {
+		if p.UserID == authorID {
+			refs = append(refs, model.PostRef{ID: p.ID, CreatedAt: p.CreatedAt})
+		}
+		if len(refs) >= limit {
+			break
+		}
+	}
+	return refs, nil
+}
+
 // ---- Create ----
 
 func TestPostsService_Create_Success(t *testing.T) {

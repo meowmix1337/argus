@@ -15,7 +15,6 @@ import (
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/platform/session"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
@@ -163,11 +162,6 @@ func (h *TasksHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// sessionFromRequest extracts the full session data from the request context.
-func sessionFromRequest(r *http.Request) (session.Data, bool) {
-	return middleware.SessionFromContext(r.Context())
 }
 
 func taskToResponse(t model.Task) TaskResponse {

@@ -81,6 +81,10 @@ func (f *fakeFollowStore) ListFollowing(_ context.Context, _ string, _, _ int) (
 	return []model.UserSummary{}, 0, nil
 }
 
+func (f *fakeFollowStore) GetFollowerIDs(_ context.Context, _ string) ([]string, error) {
+	return nil, nil
+}
+
 // ---- Follow ----
 
 func TestFollowService_Follow_Success(t *testing.T) {
