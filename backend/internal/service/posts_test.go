@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/meowmix1337/argus/backend/internal/events"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
+	"github.com/meowmix1337/argus/backend/internal/platform/publisher"
 )
 
 // fakePublisher records published events for assertion.
@@ -197,9 +197,9 @@ func TestPostsService_Create_PublishPayloadFields(t *testing.T) {
 	if len(pub.events) != 1 {
 		t.Fatalf("expected 1 published event, got %d", len(pub.events))
 	}
-	payload, ok := pub.events[0].payload.(events.PostCreatedPayload)
+	payload, ok := pub.events[0].payload.(publisher.PostCreatedPayload)
 	if !ok {
-		t.Fatalf("payload type = %T, want events.PostCreatedPayload", pub.events[0].payload)
+		t.Fatalf("payload type = %T, want publisher.PostCreatedPayload", pub.events[0].payload)
 	}
 	if payload.AuthorName != "testuser" {
 		t.Errorf("AuthorName = %q, want %q", payload.AuthorName, "testuser")
@@ -225,9 +225,9 @@ func TestPostsService_Create_ContentPreviewTruncatedAt100Runes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	payload, ok := pub.events[0].payload.(events.PostCreatedPayload)
+	payload, ok := pub.events[0].payload.(publisher.PostCreatedPayload)
 	if !ok {
-		t.Fatalf("payload type = %T, want events.PostCreatedPayload", pub.events[0].payload)
+		t.Fatalf("payload type = %T, want publisher.PostCreatedPayload", pub.events[0].payload)
 	}
 	if len([]rune(payload.ContentPreview)) != 100 {
 		t.Errorf("ContentPreview rune length = %d, want 100", len([]rune(payload.ContentPreview)))
