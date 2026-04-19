@@ -38,7 +38,7 @@ func (r *sqliteTaskLabelRow) toModel() (model.TaskLabel, error) {
 	}, nil
 }
 
-// SQLiteTaskLabelsRepository implements TaskLabelRepository backed by SQLite via sqlx.
+// SQLiteTaskLabelsRepository implements TaskLabelStore backed by SQLite via sqlx.
 type SQLiteTaskLabelsRepository struct {
 	db *sqlx.DB
 }

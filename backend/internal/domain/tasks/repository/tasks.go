@@ -6,8 +6,8 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
-// TaskRepository defines the data-access contract for tasks.
-type TaskRepository interface {
+// TaskStore defines the data-access contract for tasks.
+type TaskStore interface {
 	List(ctx context.Context, userID string, limit, offset int) ([]model.Task, int, error)
 	Get(ctx context.Context, id string, userID string) (model.Task, error)
 	Create(ctx context.Context, t model.TaskCreate) (model.Task, error)

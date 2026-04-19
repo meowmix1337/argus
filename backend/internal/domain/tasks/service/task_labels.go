@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
-	tasksrepo "github.com/meowmix1337/argus/backend/internal/domain/tasks/repository"
+	"github.com/meowmix1337/argus/backend/internal/domain/tasks/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
@@ -23,16 +23,13 @@ var ErrLabelValidation = apperrors.ErrLabelValidation
 // ErrLabelAlreadyAssigned is returned when a label is already assigned to a task.
 var ErrLabelAlreadyAssigned = apperrors.ErrLabelAlreadyAssigned
 
-// TaskLabelStore is an alias for the canonical interface in the tasks domain repository.
-type TaskLabelStore = tasksrepo.TaskLabelStore
-
 // TaskLabelsService manages task labels via a store.
 type TaskLabelsService struct {
-	store TaskLabelStore
+	store repository.TaskLabelStore
 }
 
 // NewTaskLabelsService creates a new TaskLabelsService backed by the given store.
-func NewTaskLabelsService(store TaskLabelStore) *TaskLabelsService {
+func NewTaskLabelsService(store repository.TaskLabelStore) *TaskLabelsService {
 	return &TaskLabelsService{store: store}
 }
 

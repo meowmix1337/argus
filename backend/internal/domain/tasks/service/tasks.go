@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
-	tasksrepo "github.com/meowmix1337/argus/backend/internal/domain/tasks/repository"
+	"github.com/meowmix1337/argus/backend/internal/domain/tasks/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
@@ -20,16 +20,13 @@ var ErrTaskNotFound = apperrors.ErrTaskNotFound
 // ErrTaskValidation is returned when task input fails validation.
 var ErrTaskValidation = apperrors.ErrTaskValidation
 
-// TaskStore is an alias for the canonical interface in the tasks domain repository.
-type TaskStore = tasksrepo.TaskStore
-
 // TasksService manages tasks via a store.
 type TasksService struct {
-	store TaskStore
+	store repository.TaskStore
 }
 
 // NewTasksService creates a new TasksService backed by the given store.
-func NewTasksService(store TaskStore) *TasksService {
+func NewTasksService(store repository.TaskStore) *TasksService {
 	return &TasksService{store: store}
 }
 

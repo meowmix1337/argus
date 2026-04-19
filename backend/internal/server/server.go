@@ -13,6 +13,7 @@ import (
 	socialhandler "github.com/meowmix1337/argus/backend/internal/domain/social/handler"
 	socialrepo "github.com/meowmix1337/argus/backend/internal/domain/social/repository"
 	socialsvc "github.com/meowmix1337/argus/backend/internal/domain/social/service"
+	tasksrepo "github.com/meowmix1337/argus/backend/internal/domain/tasks/repository"
 	usershandler "github.com/meowmix1337/argus/backend/internal/domain/users/handler"
 	usersrepo "github.com/meowmix1337/argus/backend/internal/domain/users/repository"
 	userssvc "github.com/meowmix1337/argus/backend/internal/domain/users/service"
@@ -87,7 +88,7 @@ func (s *Server) setupRoutes() {
 	newsSvc := service.NewNewsService(hc, s.cfg.GNewsAPIKey, cache)
 	watchlistRepo := repository.NewSQLiteStocksWatchlistRepository(s.db)
 	stocksSvc := service.NewStocksService(hc, s.cfg.FinnhubAPIKey, cache, watchlistRepo)
-	taskRepo := repository.NewSQLiteTaskRepository(s.db)
+	taskRepo := tasksrepo.NewSQLiteTaskRepository(s.db)
 	tasksSvc := service.NewTasksService(taskRepo)
 	billsRepo := repository.NewSQLiteBillsRepository(s.db)
 	billPaymentsRepo := repository.NewSQLiteBillPaymentsRepository(s.db)
@@ -95,7 +96,7 @@ func (s *Server) setupRoutes() {
 	settingsRepo := usersrepo.NewSQLiteUserSettingsRepository(s.db)
 	settingsSvc := userssvc.NewUserSettingsService(settingsRepo, s.encSvc)
 	calendarSvc := service.NewCalendarService(hc, cache, s.cfg.Timezone, settingsSvc)
-	labelRepo := repository.NewSQLiteTaskLabelsRepository(s.db)
+	labelRepo := tasksrepo.NewSQLiteTaskLabelsRepository(s.db)
 	labelsSvc := service.NewTaskLabelsService(labelRepo)
 	sunriseSvc := service.NewSunriseService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
 	quotesSvc := service.NewQuotesService(hc, s.cfg.APINinjasAPIKey, cache)
