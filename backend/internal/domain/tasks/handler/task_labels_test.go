@@ -12,9 +12,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 
+	tasksrepo "github.com/meowmix1337/argus/backend/internal/domain/tasks/repository"
+	taskssvc "github.com/meowmix1337/argus/backend/internal/domain/tasks/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // fakeLabelStore is an in-memory TaskLabelStore for handler tests.
@@ -99,8 +100,8 @@ func (f *fakeLabelStore) RemoveLabel(_ context.Context, _ string, _ string, _ st
 	return f.removeLabelErr
 }
 
-func newTestTaskLabelsHandler(store service.TaskLabelStore) *TaskLabelsHandler {
-	svc := service.NewTaskLabelsService(store)
+func newTestTaskLabelsHandler(store tasksrepo.TaskLabelStore) *TaskLabelsHandler {
+	svc := taskssvc.NewTaskLabelsService(store)
 	return NewTaskLabelsHandler(svc, validator.New())
 }
 

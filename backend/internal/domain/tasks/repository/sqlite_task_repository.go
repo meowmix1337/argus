@@ -35,7 +35,7 @@ func (r *sqliteTaskRow) toModel() model.Task {
 	}
 }
 
-// SQLiteTaskRepository implements TaskRepository backed by SQLite via sqlx.
+// SQLiteTaskRepository implements TaskStore backed by SQLite via sqlx.
 type SQLiteTaskRepository struct {
 	db *sqlx.DB
 }

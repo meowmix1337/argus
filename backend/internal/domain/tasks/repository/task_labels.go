@@ -6,8 +6,8 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
-// TaskLabelRepository defines the data-access contract for task labels.
-type TaskLabelRepository interface {
+// TaskLabelStore defines the data-access contract for task labels.
+type TaskLabelStore interface {
 	// List returns all active labels for the given user.
 	List(ctx context.Context, userID string) ([]model.TaskLabel, error)
 	// Get returns a single active label by ID for the given user.

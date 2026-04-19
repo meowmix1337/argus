@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/meowmix1337/argus/backend/internal/domain/tasks/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
@@ -22,25 +23,13 @@ var ErrLabelValidation = apperrors.ErrLabelValidation
 // ErrLabelAlreadyAssigned is returned when a label is already assigned to a task.
 var ErrLabelAlreadyAssigned = apperrors.ErrLabelAlreadyAssigned
 
-// TaskLabelStore defines the data-access contract for task labels.
-type TaskLabelStore interface {
-	List(ctx context.Context, userID string) ([]model.TaskLabel, error)
-	Get(ctx context.Context, id string, userID string) (model.TaskLabel, error)
-	Create(ctx context.Context, l model.TaskLabelCreate) (model.TaskLabel, error)
-	Update(ctx context.Context, id string, userID string, u model.TaskLabelUpdate) error
-	Delete(ctx context.Context, id string, userID string) error
-	ListForTask(ctx context.Context, taskID string, userID string) ([]model.TaskLabel, error)
-	AssignLabel(ctx context.Context, a model.TaskLabelAssignmentCreate) error
-	RemoveLabel(ctx context.Context, taskID string, labelID string, userID string) error
-}
-
 // TaskLabelsService manages task labels via a store.
 type TaskLabelsService struct {
-	store TaskLabelStore
+	store repository.TaskLabelStore
 }
 
 // NewTaskLabelsService creates a new TaskLabelsService backed by the given store.
-func NewTaskLabelsService(store TaskLabelStore) *TaskLabelsService {
+func NewTaskLabelsService(store repository.TaskLabelStore) *TaskLabelsService {
 	return &TaskLabelsService{store: store}
 }
 

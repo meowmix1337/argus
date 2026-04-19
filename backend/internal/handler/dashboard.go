@@ -7,18 +7,21 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/sync/errgroup"
 
+	taskssvc "github.com/meowmix1337/argus/backend/internal/domain/tasks/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
+const defaultTaskLimit = 5
+
 // DashboardHandler aggregates all widget data into a single response.
 type DashboardHandler struct {
 	weather       *service.WeatherService
 	stocks        *service.StocksService
 	calendar      *service.CalendarService
-	tasks         *service.TasksService
+	tasks         *taskssvc.TasksService
 	sunrise       *service.SunriseService
 	quotes        *service.QuotesService
 	bills         *service.BillsService
@@ -30,7 +33,7 @@ func NewDashboardHandler(
 	weather *service.WeatherService,
 	stocks *service.StocksService,
 	calendar *service.CalendarService,
-	tasks *service.TasksService,
+	tasks *taskssvc.TasksService,
 	sunrise *service.SunriseService,
 	quotes *service.QuotesService,
 	bills *service.BillsService,
