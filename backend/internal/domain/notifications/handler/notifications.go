@@ -12,20 +12,20 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/go-playground/validator/v10"
 
+	notificationssvc "github.com/meowmix1337/argus/backend/internal/domain/notifications/service"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // NotificationsHandler handles notification inbox endpoints.
 type NotificationsHandler struct {
-	service  *service.NotificationService
+	service  *notificationssvc.NotificationService
 	validate *validator.Validate
 }
 
 // NewNotificationsHandler creates a new NotificationsHandler.
-func NewNotificationsHandler(svc *service.NotificationService, v *validator.Validate) *NotificationsHandler {
+func NewNotificationsHandler(svc *notificationssvc.NotificationService, v *validator.Validate) *NotificationsHandler {
 	return &NotificationsHandler{service: svc, validate: v}
 }
 

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -20,9 +21,16 @@ func newTestWebhooksHandler(appEnv string) *WebhooksHandler {
 	return NewWebhooksHandler(svc, validator.New(), appEnv)
 }
 
-func newTestWebhooksHandlerWithStores(appEnv string, watchedStore service.WatchedRepoStore, notifStore service.NotificationStore) *WebhooksHandler {
+func newTestWebhooksHandlerWithStores(appEnv string, watchedStore service.WatchedRepoStore, notifStore service.NotificationWriter) *WebhooksHandler {
 	svc := service.NewWebhookService(watchedStore, notifStore, nil)
 	return NewWebhooksHandler(svc, validator.New(), appEnv)
+}
+
+// fakeNotificationStore is a minimal NotificationWriter for webhook handler tests.
+type fakeNotificationStore struct{}
+
+func (f *fakeNotificationStore) Create(_ context.Context, _ model.NotificationCreate) (model.Notification, error) {
+	return model.Notification{}, nil
 }
 
 // validGitHubPayload is a minimal GitHub webhook payload with a repository full_name.

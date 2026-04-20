@@ -12,8 +12,9 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	notificationsrepo "github.com/meowmix1337/argus/backend/internal/domain/notifications/repository"
+	notificationssvc "github.com/meowmix1337/argus/backend/internal/domain/notifications/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // fakeNotificationStore is an in-memory NotificationStore for handler tests.
@@ -60,8 +61,8 @@ func (f *fakeNotificationStore) CountUnread(_ context.Context, _ string) (int, e
 	return 0, f.err
 }
 
-func newTestNotificationsHandler(store service.NotificationStore) *NotificationsHandler {
-	svc := service.NewNotificationService(store)
+func newTestNotificationsHandler(store notificationsrepo.NotificationStore) *NotificationsHandler {
+	svc := notificationssvc.NewNotificationService(store)
 	return NewNotificationsHandler(svc, validator.New())
 }
 

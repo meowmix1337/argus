@@ -27,18 +27,24 @@ const (
 	eventTypePRReviewComment = "pr_review_comment"
 )
 
+// NotificationWriter is the narrow interface WebhookService needs to persist notifications.
+// Defined here (consumer-defined) so WebhookService does not import from any notification package.
+type NotificationWriter interface {
+	Create(ctx context.Context, n model.NotificationCreate) (model.Notification, error)
+}
+
 // WebhookService orchestrates HMAC authentication, event parsing, and notification
 // creation for incoming GitHub webhook deliveries.
 type WebhookService struct {
 	watchedRepos  WatchedRepoStore
-	notifications NotificationStore // reuses the interface defined in notification.go
+	notifications NotificationWriter
 	encSvc        *platformcrypto.EncryptionService
 }
 
 // NewWebhookService creates a new WebhookService.
 func NewWebhookService(
 	watchedRepos WatchedRepoStore,
-	notifications NotificationStore,
+	notifications NotificationWriter,
 	encSvc *platformcrypto.EncryptionService,
 ) *WebhookService {
 	return &WebhookService{

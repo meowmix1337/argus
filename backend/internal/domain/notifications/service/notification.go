@@ -7,28 +7,18 @@ import (
 
 	"github.com/google/uuid"
 
+	notificationsrepo "github.com/meowmix1337/argus/backend/internal/domain/notifications/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
-// NotificationStore defines the data-access contract for notifications.
-type NotificationStore interface {
-	Create(ctx context.Context, n model.NotificationCreate) (model.Notification, error)
-	List(ctx context.Context, userID, state, query, providerID, eventTypeID string, limit, offset int) ([]model.Notification, int, error)
-	GetByID(ctx context.Context, id, userID string) (model.Notification, error)
-	MarkRead(ctx context.Context, id, userID string) (int64, error)
-	MarkDismissed(ctx context.Context, id, userID string) (int64, error)
-	MarkAllRead(ctx context.Context, userID string) (int64, error)
-	CountUnread(ctx context.Context, userID string) (int, error)
-}
-
 // NotificationService manages user notifications via a store.
 type NotificationService struct {
-	store NotificationStore
+	store notificationsrepo.NotificationStore
 }
 
 // NewNotificationService creates a new NotificationService backed by the given store.
-func NewNotificationService(store NotificationStore) *NotificationService {
+func NewNotificationService(store notificationsrepo.NotificationStore) *NotificationService {
 	return &NotificationService{store: store}
 }
 

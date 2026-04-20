@@ -10,6 +10,9 @@ import (
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 )
 
+// strPtr returns a pointer to the given string — used for nullable fields in tests.
+func strPtr(s string) *string { return &s }
+
 // fakeNotificationStore is an in-memory NotificationStore for service tests.
 type fakeNotificationStore struct {
 	notifications     []model.Notification

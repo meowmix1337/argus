@@ -11,9 +11,6 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/platform/httpclient"
 )
 
-// strPtr returns a pointer to the given string — used for nullable fields in tests.
-func strPtr(s string) *string { return &s }
-
 // mustNewEncryptionService creates a test EncryptionService with a fixed 32-byte key.
 func mustNewEncryptionService(t *testing.T) *platformcrypto.EncryptionService {
 	t.Helper()
