@@ -36,7 +36,7 @@ func (r *sqliteBillPaymentRow) toModel() model.BillPayment {
 	return p
 }
 
-// SQLiteBillPaymentsRepository implements BillPaymentRepository using SQLite.
+// SQLiteBillPaymentsRepository implements BillPaymentStore using SQLite.
 type SQLiteBillPaymentsRepository struct {
 	db *sqlx.DB
 }

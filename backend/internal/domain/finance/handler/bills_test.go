@@ -12,8 +12,9 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	financerepo "github.com/meowmix1337/argus/backend/internal/domain/finance/repository"
+	financesvc "github.com/meowmix1337/argus/backend/internal/domain/finance/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // fakeBillStore is an in-memory BillStore for handler tests.
@@ -106,8 +107,8 @@ func (f *fakeBillPaymentStore) ListForMonth(_ context.Context, _ string, _, _ in
 }
 
 // newTestBillsHandler builds a BillsHandler wired to the given stores.
-func newTestBillsHandler(billStore service.BillStore, paymentStore service.BillPaymentStore) *BillsHandler {
-	svc := service.NewBillsService(billStore, paymentStore)
+func newTestBillsHandler(billStore financerepo.BillStore, paymentStore financerepo.BillPaymentStore) *BillsHandler {
+	svc := financesvc.NewBillsService(billStore, paymentStore)
 	return NewBillsHandler(svc, validator.New())
 }
 

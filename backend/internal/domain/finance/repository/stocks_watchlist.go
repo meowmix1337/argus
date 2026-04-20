@@ -2,8 +2,8 @@ package repository
 
 import "context"
 
-// StocksWatchlistRepository defines the data-access contract for the stocks watchlist.
-type StocksWatchlistRepository interface {
+// WatchlistStore defines the data-access contract for the stocks watchlist.
+type WatchlistStore interface {
 	// ListSymbols returns a page of active symbols for the given user plus the total count.
 	// limit=0 means no limit (returns all symbols).
 	ListSymbols(ctx context.Context, userID string, limit, offset int) ([]string, int, error)

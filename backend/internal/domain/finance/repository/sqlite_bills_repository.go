@@ -66,7 +66,7 @@ func (r *sqliteBillRow) toModel() model.Bill {
 const billColumns = `id, user_id, name, amount, category_id, recurrence_type,
 	due_date, due_day, due_month, anchor_date, notes, created_at, updated_at`
 
-// SQLiteBillsRepository implements BillRepository backed by SQLite via sqlx.
+// SQLiteBillsRepository implements BillStore backed by SQLite via sqlx.
 type SQLiteBillsRepository struct {
 	db *sqlx.DB
 }

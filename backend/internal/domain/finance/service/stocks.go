@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	financerepo "github.com/meowmix1337/argus/backend/internal/domain/finance/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
@@ -18,26 +19,16 @@ import (
 // ErrSymbolNotFound is returned when a watchlist symbol does not exist.
 var ErrSymbolNotFound = apperrors.ErrSymbolNotFound
 
-// WatchlistStore defines the data-access contract for the stocks watchlist.
-type WatchlistStore interface {
-	// ListSymbols returns a page of active symbols plus the total count.
-	// limit=0 means no limit (returns all symbols).
-	ListSymbols(ctx context.Context, userID string, limit, offset int) ([]string, int, error)
-	Exists(ctx context.Context, userID string, symbol string) (bool, error)
-	Add(ctx context.Context, userID string, symbol string) error
-	Remove(ctx context.Context, userID string, symbol string) error
-}
-
 // StocksService fetches stock quotes from Finnhub and crypto from CoinGecko.
 type StocksService struct {
 	httpClient httpclient.HTTPClient
 	apiKey     string
 	cache      *platformcache.CacheService
-	store      WatchlistStore
+	store      financerepo.WatchlistStore
 }
 
 // NewStocksService creates a new StocksService backed by a watchlist store.
-func NewStocksService(httpClient httpclient.HTTPClient, apiKey string, cache *platformcache.CacheService, store WatchlistStore) *StocksService {
+func NewStocksService(httpClient httpclient.HTTPClient, apiKey string, cache *platformcache.CacheService, store financerepo.WatchlistStore) *StocksService {
 	return &StocksService{
 		httpClient: httpClient,
 		apiKey:     apiKey,

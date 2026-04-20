@@ -11,18 +11,18 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/go-playground/validator/v10"
 
+	financesvc "github.com/meowmix1337/argus/backend/internal/domain/finance/service"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 type StocksHandler struct {
-	service  *service.StocksService
+	service  *financesvc.StocksService
 	validate *validator.Validate
 }
 
-func NewStocksHandler(svc *service.StocksService, v *validator.Validate) *StocksHandler {
+func NewStocksHandler(svc *financesvc.StocksService, v *validator.Validate) *StocksHandler {
 	return &StocksHandler{service: svc, validate: v}
 }
 
