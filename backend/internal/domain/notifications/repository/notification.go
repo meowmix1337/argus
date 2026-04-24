@@ -6,8 +6,10 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/model"
 )
 
-// NotificationRepository defines the data-access contract for notifications.
-type NotificationRepository interface {
+// NotificationStore defines the data-access contract for notifications.
+// This is the canonical interface used by both the service layer and any
+// consumer-side code that needs to write notifications.
+type NotificationStore interface {
 	Create(ctx context.Context, n model.NotificationCreate) (model.Notification, error)
 	List(ctx context.Context, userID, state, query, providerID, eventTypeID string, limit, offset int) ([]model.Notification, int, error)
 	GetByID(ctx context.Context, id, userID string) (model.Notification, error)

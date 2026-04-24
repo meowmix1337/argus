@@ -8,6 +8,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	financesvc "github.com/meowmix1337/argus/backend/internal/domain/finance/service"
+	notificationssvc "github.com/meowmix1337/argus/backend/internal/domain/notifications/service"
 	taskssvc "github.com/meowmix1337/argus/backend/internal/domain/tasks/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
@@ -26,7 +27,7 @@ type DashboardHandler struct {
 	sunrise       *service.SunriseService
 	quotes        *service.QuotesService
 	bills         *financesvc.BillsService
-	notifications *service.NotificationService
+	notifications *notificationssvc.NotificationService
 }
 
 // NewDashboardHandler creates a new DashboardHandler.
@@ -38,7 +39,7 @@ func NewDashboardHandler(
 	sunrise *service.SunriseService,
 	quotes *service.QuotesService,
 	bills *financesvc.BillsService,
-	notifications *service.NotificationService,
+	notifications *notificationssvc.NotificationService,
 ) *DashboardHandler {
 	return &DashboardHandler{
 		weather:       weather,

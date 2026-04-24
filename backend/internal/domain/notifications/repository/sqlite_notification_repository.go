@@ -69,7 +69,7 @@ func (r *sqliteNotificationRow) toModel() model.Notification {
 const notificationColumns = `id, user_id, provider_id, event_type_id, title, body, url,
 	reference_id, read_at, dismissed_at, github_delivery_id, created_at, updated_at, deleted_at`
 
-// SQLiteNotificationRepository implements NotificationRepository backed by SQLite via sqlx.
+// SQLiteNotificationRepository implements NotificationStore backed by SQLite via sqlx.
 type SQLiteNotificationRepository struct {
 	db *sqlx.DB
 }

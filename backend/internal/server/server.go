@@ -12,6 +12,9 @@ import (
 	financehandler "github.com/meowmix1337/argus/backend/internal/domain/finance/handler"
 	financerepo "github.com/meowmix1337/argus/backend/internal/domain/finance/repository"
 	financesvc "github.com/meowmix1337/argus/backend/internal/domain/finance/service"
+	notificationshandler "github.com/meowmix1337/argus/backend/internal/domain/notifications/handler"
+	notificationsrepo "github.com/meowmix1337/argus/backend/internal/domain/notifications/repository"
+	notificationssvc "github.com/meowmix1337/argus/backend/internal/domain/notifications/service"
 	socialconsumer "github.com/meowmix1337/argus/backend/internal/domain/social/consumer"
 	socialhandler "github.com/meowmix1337/argus/backend/internal/domain/social/handler"
 	socialrepo "github.com/meowmix1337/argus/backend/internal/domain/social/repository"
@@ -105,8 +108,8 @@ func (s *Server) setupRoutes() {
 	labelsSvc := taskssvc.NewTaskLabelsService(labelRepo)
 	sunriseSvc := service.NewSunriseService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
 	quotesSvc := service.NewQuotesService(hc, s.cfg.APINinjasAPIKey, cache)
-	notificationRepo := repository.NewSQLiteNotificationRepository(s.db)
-	notificationSvc := service.NewNotificationService(notificationRepo)
+	notificationRepo := notificationsrepo.NewSQLiteNotificationRepository(s.db)
+	notificationSvc := notificationssvc.NewNotificationService(notificationRepo)
 	socialPrefsRepo := socialrepo.NewSQLiteSocialPrefsRepository(s.db)
 	socialPrefsSvc := socialsvc.NewSocialPrefsService(socialPrefsRepo)
 	watchedRepoRepo := repository.NewSQLiteWatchedRepoRepository(s.db)
@@ -165,7 +168,7 @@ func (s *Server) setupRoutes() {
 	labelsH := taskshandler.NewTaskLabelsHandler(labelsSvc, v)
 	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
 	billsH := financehandler.NewBillsHandler(billsSvc, v)
-	notificationsH := handler.NewNotificationsHandler(notificationSvc, v)
+	notificationsH := notificationshandler.NewNotificationsHandler(notificationSvc, v)
 	socialPrefsH := socialhandler.NewSocialPrefsHandler(socialPrefsSvc, v)
 	webhooksH := handler.NewWebhooksHandler(webhookSvc, v, s.cfg.AppEnv)
 	githubAuthH := handler.NewGitHubAuthHandler(githubIntegrationSvc, s.cfg.FrontendURL, s.cfg.SecureCookies)
