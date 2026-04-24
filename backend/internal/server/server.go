@@ -38,7 +38,6 @@ import (
 	usersrepo "github.com/meowmix1337/argus/backend/internal/domain/users/repository"
 	userssvc "github.com/meowmix1337/argus/backend/internal/domain/users/service"
 	"github.com/meowmix1337/argus/backend/internal/events"
-	"github.com/meowmix1337/argus/backend/internal/handler"
 	platformcache "github.com/meowmix1337/argus/backend/internal/platform/cache"
 	"github.com/meowmix1337/argus/backend/internal/platform/config"
 	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
@@ -187,7 +186,7 @@ func (s *Server) setupRoutes() {
 	followH := socialhandler.NewFollowHandler(followSvc, v)
 	feedH := socialhandler.NewFeedHandler(feedSvc)
 	usersH := usershandler.NewUsersHandler(usersSvc)
-	dashboardH := handler.NewDashboardHandler(
+	dashboardH := NewDashboardHandler(
 		weatherSvc,
 		stocksSvc,
 		calendarSvc,
