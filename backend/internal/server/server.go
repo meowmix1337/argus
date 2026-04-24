@@ -9,6 +9,15 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
 
+	calendarhandler "github.com/meowmix1337/argus/backend/internal/domain/external/calendar/handler"
+	calendarsvc "github.com/meowmix1337/argus/backend/internal/domain/external/calendar/service"
+	metahandler "github.com/meowmix1337/argus/backend/internal/domain/external/meta/handler"
+	newshandler "github.com/meowmix1337/argus/backend/internal/domain/external/news/handler"
+	newssvc "github.com/meowmix1337/argus/backend/internal/domain/external/news/service"
+	quotessvc "github.com/meowmix1337/argus/backend/internal/domain/external/quotes/service"
+	sunrisesvc "github.com/meowmix1337/argus/backend/internal/domain/external/sunrise/service"
+	weatherhandler "github.com/meowmix1337/argus/backend/internal/domain/external/weather/handler"
+	weathersvc "github.com/meowmix1337/argus/backend/internal/domain/external/weather/service"
 	financehandler "github.com/meowmix1337/argus/backend/internal/domain/finance/handler"
 	financerepo "github.com/meowmix1337/argus/backend/internal/domain/finance/repository"
 	financesvc "github.com/meowmix1337/argus/backend/internal/domain/finance/service"
@@ -39,7 +48,6 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/platform/publisher"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
 	"github.com/meowmix1337/argus/backend/internal/platform/validate"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // Server holds the HTTP router and all dependencies.
@@ -94,8 +102,8 @@ func (s *Server) setupRoutes() {
 	v := validate.New()
 
 	// Services
-	weatherSvc := service.NewWeatherService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
-	newsSvc := service.NewNewsService(hc, s.cfg.GNewsAPIKey, cache)
+	weatherSvc := weathersvc.NewWeatherService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
+	newsSvc := newssvc.NewNewsService(hc, s.cfg.GNewsAPIKey, cache)
 	watchlistRepo := financerepo.NewSQLiteStocksWatchlistRepository(s.db)
 	stocksSvc := financesvc.NewStocksService(hc, s.cfg.FinnhubAPIKey, cache, watchlistRepo)
 	taskRepo := tasksrepo.NewSQLiteTaskRepository(s.db)
@@ -105,11 +113,11 @@ func (s *Server) setupRoutes() {
 	billsSvc := financesvc.NewBillsService(billsRepo, billPaymentsRepo)
 	settingsRepo := usersrepo.NewSQLiteUserSettingsRepository(s.db)
 	settingsSvc := userssvc.NewUserSettingsService(settingsRepo, s.encSvc)
-	calendarSvc := service.NewCalendarService(hc, cache, s.cfg.Timezone, settingsSvc)
+	calendarSvc := calendarsvc.NewCalendarService(hc, cache, s.cfg.Timezone, settingsSvc)
 	labelRepo := tasksrepo.NewSQLiteTaskLabelsRepository(s.db)
 	labelsSvc := taskssvc.NewTaskLabelsService(labelRepo)
-	sunriseSvc := service.NewSunriseService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
-	quotesSvc := service.NewQuotesService(hc, s.cfg.APINinjasAPIKey, cache)
+	sunriseSvc := sunrisesvc.NewSunriseService(hc, cache, s.cfg.Latitude, s.cfg.Longitude)
+	quotesSvc := quotessvc.NewQuotesService(hc, s.cfg.APINinjasAPIKey, cache)
 	notificationRepo := notificationsrepo.NewSQLiteNotificationRepository(s.db)
 	notificationSvc := notificationssvc.NewNotificationService(notificationRepo)
 	socialPrefsRepo := socialrepo.NewSQLiteSocialPrefsRepository(s.db)
@@ -161,14 +169,14 @@ func (s *Server) setupRoutes() {
 	meH := usershandler.NewMeHandler()
 
 	// Handlers
-	weatherH := handler.NewWeatherHandler(weatherSvc)
-	newsH := handler.NewNewsHandler(newsSvc)
+	weatherH := weatherhandler.NewWeatherHandler(weatherSvc)
+	newsH := newshandler.NewNewsHandler(newsSvc)
 	stocksH := financehandler.NewStocksHandler(stocksSvc, v)
-	calendarH := handler.NewCalendarHandler(calendarSvc)
+	calendarH := calendarhandler.NewCalendarHandler(calendarSvc)
 	tasksH := taskshandler.NewTasksHandler(tasksSvc, v)
 	settingsH := usershandler.NewUserSettingsHandler(settingsSvc, v)
 	labelsH := taskshandler.NewTaskLabelsHandler(labelsSvc, v)
-	metaH := handler.NewMetaHandler(sunriseSvc, quotesSvc)
+	metaH := metahandler.NewMetaHandler(sunriseSvc, quotesSvc)
 	billsH := financehandler.NewBillsHandler(billsSvc, v)
 	notificationsH := notificationshandler.NewNotificationsHandler(notificationSvc, v)
 	socialPrefsH := socialhandler.NewSocialPrefsHandler(socialPrefsSvc, v)

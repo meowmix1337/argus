@@ -7,37 +7,40 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/sync/errgroup"
 
+	calendarsvc "github.com/meowmix1337/argus/backend/internal/domain/external/calendar/service"
+	quotessvc "github.com/meowmix1337/argus/backend/internal/domain/external/quotes/service"
+	sunrisesvc "github.com/meowmix1337/argus/backend/internal/domain/external/sunrise/service"
+	weathersvc "github.com/meowmix1337/argus/backend/internal/domain/external/weather/service"
 	financesvc "github.com/meowmix1337/argus/backend/internal/domain/finance/service"
 	notificationssvc "github.com/meowmix1337/argus/backend/internal/domain/notifications/service"
 	taskssvc "github.com/meowmix1337/argus/backend/internal/domain/tasks/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 const defaultTaskLimit = 5
 
 // DashboardHandler aggregates all widget data into a single response.
 type DashboardHandler struct {
-	weather       *service.WeatherService
+	weather       *weathersvc.WeatherService
 	stocks        *financesvc.StocksService
-	calendar      *service.CalendarService
+	calendar      *calendarsvc.CalendarService
 	tasks         *taskssvc.TasksService
-	sunrise       *service.SunriseService
-	quotes        *service.QuotesService
+	sunrise       *sunrisesvc.SunriseService
+	quotes        *quotessvc.QuotesService
 	bills         *financesvc.BillsService
 	notifications *notificationssvc.NotificationService
 }
 
 // NewDashboardHandler creates a new DashboardHandler.
 func NewDashboardHandler(
-	weather *service.WeatherService,
+	weather *weathersvc.WeatherService,
 	stocks *financesvc.StocksService,
-	calendar *service.CalendarService,
+	calendar *calendarsvc.CalendarService,
 	tasks *taskssvc.TasksService,
-	sunrise *service.SunriseService,
-	quotes *service.QuotesService,
+	sunrise *sunrisesvc.SunriseService,
+	quotes *quotessvc.QuotesService,
 	bills *financesvc.BillsService,
 	notifications *notificationssvc.NotificationService,
 ) *DashboardHandler {
