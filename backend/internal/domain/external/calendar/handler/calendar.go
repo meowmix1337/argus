@@ -6,16 +6,16 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	calendarsvc "github.com/meowmix1337/argus/backend/internal/domain/external/calendar/service"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 type CalendarHandler struct {
-	service *service.CalendarService
+	service *calendarsvc.CalendarService
 }
 
-func NewCalendarHandler(svc *service.CalendarService) *CalendarHandler {
+func NewCalendarHandler(svc *calendarsvc.CalendarService) *CalendarHandler {
 	return &CalendarHandler{service: svc}
 }
 

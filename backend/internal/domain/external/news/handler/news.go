@@ -6,15 +6,15 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	newssvc "github.com/meowmix1337/argus/backend/internal/domain/external/news/service"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 type NewsHandler struct {
-	service *service.NewsService
+	service *newssvc.NewsService
 }
 
-func NewNewsHandler(svc *service.NewsService) *NewsHandler {
+func NewNewsHandler(svc *newssvc.NewsService) *NewsHandler {
 	return &NewsHandler{service: svc}
 }
 

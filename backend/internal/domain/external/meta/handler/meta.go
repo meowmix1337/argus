@@ -5,17 +5,18 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	quotessvc "github.com/meowmix1337/argus/backend/internal/domain/external/quotes/service"
+	sunrisesvc "github.com/meowmix1337/argus/backend/internal/domain/external/sunrise/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 type MetaHandler struct {
-	sunrise *service.SunriseService
-	quotes  *service.QuotesService
+	sunrise *sunrisesvc.SunriseService
+	quotes  *quotessvc.QuotesService
 }
 
-func NewMetaHandler(sunrise *service.SunriseService, quotes *service.QuotesService) *MetaHandler {
+func NewMetaHandler(sunrise *sunrisesvc.SunriseService, quotes *quotessvc.QuotesService) *MetaHandler {
 	return &MetaHandler{sunrise: sunrise, quotes: quotes}
 }
 

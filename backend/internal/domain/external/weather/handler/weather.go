@@ -6,15 +6,15 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	weathersvc "github.com/meowmix1337/argus/backend/internal/domain/external/weather/service"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 type WeatherHandler struct {
-	service *service.WeatherService
+	service *weathersvc.WeatherService
 }
 
-func NewWeatherHandler(svc *service.WeatherService) *WeatherHandler {
+func NewWeatherHandler(svc *weathersvc.WeatherService) *WeatherHandler {
 	return &WeatherHandler{service: svc}
 }
 
