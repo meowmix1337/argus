@@ -15,6 +15,7 @@ import (
 	"golang.org/x/oauth2"
 	githubendpoint "golang.org/x/oauth2/github"
 
+	integrationsrepo "github.com/meowmix1337/argus/backend/internal/domain/integrations/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
@@ -24,30 +25,10 @@ import (
 // providerGitHub is the provider_types.id value for GitHub integrations.
 const providerGitHub = "github"
 
-// IntegrationStore defines the data-access contract for user integrations.
-type IntegrationStore interface {
-	Create(ctx context.Context, i model.IntegrationCreate) (model.UserIntegration, error)
-	GetByUserAndProvider(ctx context.Context, userID, providerID string) (model.UserIntegration, error)
-	GetByID(ctx context.Context, id, userID string) (model.UserIntegration, error)
-	Delete(ctx context.Context, id, userID string) (int64, error)
-}
-
-// WatchedRepoStore defines the data-access contract for watched repositories.
-type WatchedRepoStore interface {
-	Create(ctx context.Context, w model.WatchedRepoCreate) (model.WatchedRepo, error)
-	GetByID(ctx context.Context, id, userID string) (model.WatchedRepo, error)
-	ListByIntegration(ctx context.Context, integrationID, userID string) ([]model.WatchedRepo, error)
-	// GetByOwnerRepo returns all watched repos for the given owner/repo across all users.
-	// Intentionally omits userID scoping — webhook dispatch receives an owner/repo from the
-	// payload with no user context, and must match every user watching that repo.
-	GetByOwnerRepo(ctx context.Context, owner, repo string) ([]model.WatchedRepo, error)
-	Delete(ctx context.Context, id, userID string) (int64, error)
-}
-
 // GitHubIntegrationService manages GitHub OAuth, repo watching, and webhook lifecycle.
 type GitHubIntegrationService struct {
-	integrations IntegrationStore
-	watchedRepos WatchedRepoStore
+	integrations integrationsrepo.IntegrationStore
+	watchedRepos integrationsrepo.WatchedRepoStore
 	encSvc       *platformcrypto.EncryptionService
 	httpClient   httpclient.HTTPClient
 	oauthCfg     *oauth2.Config
@@ -56,8 +37,8 @@ type GitHubIntegrationService struct {
 
 // NewGitHubIntegrationService creates a new GitHubIntegrationService.
 func NewGitHubIntegrationService(
-	integrations IntegrationStore,
-	watchedRepos WatchedRepoStore,
+	integrations integrationsrepo.IntegrationStore,
+	watchedRepos integrationsrepo.WatchedRepoStore,
 	encSvc *platformcrypto.EncryptionService,
 	httpClient httpclient.HTTPClient,
 	clientID, clientSecret, callbackURL, webhookURL string,

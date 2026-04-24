@@ -10,23 +10,23 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 
+	integrationssvc "github.com/meowmix1337/argus/backend/internal/domain/integrations/service"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 const webhookBodyLimit = 1 << 20 // 1 MiB
 
 // WebhooksHandler handles incoming GitHub webhook deliveries.
 type WebhooksHandler struct {
-	webhookSvc *service.WebhookService
+	webhookSvc *integrationssvc.WebhookService
 	validate   *validator.Validate
 	appEnv     string
 }
 
 // NewWebhooksHandler creates a new WebhooksHandler.
 func NewWebhooksHandler(
-	webhookSvc *service.WebhookService,
+	webhookSvc *integrationssvc.WebhookService,
 	validate *validator.Validate,
 	appEnv string,
 ) *WebhooksHandler {

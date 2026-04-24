@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 
+	integrationsrepo "github.com/meowmix1337/argus/backend/internal/domain/integrations/repository"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	platformcrypto "github.com/meowmix1337/argus/backend/internal/platform/crypto"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
@@ -36,14 +37,14 @@ type NotificationWriter interface {
 // WebhookService orchestrates HMAC authentication, event parsing, and notification
 // creation for incoming GitHub webhook deliveries.
 type WebhookService struct {
-	watchedRepos  WatchedRepoStore
+	watchedRepos  integrationsrepo.WatchedRepoStore
 	notifications NotificationWriter
 	encSvc        *platformcrypto.EncryptionService
 }
 
 // NewWebhookService creates a new WebhookService.
 func NewWebhookService(
-	watchedRepos WatchedRepoStore,
+	watchedRepos integrationsrepo.WatchedRepoStore,
 	notifications NotificationWriter,
 	encSvc *platformcrypto.EncryptionService,
 ) *WebhookService {

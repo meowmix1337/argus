@@ -8,7 +8,6 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/platform/session"
 )
 
-// withSession injects a session into the request context, simulating RequireAuth middleware.
 func withSession(r *http.Request, userID string) *http.Request {
 	ctx := context.WithValue(r.Context(), middleware.SessionKey, session.Data{UserID: userID})
 	return r.WithContext(ctx)
