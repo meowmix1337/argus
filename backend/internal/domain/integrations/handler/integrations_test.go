@@ -12,12 +12,13 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	integrationsrepo "github.com/meowmix1337/argus/backend/internal/domain/integrations/repository"
+	integrationssvc "github.com/meowmix1337/argus/backend/internal/domain/integrations/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
-// fakeIntegrationStore implements service.IntegrationStore.
+// fakeIntegrationStore implements integrationsrepo.IntegrationStore.
 type fakeIntegrationStore struct {
 	integration model.UserIntegration
 	err         error
@@ -41,7 +42,7 @@ func (f *fakeIntegrationStore) Delete(_ context.Context, _, _ string) (int64, er
 	return f.deleteRows, f.deleteErr
 }
 
-// fakeWatchedRepoStore implements service.WatchedRepoStore.
+// fakeWatchedRepoStore implements integrationsrepo.WatchedRepoStore.
 type fakeWatchedRepoStore struct {
 	repos []model.WatchedRepo
 	err   error
@@ -67,8 +68,8 @@ func (f *fakeWatchedRepoStore) Delete(_ context.Context, _, _ string) (int64, er
 	return 0, f.err
 }
 
-func newTestIntegrationsHandler(integStore service.IntegrationStore, watchedStore service.WatchedRepoStore) *IntegrationsHandler {
-	svc := service.NewGitHubIntegrationService(integStore, watchedStore, nil, nil, "", "", "", "")
+func newTestIntegrationsHandler(integStore integrationsrepo.IntegrationStore, watchedStore integrationsrepo.WatchedRepoStore) *IntegrationsHandler {
+	svc := integrationssvc.NewGitHubIntegrationService(integStore, watchedStore, nil, nil, "", "", "", "")
 	return NewIntegrationsHandler(svc, validator.New())
 }
 

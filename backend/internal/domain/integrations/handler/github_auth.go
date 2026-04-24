@@ -9,22 +9,22 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	integrationssvc "github.com/meowmix1337/argus/backend/internal/domain/integrations/service"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // GitHubAuthHandler drives the GitHub OAuth link flow (not a login provider).
 // Both routes sit behind requireAuth — they link a GitHub token to the existing
 // session user.
 type GitHubAuthHandler struct {
-	githubSvc     *service.GitHubIntegrationService
+	githubSvc     *integrationssvc.GitHubIntegrationService
 	successURL    string
 	secureCookies bool
 }
 
 // NewGitHubAuthHandler creates a new GitHubAuthHandler.
 func NewGitHubAuthHandler(
-	githubSvc *service.GitHubIntegrationService,
+	githubSvc *integrationssvc.GitHubIntegrationService,
 	successURL string,
 	secureCookies bool,
 ) *GitHubAuthHandler {

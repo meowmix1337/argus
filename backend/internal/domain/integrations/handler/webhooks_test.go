@@ -10,19 +10,18 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	integrationsrepo "github.com/meowmix1337/argus/backend/internal/domain/integrations/repository"
+	integrationssvc "github.com/meowmix1337/argus/backend/internal/domain/integrations/service"
 	"github.com/meowmix1337/argus/backend/internal/model"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 func newTestWebhooksHandler(appEnv string) *WebhooksHandler {
-	// fakeWatchedRepoStore and fakeNotificationStore are defined in
-	// integrations_test.go and notifications_test.go respectively.
-	svc := service.NewWebhookService(nil, nil, nil)
+	svc := integrationssvc.NewWebhookService(nil, nil, nil)
 	return NewWebhooksHandler(svc, validator.New(), appEnv)
 }
 
-func newTestWebhooksHandlerWithStores(appEnv string, watchedStore service.WatchedRepoStore, notifStore service.NotificationWriter) *WebhooksHandler {
-	svc := service.NewWebhookService(watchedStore, notifStore, nil)
+func newTestWebhooksHandlerWithStores(appEnv string, watchedStore integrationsrepo.WatchedRepoStore, notifStore integrationssvc.NotificationWriter) *WebhooksHandler {
+	svc := integrationssvc.NewWebhookService(watchedStore, notifStore, nil)
 	return NewWebhooksHandler(svc, validator.New(), appEnv)
 }
 

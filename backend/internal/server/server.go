@@ -12,6 +12,9 @@ import (
 	financehandler "github.com/meowmix1337/argus/backend/internal/domain/finance/handler"
 	financerepo "github.com/meowmix1337/argus/backend/internal/domain/finance/repository"
 	financesvc "github.com/meowmix1337/argus/backend/internal/domain/finance/service"
+	integrationshandler "github.com/meowmix1337/argus/backend/internal/domain/integrations/handler"
+	integrationsrepo "github.com/meowmix1337/argus/backend/internal/domain/integrations/repository"
+	integrationssvc "github.com/meowmix1337/argus/backend/internal/domain/integrations/service"
 	notificationshandler "github.com/meowmix1337/argus/backend/internal/domain/notifications/handler"
 	notificationsrepo "github.com/meowmix1337/argus/backend/internal/domain/notifications/repository"
 	notificationssvc "github.com/meowmix1337/argus/backend/internal/domain/notifications/service"
@@ -36,7 +39,6 @@ import (
 	"github.com/meowmix1337/argus/backend/internal/platform/publisher"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
 	"github.com/meowmix1337/argus/backend/internal/platform/validate"
-	"github.com/meowmix1337/argus/backend/internal/repository"
 	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
@@ -112,10 +114,10 @@ func (s *Server) setupRoutes() {
 	notificationSvc := notificationssvc.NewNotificationService(notificationRepo)
 	socialPrefsRepo := socialrepo.NewSQLiteSocialPrefsRepository(s.db)
 	socialPrefsSvc := socialsvc.NewSocialPrefsService(socialPrefsRepo)
-	watchedRepoRepo := repository.NewSQLiteWatchedRepoRepository(s.db)
-	integrationRepo := repository.NewSQLiteIntegrationRepository(s.db)
-	webhookSvc := service.NewWebhookService(watchedRepoRepo, notificationRepo, s.encSvc)
-	githubIntegrationSvc := service.NewGitHubIntegrationService(
+	watchedRepoRepo := integrationsrepo.NewSQLiteWatchedRepoRepository(s.db)
+	integrationRepo := integrationsrepo.NewSQLiteIntegrationRepository(s.db)
+	webhookSvc := integrationssvc.NewWebhookService(watchedRepoRepo, notificationRepo, s.encSvc)
+	githubIntegrationSvc := integrationssvc.NewGitHubIntegrationService(
 		integrationRepo, watchedRepoRepo, s.encSvc, hc,
 		s.cfg.GitHubClientID, s.cfg.GitHubClientSecret, s.cfg.GitHubCallbackURL, s.cfg.GitHubWebhookURL,
 	)
@@ -170,9 +172,9 @@ func (s *Server) setupRoutes() {
 	billsH := financehandler.NewBillsHandler(billsSvc, v)
 	notificationsH := notificationshandler.NewNotificationsHandler(notificationSvc, v)
 	socialPrefsH := socialhandler.NewSocialPrefsHandler(socialPrefsSvc, v)
-	webhooksH := handler.NewWebhooksHandler(webhookSvc, v, s.cfg.AppEnv)
-	githubAuthH := handler.NewGitHubAuthHandler(githubIntegrationSvc, s.cfg.FrontendURL, s.cfg.SecureCookies)
-	integrationsH := handler.NewIntegrationsHandler(githubIntegrationSvc, v)
+	webhooksH := integrationshandler.NewWebhooksHandler(webhookSvc, v, s.cfg.AppEnv)
+	githubAuthH := integrationshandler.NewGitHubAuthHandler(githubIntegrationSvc, s.cfg.FrontendURL, s.cfg.SecureCookies)
+	integrationsH := integrationshandler.NewIntegrationsHandler(githubIntegrationSvc, v)
 	postsH := socialhandler.NewPostsHandler(postsSvc, v)
 	followH := socialhandler.NewFollowHandler(followSvc, v)
 	feedH := socialhandler.NewFeedHandler(feedSvc)

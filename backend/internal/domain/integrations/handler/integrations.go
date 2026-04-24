@@ -12,10 +12,10 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/go-playground/validator/v10"
 
+	integrationssvc "github.com/meowmix1337/argus/backend/internal/domain/integrations/service"
 	apperrors "github.com/meowmix1337/argus/backend/internal/platform/errors"
 	"github.com/meowmix1337/argus/backend/internal/platform/middleware"
 	"github.com/meowmix1337/argus/backend/internal/platform/response"
-	"github.com/meowmix1337/argus/backend/internal/service"
 )
 
 // repoNameRe matches valid GitHub "owner/repo" full names.
@@ -23,12 +23,12 @@ var repoNameRe = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*/[a-zA-Z0-9][a-z
 
 // IntegrationsHandler handles GitHub integration management endpoints.
 type IntegrationsHandler struct {
-	githubSvc *service.GitHubIntegrationService
+	githubSvc *integrationssvc.GitHubIntegrationService
 	validate  *validator.Validate
 }
 
 // NewIntegrationsHandler creates a new IntegrationsHandler.
-func NewIntegrationsHandler(githubSvc *service.GitHubIntegrationService, validate *validator.Validate) *IntegrationsHandler {
+func NewIntegrationsHandler(githubSvc *integrationssvc.GitHubIntegrationService, validate *validator.Validate) *IntegrationsHandler {
 	return &IntegrationsHandler{githubSvc: githubSvc, validate: validate}
 }
 
